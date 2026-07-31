@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from 'react';
-import { Html5QrcodeScanner, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 
 interface BarcodeScannerProps {
   onScanSuccess: (decodedText: string) => void;
@@ -9,52 +9,58 @@ interface BarcodeScannerProps {
 }
 
 const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanError }) => {
-  const scannerRef = useRef<Html5QrcodeScanner | null>(null);
+  const scannerRef = useRef<Html5Qrcode | null>(null);
 
   useEffect(() => {
-    // We use Html5QrcodeScanner because it provides a camera selection UI.
-    // This is crucial because phones have multiple back cameras (wide, macro, etc)
-    // and laptops have fixed focus. Allowing the user to pick the camera manually 
-    // solves 99% of "it doesn't read" issues.
-    scannerRef.current = new Html5QrcodeScanner(
-      "qr-reader",
-      { 
-        fps: 10,
-        qrbox: { width: 300, height: 150 },
-        aspectRatio: 1.0,
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.QR_CODE,
-          Html5QrcodeSupportedFormats.CODE_128,
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.UPC_E
-        ]
-      },
-      false
-    );
+    const html5QrCode = new Html5Qrcode("qr-reader");
+    scannerRef.current = html5QrCode;
 
-    const handleScanSuccess = (decodedText: string) => {
-      onScanSuccess(decodedText);
-      if (scannerRef.current) {
-         scannerRef.current.clear();
-      }
+    const config = {
+      fps: 10,
+      qrbox: { width: 300, height: 150 }, // مستطيل مناسب للباركود
+      aspectRatio: 1.0,
+      disableFlip: true,
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.QR_CODE,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.UPC_A,
+      ]
     };
 
-    scannerRef.current.render(handleScanSuccess, (err) => {
-      if (onScanError) onScanError(err);
+    // Force back camera (environment)
+    html5QrCode.start(
+      { facingMode: "environment" },
+      config,
+      (decodedText) => {
+        onScanSuccess(decodedText);
+        html5QrCode.stop().catch(() => {});
+      },
+      (errorMessage) => {
+        if (onScanError) onScanError(errorMessage);
+      }
+    ).catch(err => {
+      console.error("Failed to start back camera", err);
     });
 
     return () => {
       if (scannerRef.current) {
-        scannerRef.current.clear().catch(console.error);
+        if (scannerRef.current.isScanning) {
+          scannerRef.current.stop().then(() => {
+            scannerRef.current?.clear();
+          }).catch(() => {});
+        } else {
+          scannerRef.current.clear();
+        }
       }
     };
   }, [onScanSuccess, onScanError]);
 
   return (
-    <div className="w-full mx-auto overflow-hidden rounded-xl bg-white dark:bg-gray-800 shadow-sm [&>div]:border-none [&_button]:bg-primary [&_button]:text-white [&_button]:px-4 [&_button]:py-2 [&_button]:rounded-md [&_button]:mt-2">
-       <div id="qr-reader" className="w-full"></div>
+    <div className="w-full mx-auto overflow-hidden rounded-xl bg-gray-900 shadow-inner relative flex flex-col items-center justify-center min-h-[250px] max-w-[300px]">
+       <div id="qr-reader" className="w-full h-full [&_video]:object-cover"></div>
+       <div className="absolute inset-0 border-4 border-primary/50 pointer-events-none rounded-xl"></div>
     </div>
   );
 };
