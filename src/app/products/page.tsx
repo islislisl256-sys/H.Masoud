@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { Plus, Search, Filter, MoreVertical, Edit, Trash2, Download, Upload, Loader2, Save, X, QrCode } from "lucide-react";
+import { Plus, Search, Filter, MoreVertical, Edit, Trash2, Download, Upload, Loader2, Save, X, QrCode, Camera, ScanFace, ImagePlus } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
+import { Html5Qrcode } from "html5-qrcode";
 
 type Product = {
   id: string;
@@ -21,6 +22,8 @@ export default function ProductsPage() {
   const [loading, setLoading] = useState(true);
   const [isAdding, setIsAdding] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const [showScanMenu, setShowScanMenu] = useState(false);
+  const [scanMode, setScanMode] = useState<"environment" | "user" | null>(null);
   
   // New Product State
   const [newProduct, setNewProduct] = useState({
@@ -47,16 +50,31 @@ export default function ProductsPage() {
       return;
     }
     setSaving(true);
-    const { error } = await supabase.from('products').insert([newProduct]);
+    const { data, error } = await supabase.from('products').insert([newProduct]).select().single();
     if (error) {
       console.error(error);
       alert("حدث خطأ أثناء الإضافة. تأكد من أن رقم المنتج غير مكرر.");
     } else {
+      // Update local state without refresh
+      setProducts([data, ...products]);
+      setNewProduct({ name: '', purchase_price: 0, sale_price: 0, quantity: 0, product_number: '' });
       setIsAdding(false);
-      setNewProduct({ product_number: "", name: "", purchase_price: 0, sale_price: 0, quantity: 0 });
-      fetchProducts();
     }
     setSaving(false);
+  };
+
+  const handleImageScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      try {
+        const html5QrCode = new Html5Qrcode("hidden-qr-reader");
+        const decodedText = await html5QrCode.scanFile(file, true);
+        setNewProduct({...newProduct, product_number: decodedText});
+      } catch (err) {
+        alert("لم يتم العثور على باركود في الصورة، تأكد من وضوح الصورة.");
+      }
+      setShowScanMenu(false);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -97,15 +115,45 @@ export default function ProductsPage() {
           <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
             <h3 className="font-bold mb-4">إضافة منتج جديد</h3>
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div className="flex gap-2">
-                <input type="text" placeholder="رقم الباركود (انقر للمسح بالكاميرا)" className="flex-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
+              <div className="flex gap-2 relative">
+                <input type="text" placeholder="رقم الباركود (انقر للخيارات)" className="flex-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
                   value={newProduct.product_number} 
                   onChange={e => setNewProduct({...newProduct, product_number: e.target.value})}
-                  onClick={() => setIsScanning(true)} 
+                  onClick={() => setShowScanMenu(!showScanMenu)} 
                 />
-                <button onClick={() => setIsScanning(true)} className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20" title="فتح الكاميرا">
+                <button onClick={() => setShowScanMenu(!showScanMenu)} className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20" title="خيارات المسح">
                   <QrCode className="h-5 w-5" />
                 </button>
+
+                {showScanMenu && (
+                  <div className="absolute top-full mt-2 right-0 w-64 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-2 flex flex-col gap-1">
+                    <label className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors">
+                       <div className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-full text-blue-600 dark:text-blue-400">
+                          <ImagePlus className="h-5 w-5" />
+                       </div>
+                       <span className="font-medium text-sm text-gray-700 dark:text-gray-200">رفع صورة من الهاتف</span>
+                       <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
+                    </label>
+                    <button 
+                      onClick={() => { setScanMode("environment"); setIsScanning(true); setShowScanMenu(false); }}
+                      className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right"
+                    >
+                       <div className="bg-green-100 dark:bg-green-900/50 p-2 rounded-full text-green-600 dark:text-green-400">
+                          <Camera className="h-5 w-5" />
+                       </div>
+                       <span className="font-medium text-sm text-gray-700 dark:text-gray-200">تصوير بالكاميرا الخلفية</span>
+                    </button>
+                    <button 
+                      onClick={() => { setScanMode("user"); setIsScanning(true); setShowScanMenu(false); }}
+                      className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right"
+                    >
+                       <div className="bg-purple-100 dark:bg-purple-900/50 p-2 rounded-full text-purple-600 dark:text-purple-400">
+                          <ScanFace className="h-5 w-5" />
+                       </div>
+                       <span className="font-medium text-sm text-gray-700 dark:text-gray-200">تصوير بالكاميرا الأمامية</span>
+                    </button>
+                  </div>
+                )}
               </div>
               <input type="text" placeholder="اسم المنتج" className="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                 value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} />
@@ -135,6 +183,7 @@ export default function ProductsPage() {
                     <button onClick={() => setIsScanning(false)} className="text-gray-500 hover:text-red-500"><X className="h-5 w-5" /></button>
                   </div>
                   <BarcodeScanner 
+                    defaultMode={scanMode || "environment"}
                     onScanSuccess={(decodedText) => {
                       setNewProduct({...newProduct, product_number: decodedText});
                       setIsScanning(false);
@@ -150,6 +199,8 @@ export default function ProductsPage() {
                 </div>
               </div>
             )}
+            
+            <div id="hidden-qr-reader" className="hidden"></div>
           </div>
         )}
 

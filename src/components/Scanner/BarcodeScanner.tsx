@@ -7,9 +7,10 @@ import { RefreshCcw } from 'lucide-react';
 interface BarcodeScannerProps {
   onScanSuccess: (decodedText: string) => void;
   onScanError?: (errorMessage: string) => void;
+  defaultMode?: "environment" | "user";
 }
 
-const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanError }) => {
+const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanError, defaultMode = "environment" }) => {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const [cameras, setCameras] = useState<CameraDevice[]>([]);
   const [currentCameraIndex, setCurrentCameraIndex] = useState<number>(0);
@@ -20,9 +21,11 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
     Html5Qrcode.getCameras().then(devices => {
       if (devices && devices.length > 0) {
         setCameras(devices);
-        // Default to the second camera if it exists (usually the main back camera on modern phones)
-        // Otherwise use the first one
-        setCurrentCameraIndex(devices.length > 1 ? 1 : 0);
+        if (defaultMode === "user") {
+          setCurrentCameraIndex(0); // usually front
+        } else {
+          setCurrentCameraIndex(devices.length > 1 ? 1 : 0);
+        }
       }
     }).catch(err => {
       console.error("Error getting cameras", err);
