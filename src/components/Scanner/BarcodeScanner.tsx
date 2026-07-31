@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats, CameraDevice } from 'html5-qrcode';
 import { RefreshCcw } from 'lucide-react';
 
 interface BarcodeScannerProps {
@@ -11,10 +11,29 @@ interface BarcodeScannerProps {
 
 const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanError }) => {
   const scannerRef = useRef<Html5Qrcode | null>(null);
-  const [facingMode, setFacingMode] = useState<"environment" | "user">("environment");
+  const [cameras, setCameras] = useState<CameraDevice[]>([]);
+  const [currentCameraIndex, setCurrentCameraIndex] = useState<number>(0);
+  const [isInitializing, setIsInitializing] = useState(true);
+
+  // Fetch cameras on mount
+  useEffect(() => {
+    Html5Qrcode.getCameras().then(devices => {
+      if (devices && devices.length > 0) {
+        setCameras(devices);
+        // Default to the second camera if it exists (usually the main back camera on modern phones)
+        // Otherwise use the first one
+        setCurrentCameraIndex(devices.length > 1 ? 1 : 0);
+      }
+    }).catch(err => {
+      console.error("Error getting cameras", err);
+    }).finally(() => {
+      setIsInitializing(false);
+    });
+  }, []);
 
   useEffect(() => {
-    // If there is an existing scanner running, stop it before restarting
+    if (isInitializing || cameras.length === 0) return;
+
     const startScanner = async () => {
       if (scannerRef.current?.isScanning) {
         await scannerRef.current.stop();
@@ -40,8 +59,9 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
       };
 
       try {
+        const cameraId = cameras[currentCameraIndex].id;
         await scannerRef.current.start(
-          { facingMode: facingMode },
+          cameraId,
           config,
           (decodedText) => {
             onScanSuccess(decodedText);
@@ -69,10 +89,13 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
         }
       }
     };
-  }, [facingMode, onScanSuccess, onScanError]);
+  }, [currentCameraIndex, cameras, isInitializing, onScanSuccess, onScanError]);
 
   const toggleCamera = () => {
-    setFacingMode(prev => prev === "environment" ? "user" : "environment");
+    if (cameras.length > 1) {
+      // Cycle through all available cameras
+      setCurrentCameraIndex((prevIndex) => (prevIndex + 1) % cameras.length);
+    }
   };
 
   return (
@@ -80,13 +103,18 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
        <div id="qr-reader" className="w-full h-full [&_video]:object-cover"></div>
        <div className="absolute inset-0 border-4 border-primary/50 pointer-events-none rounded-xl"></div>
        
-       <button 
-         onClick={toggleCamera}
-         className="absolute bottom-2 right-2 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 transition-colors z-10 flex items-center justify-center"
-         title="قلب الكاميرا"
-       >
-         <RefreshCcw className="h-5 w-5" />
-       </button>
+       {cameras.length > 1 && (
+         <button 
+           onClick={toggleCamera}
+           className="absolute bottom-2 right-2 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 transition-colors z-10 flex items-center justify-center"
+           title="تبديل الكاميرا"
+         >
+           <RefreshCcw className="h-5 w-5" />
+           <span className="absolute -top-6 bg-black/80 text-xs px-2 py-1 rounded">
+             {currentCameraIndex + 1}/{cameras.length}
+           </span>
+         </button>
+       )}
     </div>
   );
 };
