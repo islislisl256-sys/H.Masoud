@@ -14,6 +14,15 @@ interface BarcodeScannerProps {
 const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanError, defaultMode = "environment", continuous = false }) => {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const lastScanned = useRef<{text: string, time: number}>({ text: "", time: 0 });
+  
+  const onScanSuccessRef = useRef(onScanSuccess);
+  const onScanErrorRef = useRef(onScanError);
+
+  useEffect(() => {
+    onScanSuccessRef.current = onScanSuccess;
+    onScanErrorRef.current = onScanError;
+  }, [onScanSuccess, onScanError]);
+
   const [cameras, setCameras] = useState<CameraDevice[]>([]);
   const [currentCameraIndex, setCurrentCameraIndex] = useState<number>(0);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -77,14 +86,14 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
                 return; // Skip duplicate scan within 2 seconds
               }
               lastScanned.current = { text: decodedText, time: now };
-              onScanSuccess(decodedText);
+              onScanSuccessRef.current(decodedText);
             } else {
-              onScanSuccess(decodedText);
+              onScanSuccessRef.current(decodedText);
               scannerRef.current?.stop().catch(() => {});
             }
           },
           (errorMessage) => {
-            if (onScanError) onScanError(errorMessage);
+            if (onScanErrorRef.current) onScanErrorRef.current(errorMessage);
           }
         );
       } catch (err) {
@@ -105,7 +114,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
         }
       }
     };
-  }, [currentCameraIndex, cameras, isInitializing, onScanSuccess, onScanError]);
+  }, [currentCameraIndex, cameras, isInitializing, continuous]);
 
   return (
     <div className="w-full mx-auto overflow-hidden rounded-xl bg-gray-900 shadow-inner relative flex flex-col items-center justify-center min-h-[250px] max-w-[300px]">
