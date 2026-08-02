@@ -107,30 +107,10 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
     };
   }, [currentCameraIndex, cameras, isInitializing, onScanSuccess, onScanError]);
 
-  const toggleCamera = () => {
-    if (cameras.length > 1) {
-      // Cycle through all available cameras
-      setCurrentCameraIndex((prevIndex) => (prevIndex + 1) % cameras.length);
-    }
-  };
-
   return (
     <div className="w-full mx-auto overflow-hidden rounded-xl bg-gray-900 shadow-inner relative flex flex-col items-center justify-center min-h-[250px] max-w-[300px]">
        <div id="qr-reader" className="w-full h-full [&_video]:object-cover"></div>
        <div className="absolute inset-0 border-4 border-primary/50 pointer-events-none rounded-xl"></div>
-       
-       {cameras.length > 1 && (
-         <button 
-           onClick={toggleCamera}
-           className="absolute bottom-2 right-2 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 transition-colors z-10 flex items-center justify-center"
-           title="تبديل الكاميرا"
-         >
-           <RefreshCcw className="h-5 w-5" />
-           <span className="absolute -top-6 bg-black/80 text-xs px-2 py-1 rounded">
-             {currentCameraIndex + 1}/{cameras.length}
-           </span>
-         </button>
-       )}
     </div>
   );
 };
