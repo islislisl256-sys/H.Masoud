@@ -32,7 +32,7 @@ export default function Header() {
           className="p-2 text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
           aria-label="Toggle dark mode"
         >
-          {mounted && resolvedTheme === "dark" ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+          {mounted && resolvedTheme === "dark" ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
         </button>
         
         <div className="flex items-center gap-3 border-r pr-4 border-gray-200 dark:border-gray-700">

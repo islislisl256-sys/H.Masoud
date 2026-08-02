@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { QrCode, Search, Trash2, Plus, Minus, Save, ShoppingCart, Loader2 } from "lucide-react";
+import { QrCode, Search, Trash2, Plus, Minus, Save, ShoppingCart, Loader2, X } from "lucide-react";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import { supabase } from "@/lib/supabase";
 
@@ -149,37 +149,58 @@ export default function POSPage() {
 
   return (
     <ProtectedLayout>
-      <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-8rem)]">
+      <div className="space-y-4 pb-24">
         
-        {/* Left Side: Invoice Panel */}
-        <div className="w-full lg:w-1/3 flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+        {/* Search Bar */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">بحث سريع بالاسم أو رقم الباركود</h3>
+          <div className="relative">
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+              <Search className="h-4 w-4 text-gray-400" />
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="ابحث برقم المنتج أو الاسم..."
+              className="w-full pl-3 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
+              onKeyDown={handleManualSearch}
+            />
+          </div>
+          <p className="text-xs text-gray-400 mt-2 text-center">اضغط Enter للإضافة السريعة عند استخدام قارئ باركود خارجي</p>
+        </div>
+
+        {/* Invoice Details - Full Width */}
+        <div className="w-full flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex items-center justify-between">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white">تفاصيل الفاتورة</h2>
+            <span className="text-sm text-gray-500 dark:text-gray-400">{invoiceItems.length} منتج</span>
           </div>
           
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="overflow-y-auto p-4 space-y-3 min-h-[200px] max-h-[50vh]">
             {invoiceItems.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
-                <ShoppingCart className="h-12 w-12 mb-2 opacity-20" />
-                <p>الفاتورة فارغة. قم بمسح منتج للإضافة.</p>
+              <div className="h-48 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
+                <ShoppingCart className="h-16 w-16 mb-3 opacity-20" />
+                <p className="text-lg">الفاتورة فارغة</p>
+                <p className="text-sm mt-1">اضغط على زر الماسح الأزرق لمسح منتج</p>
               </div>
             ) : (
               invoiceItems.map(item => (
-                <div key={item.id} className="flex flex-col gap-2 p-3 border border-gray-100 dark:border-gray-700 rounded-lg bg-gray-50/50 dark:bg-gray-700/20">
+                <div key={item.id} className="flex flex-col gap-2 p-4 border border-gray-100 dark:border-gray-700 rounded-lg bg-gray-50/50 dark:bg-gray-700/20">
                   <div className="flex justify-between items-start">
-                    <span className="font-medium text-gray-900 dark:text-white">{item.name}</span>
-                    <button onClick={() => removeItem(item.id)} className="text-gray-400 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
+                    <span className="font-semibold text-gray-900 dark:text-white text-base">{item.name}</span>
+                    <button onClick={() => removeItem(item.id)} className="text-gray-400 hover:text-red-500 p-1"><Trash2 className="h-5 w-5" /></button>
                   </div>
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="text-primary font-bold">{item.sale_price} د.ج</span>
-                    <div className="flex items-center gap-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-md px-2 py-1">
-                      <button onClick={() => updateQuantity(item.id, -1)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"><Minus className="h-3 w-3" /></button>
-                      <span className="text-sm font-medium w-4 text-center">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.id, 1)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"><Plus className="h-3 w-3" /></button>
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-primary font-bold text-lg">{item.sale_price} د.ج</span>
+                    <div className="flex items-center gap-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2">
+                      <button onClick={() => updateQuantity(item.id, -1)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"><Minus className="h-4 w-4" /></button>
+                      <span className="text-base font-bold w-6 text-center text-gray-900 dark:text-white">{item.quantity}</span>
+                      <button onClick={() => updateQuantity(item.id, 1)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"><Plus className="h-4 w-4" /></button>
                     </div>
                   </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400 text-left mt-1 border-t border-dashed pt-1">
-                    الإجمالي: <span className="font-bold text-gray-900 dark:text-white">{item.sale_price * item.quantity} د.ج</span>
+                  <div className="text-sm text-gray-500 dark:text-gray-400 text-left mt-1 border-t border-dashed border-gray-200 dark:border-gray-600 pt-2">
+                    الإجمالي: <span className="font-bold text-gray-900 dark:text-white">{(item.sale_price * item.quantity).toLocaleString()} د.ج</span>
                   </div>
                 </div>
               ))
@@ -191,7 +212,7 @@ export default function POSPage() {
               <span>عدد المنتجات:</span>
               <span className="font-medium text-gray-900 dark:text-white">{invoiceItems.length}</span>
             </div>
-            <div className="flex justify-between text-lg font-bold text-gray-900 dark:text-white border-b border-dashed border-gray-300 dark:border-gray-600 pb-2">
+            <div className="flex justify-between text-xl font-bold text-gray-900 dark:text-white border-b border-dashed border-gray-300 dark:border-gray-600 pb-3">
               <span>الإجمالي:</span>
               <span className="text-primary">{total.toLocaleString()} د.ج</span>
             </div>
@@ -199,7 +220,7 @@ export default function POSPage() {
             <button 
               onClick={saveInvoice}
               disabled={invoiceItems.length === 0 || saving}
-              className="w-full flex items-center justify-center gap-2 bg-primary text-white py-3 rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-lg mt-2"
+              className="w-full flex items-center justify-center gap-2 bg-primary text-white py-4 rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-lg mt-2"
             >
               {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
               {saving ? "جاري الحفظ..." : "حفظ الفاتورة"}
@@ -207,57 +228,45 @@ export default function POSPage() {
           </div>
         </div>
 
-        {/* Right Side: Scanner & Quick Search */}
-        <div className="w-full lg:w-2/3 flex flex-col gap-6">
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 flex-1 flex flex-col items-center justify-center relative overflow-hidden group">
-            {isScanning ? (
-              <div className="w-full h-full flex flex-col items-center">
-                 <button onClick={() => setIsScanning(false)} className="mb-4 text-sm text-red-500 border border-red-200 px-4 py-2 rounded hover:bg-red-50 dark:border-red-900/50 dark:hover:bg-red-900/20">
-                    إلغاء المسح
-                 </button>
-                 <BarcodeScanner 
-                    onScanSuccess={handleScanSuccess} 
-                 />
-              </div>
-            ) : (
-              <div className="text-center space-y-6">
-                <div className="mx-auto w-24 h-24 bg-primary/10 text-primary rounded-full flex items-center justify-center">
-                  <QrCode className="h-12 w-12" />
-                </div>
-                <div>
-                  <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">امسح رمز QR الخاص بالمنتج</h3>
-                  <p className="text-gray-500 dark:text-gray-400">وجه الكاميرا أو القارئ نحو رمز المنتج لإضافته مباشرة إلى الفاتورة</p>
-                </div>
-                <button 
-                  onClick={() => setIsScanning(true)}
-                  className="bg-primary text-white px-8 py-3 rounded-full hover:bg-primary/90 transition-transform active:scale-95 shadow-md shadow-primary/20"
-                >
-                  تشغيل الكاميرا
-                </button>
-              </div>
-            )}
-          </div>
+      </div>
 
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">أو أضف يدوياً (بحث سريع)</h3>
-            <div className="relative">
-              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                <Search className="h-4 w-4 text-gray-400" />
-              </div>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="ابحث برقم المنتج أو الاسم..."
-                className="w-full pl-3 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
-                onKeyDown={handleManualSearch}
-              />
+      {/* Fixed Floating Scan Button - Bottom Right */}
+      <button
+        onClick={() => setIsScanning(!isScanning)}
+        className={`fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 active:scale-90 ${
+          isScanning 
+            ? "bg-red-500 hover:bg-red-600 shadow-red-500/30" 
+            : "bg-primary hover:bg-primary-hover shadow-primary/30"
+        }`}
+      >
+        {isScanning ? (
+          <X className="h-7 w-7 text-white" />
+        ) : (
+          <QrCode className="h-7 w-7 text-white" />
+        )}
+      </button>
+
+      {/* Scanner Modal Overlay */}
+      {isScanning && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl w-full max-w-md flex flex-col">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="font-bold text-gray-900 dark:text-white">امسح الباركود</h3>
+              <button onClick={() => setIsScanning(false)} className="text-gray-500 hover:text-red-500"><X className="h-5 w-5" /></button>
             </div>
-            <p className="text-xs text-gray-400 mt-2 text-center">اضغط Enter للإضافة السريعة عند استخدام قارئ باركود خارجي</p>
+            <BarcodeScanner 
+              onScanSuccess={handleScanSuccess} 
+            />
+            <button 
+              onClick={() => setIsScanning(false)}
+              className="mt-4 w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-lg flex justify-center items-center gap-2"
+            >
+              <X className="h-5 w-5" />
+              إيقاف المسح والإغلاق
+            </button>
           </div>
         </div>
-
-      </div>
+      )}
     </ProtectedLayout>
   );
 }
