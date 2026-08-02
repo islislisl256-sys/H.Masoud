@@ -62,8 +62,8 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
 
       const config = {
         fps: 10,
-        qrbox: { width: 300, height: 150 }, // مستطيل مناسب للباركود
-        aspectRatio: 1.0,
+        qrbox: { width: 250, height: 120 }, // مستطيل مناسب للباركود
+        aspectRatio: 2.0,
         disableFlip: true,
         formatsToSupport: [
           Html5QrcodeSupportedFormats.QR_CODE,
@@ -117,7 +117,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
   }, [currentCameraIndex, cameras, isInitializing, continuous]);
 
   return (
-    <div className="w-full mx-auto overflow-hidden rounded-xl bg-gray-900 shadow-inner relative flex flex-col items-center justify-center min-h-[250px] max-w-[300px]">
+    <div className="w-full mx-auto overflow-hidden rounded-xl bg-gray-900 shadow-inner relative flex flex-col items-center justify-center">
        <div id="qr-reader" className="w-full h-full [&_video]:object-cover"></div>
        <div className="absolute inset-0 border-4 border-primary/50 pointer-events-none rounded-xl"></div>
     </div>
