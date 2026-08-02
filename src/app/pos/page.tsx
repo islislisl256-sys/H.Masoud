@@ -50,7 +50,6 @@ export default function POSPage() {
     const product = products.find(p => p.product_number === decodedText);
     if (product) {
       addProduct(product);
-      setIsScanning(false);
     } else {
       alert("المنتج غير موجود في قاعدة البيانات!");
     }
@@ -297,11 +296,28 @@ export default function POSPage() {
             </div>
             <BarcodeScanner 
               defaultMode={scanMode || "environment"}
-              onScanSuccess={handleScanSuccess} 
+              onScanSuccess={handleScanSuccess}
+              continuous={true}
             />
+            
+            <div className="mt-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 flex justify-between items-center border border-gray-100 dark:border-gray-600">
+               <div>
+                  <span className="block text-xs text-gray-500 dark:text-gray-400">المنتجات: {invoiceItems.length}</span>
+                  <span className="block font-bold text-primary">{total.toLocaleString()} د.ج</span>
+               </div>
+               <button 
+                 onClick={() => { setIsScanning(false); saveInvoice(); }}
+                 disabled={invoiceItems.length === 0 || saving}
+                 className="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
+               >
+                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                 حفظ الفاتورة
+               </button>
+            </div>
+
             <button 
               onClick={() => setIsScanning(false)}
-              className="mt-4 w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-lg flex justify-center items-center gap-2"
+              className="mt-3 w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-lg flex justify-center items-center gap-2 transition-colors"
             >
               <X className="h-5 w-5" />
               إيقاف المسح والإغلاق

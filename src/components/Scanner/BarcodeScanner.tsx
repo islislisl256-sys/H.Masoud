@@ -8,10 +8,12 @@ interface BarcodeScannerProps {
   onScanSuccess: (decodedText: string) => void;
   onScanError?: (errorMessage: string) => void;
   defaultMode?: "environment" | "user";
+  continuous?: boolean;
 }
 
-const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanError, defaultMode = "environment" }) => {
+const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanError, defaultMode = "environment", continuous = false }) => {
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const lastScanned = useRef<{text: string, time: number}>({ text: "", time: 0 });
   const [cameras, setCameras] = useState<CameraDevice[]>([]);
   const [currentCameraIndex, setCurrentCameraIndex] = useState<number>(0);
   const [isInitializing, setIsInitializing] = useState(true);
@@ -69,8 +71,17 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
           cameraId,
           config,
           (decodedText) => {
-            onScanSuccess(decodedText);
-            scannerRef.current?.stop().catch(() => {});
+            if (continuous) {
+              const now = Date.now();
+              if (lastScanned.current.text === decodedText && now - lastScanned.current.time < 2000) {
+                return; // Skip duplicate scan within 2 seconds
+              }
+              lastScanned.current = { text: decodedText, time: now };
+              onScanSuccess(decodedText);
+            } else {
+              onScanSuccess(decodedText);
+              scannerRef.current?.stop().catch(() => {});
+            }
           },
           (errorMessage) => {
             if (onScanError) onScanError(errorMessage);
