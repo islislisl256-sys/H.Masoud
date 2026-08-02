@@ -22,9 +22,11 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
       if (devices && devices.length > 0) {
         setCameras(devices);
         if (defaultMode === "user") {
-          setCurrentCameraIndex(0); // usually front
+           const frontIndex = devices.findIndex(d => d.label.toLowerCase().includes('front') || d.label.toLowerCase().includes('user') || d.label.toLowerCase().includes('أمامية'));
+           setCurrentCameraIndex(frontIndex !== -1 ? frontIndex : 0);
         } else {
-          setCurrentCameraIndex(devices.length > 1 ? 1 : 0);
+           const backIndex = devices.findIndex(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('environment') || d.label.toLowerCase().includes('rear') || d.label.toLowerCase().includes('خلفية'));
+           setCurrentCameraIndex(backIndex !== -1 ? backIndex : (devices.length > 1 ? 1 : 0));
         }
       }
     }).catch(err => {
