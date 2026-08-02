@@ -190,6 +190,17 @@ export default function POSPage() {
 
         {/* Invoice Details - Full Width */}
         <div className="w-full flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+          {isScanning && (
+            <div className="w-full border-b border-gray-200 dark:border-gray-700 bg-black/5 dark:bg-white/5 py-4 flex justify-center">
+              <div className="w-full max-w-[250px]">
+                <BarcodeScanner 
+                  defaultMode={scanMode || "environment"}
+                  onScanSuccess={handleScanSuccess}
+                  continuous={true}
+                />
+              </div>
+            </div>
+          )}
           <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex items-center justify-between">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white">تفاصيل الفاتورة</h2>
             <span className="text-sm text-gray-500 dark:text-gray-400">{invoiceItems.length} منتج</span>
@@ -286,45 +297,7 @@ export default function POSPage() {
         </button>
       </div>
 
-      {/* Scanner Modal Overlay */}
-      {isScanning && (
-        <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/80">
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl w-full max-w-md flex flex-col">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-gray-900 dark:text-white">امسح الباركود</h3>
-              <button onClick={() => setIsScanning(false)} className="text-gray-500 hover:text-red-500"><X className="h-5 w-5" /></button>
-            </div>
-            <BarcodeScanner 
-              defaultMode={scanMode || "environment"}
-              onScanSuccess={handleScanSuccess}
-              continuous={true}
-            />
-            
-            <div className="mt-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 flex justify-between items-center border border-gray-100 dark:border-gray-600">
-               <div>
-                  <span className="block text-xs text-gray-500 dark:text-gray-400">المنتجات: {invoiceItems.length}</span>
-                  <span className="block font-bold text-primary">{total.toLocaleString()} د.ج</span>
-               </div>
-               <button 
-                 onClick={() => { setIsScanning(false); saveInvoice(); }}
-                 disabled={invoiceItems.length === 0 || saving}
-                 className="bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-lg font-bold disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 transition-colors"
-               >
-                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                 حفظ الفاتورة
-               </button>
-            </div>
 
-            <button 
-              onClick={() => setIsScanning(false)}
-              className="mt-3 w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-lg flex justify-center items-center gap-2 transition-colors"
-            >
-              <X className="h-5 w-5" />
-              إيقاف المسح والإغلاق
-            </button>
-          </div>
-        </div>
-      )}
       
       <div id="hidden-qr-reader-pos" className="hidden"></div>
     </ProtectedLayout>
