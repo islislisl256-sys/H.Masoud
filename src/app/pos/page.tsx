@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { QrCode, Search, Trash2, Plus, Minus, Save, ShoppingCart, Loader2, X } from "lucide-react";
+import { QrCode, Search, Trash2, Plus, Minus, Save, ShoppingCart, Loader2, X, ImagePlus, Camera, ScanFace } from "lucide-react";
+import { Html5Qrcode } from "html5-qrcode";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import { supabase } from "@/lib/supabase";
 
@@ -26,6 +27,8 @@ type InvoiceItem = {
 export default function POSPage() {
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
   const [isScanning, setIsScanning] = useState(false);
+  const [showScanMenu, setShowScanMenu] = useState(false);
+  const [scanMode, setScanMode] = useState<"user" | "environment">("environment");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -50,6 +53,20 @@ export default function POSPage() {
       setIsScanning(false);
     } else {
       alert("المنتج غير موجود في قاعدة البيانات!");
+    }
+  };
+
+  const handleImageScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      try {
+        const html5QrCode = new Html5Qrcode("hidden-qr-reader-pos");
+        const decodedText = await html5QrCode.scanFile(file, true);
+        handleScanSuccess(decodedText);
+      } catch (err) {
+        alert("لم يتم العثور على باركود في الصورة، تأكد من وضوح الصورة.");
+      }
+      setShowScanMenu(false);
     }
   };
 
@@ -233,20 +250,51 @@ export default function POSPage() {
       </div>
 
       {/* Fixed Floating Scan Button - Bottom Right */}
-      <button
-        onClick={() => setIsScanning(!isScanning)}
-        className={`fixed bottom-6 right-6 z-50 w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 active:scale-90 ${
-          isScanning 
-            ? "bg-red-500 hover:bg-red-600 shadow-red-500/30" 
-            : "bg-primary hover:bg-primary-hover shadow-primary/30"
-        }`}
-      >
-        {isScanning ? (
-          <X className="h-7 w-7 text-white" />
-        ) : (
-          <QrCode className="h-7 w-7 text-white" />
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end">
+        {showScanMenu && !isScanning && (
+          <div className="mb-4 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl p-2 flex flex-col gap-1 origin-bottom-right animate-in fade-in slide-in-from-bottom-4">
+            <label className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors">
+               <div className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-full text-blue-600 dark:text-blue-400">
+                  <ImagePlus className="h-5 w-5" />
+               </div>
+               <span className="font-medium text-sm text-gray-700 dark:text-gray-200">رفع صورة من الهاتف</span>
+               <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
+            </label>
+            <button 
+              onClick={() => { setScanMode("environment"); setIsScanning(true); setShowScanMenu(false); }}
+              className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right"
+            >
+               <div className="bg-green-100 dark:bg-green-900/50 p-2 rounded-full text-green-600 dark:text-green-400">
+                  <Camera className="h-5 w-5" />
+               </div>
+               <span className="font-medium text-sm text-gray-700 dark:text-gray-200">تصوير بالكاميرا الخلفية</span>
+            </button>
+            <button 
+              onClick={() => { setScanMode("user"); setIsScanning(true); setShowScanMenu(false); }}
+              className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right"
+            >
+               <div className="bg-purple-100 dark:bg-purple-900/50 p-2 rounded-full text-purple-600 dark:text-purple-400">
+                  <ScanFace className="h-5 w-5" />
+               </div>
+               <span className="font-medium text-sm text-gray-700 dark:text-gray-200">تصوير بالكاميرا الأمامية</span>
+            </button>
+          </div>
         )}
-      </button>
+        <button
+          onClick={() => isScanning ? setIsScanning(false) : setShowScanMenu(!showScanMenu)}
+          className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 active:scale-90 ${
+            isScanning 
+              ? "bg-red-500 hover:bg-red-600 shadow-red-500/30" 
+              : "bg-primary hover:bg-primary-hover shadow-primary/30"
+          }`}
+        >
+          {isScanning ? (
+            <X className="h-7 w-7 text-white" />
+          ) : (
+            <QrCode className="h-7 w-7 text-white" />
+          )}
+        </button>
+      </div>
 
       {/* Scanner Modal Overlay */}
       {isScanning && (
@@ -257,6 +305,7 @@ export default function POSPage() {
               <button onClick={() => setIsScanning(false)} className="text-gray-500 hover:text-red-500"><X className="h-5 w-5" /></button>
             </div>
             <BarcodeScanner 
+              defaultMode={scanMode || "environment"}
               onScanSuccess={handleScanSuccess} 
             />
             <button 
@@ -269,6 +318,8 @@ export default function POSPage() {
           </div>
         </div>
       )}
+      
+      <div id="hidden-qr-reader-pos" className="hidden"></div>
     </ProtectedLayout>
   );
 }
