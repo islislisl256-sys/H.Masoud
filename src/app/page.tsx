@@ -21,7 +21,7 @@ export default function DashboardPage() {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const { data: invoices } = await supabase.from('invoices').select('total_amount, total_profit, created_at');
+        const { data: invoices } = await supabase.from('invoices').select('total, profit, created_at');
         const { data: products } = await supabase.from('products').select('quantity');
 
         let sales = 0;
@@ -30,8 +30,8 @@ export default function DashboardPage() {
 
         if (invoices) {
           invoices.forEach(inv => {
-            sales += Number(inv.total_amount);
-            profit += Number(inv.total_profit);
+            sales += Number(inv.total);
+            profit += Number(inv.profit);
             if (new Date(inv.created_at) >= today) {
               invCount++;
             }

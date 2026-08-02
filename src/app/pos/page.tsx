@@ -95,9 +95,10 @@ export default function POSPage() {
 
     try {
       // 1. Insert Invoice
+      const invoiceNumber = `INV-${Date.now()}`;
       const { data: invoice, error: invoiceError } = await supabase
         .from('invoices')
-        .insert([{ total_amount: total, total_profit: totalProfit }])
+        .insert([{ invoice_number: invoiceNumber, total: total, profit: totalProfit }])
         .select()
         .single();
         
@@ -108,8 +109,9 @@ export default function POSPage() {
         invoice_id: invoice.id,
         product_id: item.id,
         quantity: item.quantity,
-        sale_price_at_time: item.sale_price,
-        purchase_price_at_time: item.purchase_price,
+        unit_price: item.sale_price,
+        total_price: item.sale_price * item.quantity,
+        profit: (item.sale_price - item.purchase_price) * item.quantity,
       }));
 
       const { error: itemsError } = await supabase.from('invoice_items').insert(itemsToInsert);

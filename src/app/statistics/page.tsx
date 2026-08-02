@@ -28,8 +28,8 @@ export default function StatisticsPage() {
 
         if (invoices) {
           invoices.forEach(inv => {
-            sales += Number(inv.total_amount);
-            profit += Number(inv.total_profit);
+            sales += Number(inv.total);
+            profit += Number(inv.profit);
             invCount++;
           });
         }

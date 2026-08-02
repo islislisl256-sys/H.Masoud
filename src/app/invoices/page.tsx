@@ -7,8 +7,9 @@ import { supabase } from "@/lib/supabase";
 
 type Invoice = {
   id: string;
-  total_amount: number;
-  total_profit: number;
+  invoice_number: string;
+  total: number;
+  profit: number;
   created_at: string;
 };
 
@@ -53,7 +54,7 @@ export default function InvoicesPage() {
   };
 
   const filteredInvoices = invoices.filter(inv => 
-    inv.id.includes(searchTerm)
+    inv.invoice_number?.includes(searchTerm) || inv.id.includes(searchTerm)
   );
 
   return (
@@ -115,13 +116,13 @@ export default function InvoicesPage() {
                   filteredInvoices.map((invoice) => (
                     <tr key={invoice.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                       <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
-                        <span className="font-mono text-xs">{invoice.id.split('-')[0]}...</span>
+                        <span className="font-mono text-xs">{invoice.invoice_number}</span>
                       </td>
                       <td className="px-6 py-4 text-gray-600 dark:text-gray-300">
                         {formatDate(invoice.created_at)}
                       </td>
-                      <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{invoice.total_amount} د.ج</td>
-                      <td className="px-6 py-4 text-green-600 dark:text-green-400">{invoice.total_profit} د.ج</td>
+                      <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{invoice.total} د.ج</td>
+                      <td className="px-6 py-4 text-green-600 dark:text-green-400">{invoice.profit} د.ج</td>
                       <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-2">
                           <button className="p-2 text-gray-400 hover:text-primary transition-colors rounded-lg hover:bg-primary/10">
