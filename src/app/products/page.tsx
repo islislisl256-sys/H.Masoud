@@ -114,47 +114,71 @@ export default function ProductsPage() {
         {isAdding && (
           <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
             <h3 className="font-bold mb-4">إضافة منتج جديد</h3>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-              <div className="flex gap-2 relative">
-                <input type="text" placeholder="رقم الباركود (انقر للخيارات)" className="flex-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
-                  value={newProduct.product_number} 
-                  onChange={e => setNewProduct({...newProduct, product_number: e.target.value})}
-                  onClick={() => setShowScanMenu(!showScanMenu)} 
-                />
-                <button onClick={() => setShowScanMenu(!showScanMenu)} className="p-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20" title="خيارات المسح">
-                  <QrCode className="h-5 w-5" />
-                </button>
 
-                {showScanMenu && (
-                  <div className="absolute top-full mt-2 right-0 w-64 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-2 flex flex-col gap-1">
-                    <label className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors">
-                       <div className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-full text-blue-600 dark:text-blue-400">
-                          <ImagePlus className="h-5 w-5" />
-                       </div>
-                       <span className="font-medium text-sm text-gray-700 dark:text-gray-200">رفع صورة من الهاتف</span>
-                       <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
-                    </label>
-                    <button 
-                      onClick={() => { setScanMode("environment"); setIsScanning(true); setShowScanMenu(false); }}
-                      className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right"
-                    >
-                       <div className="bg-green-100 dark:bg-green-900/50 p-2 rounded-full text-green-600 dark:text-green-400">
-                          <Camera className="h-5 w-5" />
-                       </div>
-                       <span className="font-medium text-sm text-gray-700 dark:text-gray-200">تصوير بالكاميرا الخلفية</span>
-                    </button>
-                    <button 
-                      onClick={() => { setScanMode("user"); setIsScanning(true); setShowScanMenu(false); }}
-                      className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right"
-                    >
-                       <div className="bg-purple-100 dark:bg-purple-900/50 p-2 rounded-full text-purple-600 dark:text-purple-400">
-                          <ScanFace className="h-5 w-5" />
-                       </div>
-                       <span className="font-medium text-sm text-gray-700 dark:text-gray-200">تصوير بالكاميرا الأمامية</span>
-                    </button>
-                  </div>
-                )}
+            {/* Row 1: barcode field + scan button */}
+            <div className="flex gap-2 mb-3 relative">
+              <input type="text" placeholder="رقم الباركود" className="flex-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
+                value={newProduct.product_number} 
+                onChange={e => setNewProduct({...newProduct, product_number: e.target.value})}
+              />
+              <button 
+                onClick={() => isScanning ? setIsScanning(false) : setShowScanMenu(!showScanMenu)} 
+                className={`p-2 rounded-lg font-medium flex items-center gap-2 transition-colors ${
+                  isScanning 
+                    ? 'bg-red-500 hover:bg-red-600 text-white' 
+                    : 'bg-primary/10 text-primary hover:bg-primary/20'
+                }`}
+                title={isScanning ? 'إيقاف المسح' : 'تشغيل المسح'}
+              >
+                {isScanning ? <X className="h-5 w-5" /> : <QrCode className="h-5 w-5" />}
+              </button>
+
+              {showScanMenu && !isScanning && (
+                <div className="absolute top-full mt-2 right-0 w-64 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-2 flex flex-col gap-1">
+                  <label className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors">
+                     <div className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-full text-blue-600 dark:text-blue-400">
+                        <ImagePlus className="h-5 w-5" />
+                     </div>
+                     <span className="font-medium text-sm text-gray-700 dark:text-gray-200">رفع صورة من الهاتف</span>
+                     <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
+                  </label>
+                  <button 
+                    onClick={() => { setScanMode("environment"); setIsScanning(true); setShowScanMenu(false); }}
+                    className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right"
+                  >
+                     <div className="bg-green-100 dark:bg-green-900/50 p-2 rounded-full text-green-600 dark:text-green-400">
+                        <Camera className="h-5 w-5" />
+                     </div>
+                     <span className="font-medium text-sm text-gray-700 dark:text-gray-200">تصوير بالكاميرا الخلفية</span>
+                  </button>
+                  <button 
+                    onClick={() => { setScanMode("user"); setIsScanning(true); setShowScanMenu(false); }}
+                    className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right"
+                  >
+                     <div className="bg-purple-100 dark:bg-purple-900/50 p-2 rounded-full text-purple-600 dark:text-purple-400">
+                        <ScanFace className="h-5 w-5" />
+                     </div>
+                     <span className="font-medium text-sm text-gray-700 dark:text-gray-200">تصوير بالكاميرا الأمامية</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Inline scanner – full width, continuous */}
+            {isScanning && (
+              <div className="mb-3 w-full">
+                <BarcodeScanner 
+                  defaultMode={scanMode || "environment"}
+                  continuous={true}
+                  onScanSuccess={(decodedText) => {
+                    setNewProduct(prev => ({...prev, product_number: decodedText}));
+                  }} 
+                />
               </div>
+            )}
+
+            {/* Row 2: rest of fields */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
               <input type="text" placeholder="اسم المنتج" className="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                 value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} />
               <input type="number" placeholder="سعر الشراء" className="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
@@ -164,7 +188,8 @@ export default function ProductsPage() {
               <input type="number" placeholder="المخزون (الكمية)" className="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
                 value={newProduct.quantity || ''} onChange={e => setNewProduct({...newProduct, quantity: Number(e.target.value)})} />
             </div>
-            <div className="mt-4 flex justify-end">
+
+            <div className="flex justify-end">
               <button 
                 onClick={handleAddProduct}
                 disabled={saving}
@@ -174,27 +199,6 @@ export default function ProductsPage() {
                 حفظ المنتج
               </button>
             </div>
-            
-            {isScanning && (
-              <div className="mt-4 flex justify-center">
-                <div className="w-full max-w-[200px]">
-                  <BarcodeScanner 
-                    defaultMode={scanMode || "environment"}
-                    onScanSuccess={(decodedText) => {
-                      setNewProduct({...newProduct, product_number: decodedText});
-                      setIsScanning(false);
-                    }} 
-                  />
-                  <button 
-                    onClick={() => setIsScanning(false)}
-                    className="mt-2 w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg flex justify-center items-center gap-2 text-sm"
-                  >
-                    <X className="h-4 w-4" />
-                    إيقاف المسح
-                  </button>
-                </div>
-              </div>
-            )}
             
             <div id="hidden-qr-reader" className="hidden"></div>
           </div>

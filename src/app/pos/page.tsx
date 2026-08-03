@@ -191,14 +191,12 @@ export default function POSPage() {
         {/* Invoice Details - Full Width */}
         <div className="w-full flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           {isScanning && (
-            <div className="w-full border-b border-gray-200 dark:border-gray-700 bg-black/5 dark:bg-white/5 py-4 flex justify-center">
-              <div className="w-full max-w-[200px]">
-                <BarcodeScanner 
-                  defaultMode={scanMode || "environment"}
-                  onScanSuccess={handleScanSuccess}
-                  continuous={true}
-                />
-              </div>
+            <div className="w-full border-b border-gray-200 dark:border-gray-700 bg-black/5 dark:bg-white/5 py-4 px-4">
+              <BarcodeScanner 
+                defaultMode={scanMode || "environment"}
+                onScanSuccess={handleScanSuccess}
+                continuous={true}
+              />
             </div>
           )}
           <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex items-center justify-between">
