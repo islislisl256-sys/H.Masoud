@@ -24,7 +24,6 @@ const navigation = [
   { name: "المنتجات", href: "/products", icon: Package },
   { name: "نقطة البيع", href: "/pos", icon: ShoppingCart },
   { name: "الفواتير", href: "/invoices", icon: FileText },
-  { name: "الإحصائيات", href: "/statistics", icon: BarChart3 },
   { name: "الإعدادات", href: "/settings", icon: Settings },
 ];
 
