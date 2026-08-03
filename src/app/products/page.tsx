@@ -38,6 +38,8 @@ export default function ProductsPage() {
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editQty, setEditQty] = useState(0);
+  const [editField, setEditField] = useState<'name' | 'sale_price' | 'quantity' | null>(null);
+  const [editValue, setEditValue] = useState<string>('');
 
   useEffect(() => {
     fetchProducts();
@@ -126,6 +128,17 @@ export default function ProductsPage() {
       setProducts(prev => prev.map(p => p.id === id ? { ...p, quantity: editQty } : p));
     }
     setEditingId(null);
+    setEditField(null);
+  };
+
+  const handleUpdateField = async (id: string, field: 'name' | 'sale_price') => {
+    const val = field === 'sale_price' ? Number(editValue) : editValue;
+    const { error } = await supabase.from('products').update({ [field]: val }).eq('id', id);
+    if (!error) {
+      setProducts(prev => prev.map(p => p.id === id ? { ...p, [field]: val } : p));
+    }
+    setEditingId(null);
+    setEditField(null);
   };
 
   const handleDelete = async (id: string) => {
@@ -359,10 +372,36 @@ export default function ProductsPage() {
                   filteredProducts.map((product) => (
                     <tr key={product.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                       <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{product.product_number}</td>
-                      <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{product.name}</td>
+                      <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
+                        {editingId === product.id && editField === 'name' ? (
+                          <div className="flex items-center gap-1">
+                            <input autoFocus type="text" className="w-28 px-2 py-1 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none" value={editValue} onChange={e => setEditValue(e.target.value)} />
+                            <button onClick={() => handleUpdateField(product.id, 'name')} className="p-1 text-green-600 hover:bg-green-50 rounded"><Save className="h-3.5 w-3.5" /></button>
+                            <button onClick={() => { setEditingId(null); setEditField(null); }} className="p-1 text-gray-400 hover:bg-gray-100 rounded"><X className="h-3.5 w-3.5" /></button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            {product.name}
+                            <button onClick={() => { setEditingId(product.id); setEditField('name'); setEditValue(product.name); }} className="p-1 text-gray-300 hover:text-primary transition-colors rounded"><Pencil className="h-3 w-3" /></button>
+                          </div>
+                        )}
+                      </td>
                       <td className="px-6 py-4">{product.purchase_price} د.ج</td>
                       <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{product.sale_price} د.ج</td>
-                      <td className="px-6 py-4 text-green-600 dark:text-green-400">{product.sale_price - product.purchase_price} د.ج</td>
+                      <td className="px-6 py-4 text-green-600 dark:text-green-400">
+                        {editingId === product.id && editField === 'sale_price' ? (
+                          <div className="flex items-center gap-1">
+                            <input autoFocus type="number" className="w-16 px-2 py-1 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none" value={editValue} onChange={e => setEditValue(e.target.value)} />
+                            <button onClick={() => handleUpdateField(product.id, 'sale_price')} className="p-1 text-green-600 hover:bg-green-50 rounded"><Save className="h-3.5 w-3.5" /></button>
+                            <button onClick={() => { setEditingId(null); setEditField(null); }} className="p-1 text-gray-400 hover:bg-gray-100 rounded"><X className="h-3.5 w-3.5" /></button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1">
+                            <span>{product.sale_price - product.purchase_price} د.ج</span>
+                            <button onClick={() => { setEditingId(product.id); setEditField('sale_price'); setEditValue(String(product.sale_price)); }} className="p-1 text-gray-300 hover:text-primary transition-colors rounded"><Pencil className="h-3 w-3" /></button>
+                          </div>
+                        )}
+                      </td>
                       <td className="px-6 py-4">
                         {editingId === product.id ? (
                           <div className="flex items-center gap-1">

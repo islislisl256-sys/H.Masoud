@@ -35,6 +35,7 @@ export default function POSPage() {
   const [saving, setSaving] = useState(false);
   const [isReturnMode, setIsReturnMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [discount, setDiscount] = useState(0);
 
   useEffect(() => {
     fetchProducts();
@@ -155,7 +156,8 @@ export default function POSPage() {
     }
   };
 
-  const total = invoiceItems.reduce((sum, item) => sum + (item.sale_price * item.quantity), 0);
+  const rawTotal = invoiceItems.reduce((sum, item) => sum + (item.sale_price * item.quantity), 0);
+  const total = rawTotal * (1 - discount / 100);
   const totalProfit = invoiceItems.reduce((sum, item) => sum + ((item.sale_price - item.purchase_price) * item.quantity), 0);
 
   if (loading) {
@@ -262,7 +264,30 @@ export default function POSPage() {
             </div>
             <div className="flex justify-between text-xl font-bold text-gray-900 dark:text-white border-b border-dashed border-gray-300 dark:border-gray-600 pb-3">
               <span>الإجمالي:</span>
-              <span className="text-primary">{total.toLocaleString()} د.ج</span>
+              <div className="text-right">
+                {discount > 0 && <p className="text-sm line-through text-gray-400 font-normal">{rawTotal.toLocaleString()} د.ج</p>}
+                <span className="text-primary">{total.toLocaleString()} د.ج</span>
+              </div>
+            </div>
+
+            {/* أزرار الخصم */}
+            <div className="space-y-1.5">
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">تطبيق خصم:</p>
+              <div className="flex gap-2 flex-wrap">
+                {[0, 5, 7.5, 10, 15].map(d => (
+                  <button
+                    key={d}
+                    onClick={() => setDiscount(d)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      discount === d
+                        ? 'bg-primary text-white shadow-md scale-105'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-primary/10 hover:text-primary'
+                    }`}
+                  >
+                    {d === 0 ? 'بدون خصم' : `${d}%`}
+                  </button>
+                ))}
+              </div>
             </div>
             
             <motion.button 
@@ -279,8 +304,8 @@ export default function POSPage() {
 
       </div>
 
-      {/* Fixed Floating Scan Button - Bottom Right */}
-      <div className="fixed bottom-6 right-6 z-50 flex flex-col items-center">
+      {/* Fixed Floating Scan Button - Above Bottom Nav */}
+      <div className="fixed bottom-20 md:bottom-6 right-6 z-50 flex flex-col items-center">
         {showScanMenu && !isScanning && (
           <div className="mb-4 flex flex-col gap-3 origin-bottom animate-in fade-in slide-in-from-bottom-4 items-center">
             <label className="flex items-center justify-center w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg cursor-pointer transition-transform hover:scale-110" title="رفع صورة من الهاتف">

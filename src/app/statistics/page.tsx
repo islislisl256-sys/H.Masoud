@@ -13,9 +13,6 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  BarChart,
-  Bar,
-  Cell,
 } from "recharts";
 
 type Invoice = {
