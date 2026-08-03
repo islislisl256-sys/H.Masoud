@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { Plus, Search, Trash2, Loader2, Save, X, QrCode, Camera, ScanFace, ImagePlus, CheckCircle } from "lucide-react";
+import { Plus, Search, Trash2, Loader2, Save, X, QrCode, Camera, ScanFace, ImagePlus, CheckCircle, Pencil } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import { Html5Qrcode } from "html5-qrcode";
@@ -36,6 +36,8 @@ export default function ProductsPage() {
   const [scanMode, setScanMode] = useState<"environment" | "user" | null>(null);
   const [pendingProducts, setPendingProducts] = useState<PendingProduct[]>([]);
   const [saving, setSaving] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editQty, setEditQty] = useState(0);
 
   useEffect(() => {
     fetchProducts();
@@ -116,6 +118,14 @@ export default function ProductsPage() {
       }
       setShowScanMenu(false);
     }
+  };
+
+  const handleUpdateQuantity = async (id: string) => {
+    const { error } = await supabase.from('products').update({ quantity: editQty }).eq('id', id);
+    if (!error) {
+      setProducts(prev => prev.map(p => p.id === id ? { ...p, quantity: editQty } : p));
+    }
+    setEditingId(null);
   };
 
   const handleDelete = async (id: string) => {
@@ -354,9 +364,32 @@ export default function ProductsPage() {
                       <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{product.sale_price} د.ج</td>
                       <td className="px-6 py-4 text-green-600 dark:text-green-400">{product.sale_price - product.purchase_price} د.ج</td>
                       <td className="px-6 py-4">
-                        <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${product.quantity > 10 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>
-                          {product.quantity}
-                        </span>
+                        {editingId === product.id ? (
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="number"
+                              className="w-16 px-2 py-1 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none"
+                              value={editQty}
+                              onChange={e => setEditQty(Number(e.target.value))}
+                              autoFocus
+                            />
+                            <button onClick={() => handleUpdateQuantity(product.id)} className="p-1 text-green-600 hover:bg-green-50 rounded">
+                              <Save className="h-3.5 w-3.5" />
+                            </button>
+                            <button onClick={() => setEditingId(null)} className="p-1 text-gray-400 hover:bg-gray-100 rounded">
+                              <X className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${product.quantity > 10 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>
+                              {product.quantity}
+                            </span>
+                            <button onClick={() => { setEditingId(product.id); setEditQty(product.quantity); }} className="p-1 text-gray-300 hover:text-primary transition-colors rounded">
+                              <Pencil className="h-3 w-3" />
+                            </button>
+                          </div>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-center">
                         <button onClick={() => handleDelete(product.id)} className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
