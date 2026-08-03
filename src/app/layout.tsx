@@ -3,12 +3,19 @@ import { Inter, Cairo } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import PwaGuard from "@/components/Layout/PwaGuard";
 
 const cairo = Cairo({ subsets: ["arabic"], variable: "--font-cairo" });
 
 export const metadata: Metadata = {
   title: "مكتبة الحاج مسعود",
   description: "نظام إدارة مكتبة الحاج مسعود",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "مكتبة الحاج مسعود"
+  }
 };
 
 export default function RootLayout({
@@ -20,9 +27,11 @@ export default function RootLayout({
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body className={`${cairo.variable} font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <AuthProvider>
-            {children}
-          </AuthProvider>
+          <PwaGuard>
+            <AuthProvider>
+              {children}
+            </AuthProvider>
+          </PwaGuard>
         </ThemeProvider>
       </body>
     </html>
