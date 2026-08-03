@@ -2,13 +2,21 @@
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { Plus, Search, Filter, MoreVertical, Edit, Trash2, Download, Upload, Loader2, Save, X, QrCode, Camera, ScanFace, ImagePlus } from "lucide-react";
+import { Plus, Search, Trash2, Loader2, Save, X, QrCode, Camera, ScanFace, ImagePlus, CheckCircle } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import { Html5Qrcode } from "html5-qrcode";
 
 type Product = {
   id: string;
+  product_number: string;
+  name: string;
+  purchase_price: number;
+  sale_price: number;
+  quantity: number;
+};
+
+type PendingProduct = {
   product_number: string;
   name: string;
   purchase_price: number;
@@ -24,11 +32,7 @@ export default function ProductsPage() {
   const [isScanning, setIsScanning] = useState(false);
   const [showScanMenu, setShowScanMenu] = useState(false);
   const [scanMode, setScanMode] = useState<"environment" | "user" | null>(null);
-  
-  // New Product State
-  const [newProduct, setNewProduct] = useState({
-    product_number: "", name: "", purchase_price: 0, sale_price: 0, quantity: 0
-  });
+  const [pendingProducts, setPendingProducts] = useState<PendingProduct[]>([]);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -44,21 +48,54 @@ export default function ProductsPage() {
     setLoading(false);
   };
 
-  const handleAddProduct = async () => {
-    if (!newProduct.product_number || !newProduct.name) {
+  const handleScanSuccess = (decodedText: string) => {
+    setPendingProducts(prev => [...prev, {
+      product_number: decodedText,
+      name: '',
+      purchase_price: 0,
+      sale_price: 0,
+      quantity: 0
+    }]);
+  };
+
+  const updatePending = (index: number, field: keyof PendingProduct, value: string | number) => {
+    setPendingProducts(prev => prev.map((p, i) => i === index ? { ...p, [field]: value } : p));
+  };
+
+  const removePending = (index: number) => {
+    setPendingProducts(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const saveSingle = async (index: number) => {
+    const p = pendingProducts[index];
+    if (!p.product_number || !p.name) {
       alert("الرجاء إدخال رقم واسم المنتج");
       return;
     }
     setSaving(true);
-    const { data, error } = await supabase.from('products').insert([newProduct]).select().single();
+    const { data, error } = await supabase.from('products').insert([p]).select().single();
     if (error) {
-      console.error(error);
-      alert("حدث خطأ أثناء الإضافة. تأكد من أن رقم المنتج غير مكرر.");
+      alert("خطأ أثناء الإضافة. تأكد من أن رقم المنتج غير مكرر.");
     } else {
-      // Update local state without refresh, keep form & scanner open for next product
-      setProducts([data, ...products]);
-      setNewProduct({ name: '', purchase_price: 0, sale_price: 0, quantity: 0, product_number: '' });
-      // Keep isAdding=true and isScanning=true so user can scan next product
+      setProducts(prev => [data, ...prev]);
+      removePending(index);
+    }
+    setSaving(false);
+  };
+
+  const saveAll = async () => {
+    const valid = pendingProducts.filter(p => p.product_number && p.name);
+    if (valid.length === 0) {
+      alert("لا توجد منتجات صالحة للحفظ (تأكد من إدخال اسم كل منتج)");
+      return;
+    }
+    setSaving(true);
+    const { data, error } = await supabase.from('products').insert(valid).select();
+    if (error) {
+      alert("خطأ أثناء الحفظ الجماعي");
+    } else if (data) {
+      setProducts(prev => [...data, ...prev]);
+      setPendingProducts([]);
     }
     setSaving(false);
   };
@@ -69,8 +106,8 @@ export default function ProductsPage() {
       try {
         const html5QrCode = new Html5Qrcode("hidden-qr-reader");
         const decodedText = await html5QrCode.scanFile(file, true);
-        setNewProduct({...newProduct, product_number: decodedText});
-      } catch (err) {
+        handleScanSuccess(decodedText);
+      } catch {
         alert("لم يتم العثور على باركود في الصورة، تأكد من وضوح الصورة.");
       }
       setShowScanMenu(false);
@@ -81,131 +118,187 @@ export default function ProductsPage() {
     if (confirm("هل أنت متأكد من حذف هذا المنتج؟")) {
       const { error } = await supabase.from('products').delete().eq('id', id);
       if (error) {
-         alert("خطأ أثناء الحذف");
+        alert("خطأ أثناء الحذف");
       } else {
-         fetchProducts();
+        fetchProducts();
       }
     }
   };
 
-  const filteredProducts = products.filter(p => 
+  const handleToggleAdding = () => {
+    if (isAdding) {
+      setIsScanning(false);
+      setShowScanMenu(false);
+      setPendingProducts([]);
+    }
+    setIsAdding(!isAdding);
+  };
+
+  const filteredProducts = products.filter(p =>
     p.name.includes(searchTerm) || p.product_number.includes(searchTerm)
   );
 
   return (
     <ProtectedLayout>
-      <div className="space-y-6">
+      <div className="space-y-4">
+
+        {/* Header row */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">إدارة المنتجات</h1>
             <p className="text-muted-foreground mt-1">عرض وإدارة جميع المنتجات في المكتبة</p>
           </div>
-          <div className="flex items-center gap-2">
-            <button 
-              onClick={() => setIsAdding(!isAdding)}
-              className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors"
-            >
-              {isAdding ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
-              <span>{isAdding ? "إلغاء" : "إضافة منتج"}</span>
-            </button>
-          </div>
+          <button
+            onClick={handleToggleAdding}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors font-medium ${
+              isAdding
+                ? 'bg-red-500 hover:bg-red-600 text-white'
+                : 'bg-primary text-white hover:bg-primary/90'
+            }`}
+          >
+            {isAdding ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            <span>{isAdding ? "إلغاء الإضافة" : "إضافة منتج"}</span>
+          </button>
         </div>
 
+        {/* Scanner + pending products – appears directly below header */}
         {isAdding && (
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6">
-            <h3 className="font-bold mb-4">إضافة منتج جديد</h3>
+          <div className="space-y-3">
 
-            {/* Row 1: barcode field + scan button */}
-            <div className="flex gap-2 mb-3 relative">
-              <input type="text" placeholder="رقم الباركود" className="flex-1 px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-                value={newProduct.product_number} 
-                onChange={e => setNewProduct({...newProduct, product_number: e.target.value})}
-              />
-              <button 
-                onClick={() => isScanning ? setIsScanning(false) : setShowScanMenu(!showScanMenu)} 
-                className={`p-2 rounded-lg font-medium flex items-center gap-2 transition-colors ${
-                  isScanning 
-                    ? 'bg-red-500 hover:bg-red-600 text-white' 
+            {/* Scan controls row */}
+            <div className="flex items-center gap-2 relative flex-wrap">
+              <button
+                onClick={() => isScanning ? setIsScanning(false) : setShowScanMenu(!showScanMenu)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                  isScanning
+                    ? 'bg-red-500 hover:bg-red-600 text-white'
                     : 'bg-primary/10 text-primary hover:bg-primary/20'
                 }`}
-                title={isScanning ? 'إيقاف المسح' : 'تشغيل المسح'}
               >
                 {isScanning ? <X className="h-5 w-5" /> : <QrCode className="h-5 w-5" />}
+                {isScanning ? "إيقاف المسح" : "مسح الباركود"}
               </button>
 
+              {pendingProducts.length > 0 && (
+                <button
+                  onClick={saveAll}
+                  disabled={saving}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-green-600 hover:bg-green-700 text-white transition-colors disabled:opacity-50"
+                >
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
+                  حفظ الكل ({pendingProducts.length})
+                </button>
+              )}
+
+              {/* Camera selection dropdown */}
               {showScanMenu && !isScanning && (
-                <div className="absolute top-full mt-2 right-0 w-64 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-2 flex flex-col gap-1">
+                <div className="absolute top-full mt-2 left-0 w-64 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-2 flex flex-col gap-1">
                   <label className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors">
-                     <div className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-full text-blue-600 dark:text-blue-400">
-                        <ImagePlus className="h-5 w-5" />
-                     </div>
-                     <span className="font-medium text-sm text-gray-700 dark:text-gray-200">رفع صورة من الهاتف</span>
-                     <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
+                    <div className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-full text-blue-600 dark:text-blue-400">
+                      <ImagePlus className="h-5 w-5" />
+                    </div>
+                    <span className="font-medium text-sm text-gray-700 dark:text-gray-200">رفع صورة من الهاتف</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
                   </label>
-                  <button 
+                  <button
                     onClick={() => { setScanMode("environment"); setIsScanning(true); setShowScanMenu(false); }}
                     className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right"
                   >
-                     <div className="bg-green-100 dark:bg-green-900/50 p-2 rounded-full text-green-600 dark:text-green-400">
-                        <Camera className="h-5 w-5" />
-                     </div>
-                     <span className="font-medium text-sm text-gray-700 dark:text-gray-200">تصوير بالكاميرا الخلفية</span>
+                    <div className="bg-green-100 dark:bg-green-900/50 p-2 rounded-full text-green-600 dark:text-green-400">
+                      <Camera className="h-5 w-5" />
+                    </div>
+                    <span className="font-medium text-sm text-gray-700 dark:text-gray-200">تصوير بالكاميرا الخلفية</span>
                   </button>
-                  <button 
+                  <button
                     onClick={() => { setScanMode("user"); setIsScanning(true); setShowScanMenu(false); }}
                     className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right"
                   >
-                     <div className="bg-purple-100 dark:bg-purple-900/50 p-2 rounded-full text-purple-600 dark:text-purple-400">
-                        <ScanFace className="h-5 w-5" />
-                     </div>
-                     <span className="font-medium text-sm text-gray-700 dark:text-gray-200">تصوير بالكاميرا الأمامية</span>
+                    <div className="bg-purple-100 dark:bg-purple-900/50 p-2 rounded-full text-purple-600 dark:text-purple-400">
+                      <ScanFace className="h-5 w-5" />
+                    </div>
+                    <span className="font-medium text-sm text-gray-700 dark:text-gray-200">تصوير بالكاميرا الأمامية</span>
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Inline scanner – full width, white bg, continuous */}
+            {/* Camera view – full width, white background */}
             {isScanning && (
-              <div className="mb-3 w-full bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden p-2">
-                <BarcodeScanner 
+              <div className="w-full bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden p-2 shadow-sm">
+                <BarcodeScanner
                   defaultMode={scanMode || "environment"}
                   continuous={true}
-                  onScanSuccess={(decodedText) => {
-                    setNewProduct(prev => ({...prev, product_number: decodedText}));
-                  }} 
+                  onScanSuccess={handleScanSuccess}
                 />
               </div>
             )}
 
-            {/* Row 2: rest of fields */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-3">
-              <input type="text" placeholder="اسم المنتج" className="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-                value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} />
-              <input type="number" placeholder="سعر الشراء" className="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-                value={newProduct.purchase_price || ''} onChange={e => setNewProduct({...newProduct, purchase_price: Number(e.target.value)})} />
-              <input type="number" placeholder="سعر البيع" className="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-                value={newProduct.sale_price || ''} onChange={e => setNewProduct({...newProduct, sale_price: Number(e.target.value)})} />
-              <input type="number" placeholder="المخزون (الكمية)" className="px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600"
-                value={newProduct.quantity || ''} onChange={e => setNewProduct({...newProduct, quantity: Number(e.target.value)})} />
-            </div>
-
-            <div className="flex justify-end">
-              <button 
-                onClick={handleAddProduct}
-                disabled={saving}
-                className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50"
-              >
-                {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                حفظ المنتج
-              </button>
-            </div>
-            
-            <div id="hidden-qr-reader" className="hidden"></div>
+            {/* Pending product cards */}
+            {pendingProducts.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
+                  المنتجات المنتظرة للحفظ ({pendingProducts.length})
+                </p>
+                {pendingProducts.map((p, index) => (
+                  <div key={index} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+                    <div className="flex justify-between items-center mb-3">
+                      <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded">
+                        📦 {p.product_number}
+                      </span>
+                      <button onClick={() => removePending(index)} className="text-gray-400 hover:text-red-500 transition-colors">
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                      <input
+                        type="text"
+                        placeholder="اسم المنتج *"
+                        className="col-span-2 md:col-span-1 px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                        value={p.name}
+                        onChange={e => updatePending(index, 'name', e.target.value)}
+                      />
+                      <input
+                        type="number"
+                        placeholder="سعر الشراء"
+                        className="px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                        value={p.purchase_price || ''}
+                        onChange={e => updatePending(index, 'purchase_price', Number(e.target.value))}
+                      />
+                      <input
+                        type="number"
+                        placeholder="سعر البيع"
+                        className="px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                        value={p.sale_price || ''}
+                        onChange={e => updatePending(index, 'sale_price', Number(e.target.value))}
+                      />
+                      <input
+                        type="number"
+                        placeholder="الكمية"
+                        className="px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary focus:border-primary outline-none"
+                        value={p.quantity || ''}
+                        onChange={e => updatePending(index, 'quantity', Number(e.target.value))}
+                      />
+                    </div>
+                    <div className="flex justify-end">
+                      <button
+                        onClick={() => saveSingle(index)}
+                        disabled={saving}
+                        className="flex items-center gap-1 px-3 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                      >
+                        {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
+                        حفظ هذا المنتج
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
+        {/* Products table */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4 justify-between">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="relative w-full sm:max-w-md">
               <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
                 <Search className="h-4 w-4 text-gray-400" />
@@ -258,11 +351,9 @@ export default function ProductsPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button onClick={() => handleDelete(product.id)} className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
+                        <button onClick={() => handleDelete(product.id)} className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
+                          <Trash2 className="h-4 w-4" />
+                        </button>
                       </td>
                     </tr>
                   ))
@@ -271,6 +362,8 @@ export default function ProductsPage() {
             </table>
           </div>
         </div>
+
+        <div id="hidden-qr-reader" className="hidden"></div>
       </div>
     </ProtectedLayout>
   );
