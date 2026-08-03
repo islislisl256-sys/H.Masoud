@@ -143,7 +143,6 @@ export default function InvoicesPage() {
         </div>
 
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-          {/* Filters */}
           <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
@@ -156,12 +155,6 @@ export default function InvoicesPage() {
                 onChange={e => setSearchDate(e.target.value)}
               />
             </div>
-            <button
-              onClick={() => setSearchDate('')}
-              className="flex items-center gap-2 px-4 py-2 text-sm border border-gray-200 dark:border-gray-700 rounded-lg text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            >
-              <X className="h-4 w-4" /> مسح التصفية
-            </button>
           </div>
 
           <div className="overflow-x-auto">
