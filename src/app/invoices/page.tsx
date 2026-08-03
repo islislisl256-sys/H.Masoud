@@ -147,7 +147,7 @@ export default function InvoicesPage() {
           <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                <Calendar className="h-4 w-4 text-gray-400" />
+                <CalendarIcon className="h-4 w-4 text-gray-400" />
               </div>
               <input
                 type="date"
