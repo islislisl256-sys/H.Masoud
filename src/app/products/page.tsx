@@ -49,6 +49,8 @@ export default function ProductsPage() {
   };
 
   const handleScanSuccess = (decodedText: string) => {
+    // Prevent duplicate barcodes
+    if (pendingProducts.some(p => p.product_number === decodedText)) return;
     setPendingProducts(prev => [...prev, {
       product_number: decodedText,
       name: '',
