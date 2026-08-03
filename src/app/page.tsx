@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { TrendingUp, Package, DollarSign, Loader2, Calendar, ShoppingCart, AlertTriangle } from "lucide-react";
+import { TrendingUp, Package, DollarSign, Loader2, Calendar, ShoppingCart, AlertTriangle, Trophy, LineChart as LineChartIcon } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import {
   ResponsiveContainer,
@@ -175,12 +175,15 @@ export default function DashboardPage() {
         </div>
 
         {/* الرسم البياني الخطي */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-5">📈 المبيعات والأرباح اليومية</h3>
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 w-full">
+          <div className="flex items-center gap-2 mb-5">
+            <LineChartIcon className="h-6 w-6 text-primary" />
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">المبيعات والأرباح اليومية</h3>
+          </div>
           {chartData.length === 0 ? (
             <div className="h-64 flex items-center justify-center text-gray-400">لا توجد بيانات في هذه الفترة</div>
           ) : (
-            <ResponsiveContainer width="100%" height={280}>
+            <ResponsiveContainer width="100%" height={450}>
               <LineChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis dataKey="date" tick={{ fontSize: 10 }} tickLine={false} />
@@ -198,9 +201,12 @@ export default function DashboardPage() {
         </div>
 
         {/* المنتجات الأكثر مبيعاً */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 w-full">
           <div className="flex justify-between items-center mb-5">
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">🏆 المنتجات الأكثر مبيعاً</h3>
+            <div className="flex items-center gap-2">
+              <Trophy className="h-6 w-6 text-yellow-500" />
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">المنتجات الأكثر مبيعاً</h3>
+            </div>
             {topProducts.length > 5 && (
               <button 
                 onClick={() => setShowAllProducts(!showAllProducts)}

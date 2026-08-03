@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { Plus, Search, Trash2, Loader2, Save, X, QrCode, Camera, ScanFace, ImagePlus, CheckCircle, Pencil } from "lucide-react";
+import { Plus, Search, Trash2, Loader2, Save, X, QrCode, Camera, ScanFace, ImagePlus, CheckCircle, Pencil, Package } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import { Html5Qrcode } from "html5-qrcode";
@@ -272,8 +272,8 @@ export default function ProductsPage() {
                 {pendingProducts.map((p, index) => (
                   <div key={index} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
                     <div className="flex justify-between items-center mb-3">
-                      <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded">
-                        📦 {p.product_number}
+                      <span className="text-xs font-mono bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded flex items-center gap-1.5">
+                        <Package className="h-3.5 w-3.5" /> {p.product_number}
                       </span>
                       <button onClick={() => removePending(index)} className="text-gray-400 hover:text-red-500 transition-colors">
                         <X className="h-4 w-4" />

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { Search, Eye, Share2, Loader2, Trash2, X, Package, Calendar } from "lucide-react";
+import { Search, Loader2, Eye, Share2, Trash2, X, Undo2, Receipt, Calendar as CalendarIcon, CircleDollarSign, TrendingUp as TrendingUpIcon, Package } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 type Invoice = {
@@ -220,7 +220,10 @@ export default function InvoicesPage() {
             {/* Modal Header */}
             <div className={`p-5 flex items-center justify-between border-b border-gray-200 dark:border-gray-700 ${isReturn(selectedInvoice) ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-primary/5'}`}>
               <div>
-                <h2 className="text-lg font-bold text-gray-900 dark:text-white">{isReturn(selectedInvoice) ? '↩️ وصل استرجاع' : '🧾 تفاصيل الفاتورة'}</h2>
+                <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                  {isReturn(selectedInvoice) ? <Undo2 className="h-5 w-5 text-orange-500" /> : <Receipt className="h-5 w-5 text-primary" />}
+                  {isReturn(selectedInvoice) ? 'وصل استرجاع' : 'تفاصيل الفاتورة'}
+                </h2>
                 <p className="text-xs font-mono text-gray-500 mt-0.5">{selectedInvoice.invoice_number}</p>
               </div>
               <div className="flex gap-2 items-center">
@@ -238,9 +241,9 @@ export default function InvoicesPage() {
 
             {/* Invoice Info */}
             <div className="px-5 py-3 bg-gray-50 dark:bg-gray-900/40 flex gap-4 text-sm flex-wrap">
-              <span className="text-gray-500">📅 {formatDate(selectedInvoice.created_at)}</span>
-              <span className="font-bold text-gray-900 dark:text-white">💰 {selectedInvoice.total} د.ج</span>
-              <span className="text-green-600">📈 ربح: {selectedInvoice.profit} د.ج</span>
+              <span className="text-gray-500 flex items-center gap-1.5"><CalendarIcon className="h-4 w-4" /> {formatDate(selectedInvoice.created_at)}</span>
+              <span className="font-bold text-gray-900 dark:text-white flex items-center gap-1.5"><CircleDollarSign className="h-4 w-4 text-primary" /> {selectedInvoice.total} د.ج</span>
+              <span className="text-green-600 flex items-center gap-1.5"><TrendingUpIcon className="h-4 w-4" /> ربح: {selectedInvoice.profit} د.ج</span>
             </div>
 
             {/* Items */}
