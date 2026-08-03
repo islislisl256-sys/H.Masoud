@@ -177,7 +177,7 @@ export default function StatisticsPage() {
                 <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
                 <Tooltip
                   contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}
-                  formatter={(value: number) => [`${value.toLocaleString()} د.ج`]}
+                  formatter={(value) => [`${Number(value).toLocaleString()} د.ج`]}
                 />
                 <Legend />
                 <Line type="monotone" dataKey="sales" stroke="#6366f1" strokeWidth={2.5} dot={false} name="المبيعات" />
