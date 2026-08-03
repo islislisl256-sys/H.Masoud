@@ -14,6 +14,7 @@ interface BarcodeScannerProps {
 const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanError, defaultMode = "environment", continuous = false }) => {
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const lastScanned = useRef<{text: string, time: number}>({ text: "", time: 0 });
+  const scanBuffer = useRef<string[]>([]);
   
   const onScanSuccessRef = useRef(onScanSuccess);
   const onScanErrorRef = useRef(onScanError);
@@ -80,6 +81,17 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
           cameraId,
           config,
           (decodedText) => {
+            // Buffer to prevent false positive single-frame reads
+            scanBuffer.current.push(decodedText);
+            if (scanBuffer.current.length > 2) {
+              scanBuffer.current.shift();
+            }
+
+            // Require 2 identical consecutive reads to consider it a valid scan
+            if (scanBuffer.current.length < 2 || scanBuffer.current[0] !== scanBuffer.current[1]) {
+               return; // Wait for next frame
+            }
+
             if (continuous) {
               const now = Date.now();
               // Prevent ANY new scan within 1000ms of the last scan to avoid false positives 
@@ -89,6 +101,8 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
               }
               lastScanned.current = { text: decodedText, time: now };
               onScanSuccessRef.current(decodedText);
+              // Clear buffer after success to avoid rapid repeating
+              scanBuffer.current = [];
             } else {
               onScanSuccessRef.current(decodedText);
               scannerRef.current?.stop().catch(() => {});
