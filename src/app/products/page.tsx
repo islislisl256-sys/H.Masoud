@@ -24,6 +24,8 @@ type PendingProduct = {
   quantity: number;
 };
 
+import { motion } from "framer-motion";
+
 export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
@@ -150,7 +152,8 @@ export default function ProductsPage() {
             <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">إدارة المنتجات</h1>
             <p className="text-muted-foreground mt-1">عرض وإدارة جميع المنتجات في المكتبة</p>
           </div>
-          <button
+          <motion.button
+            whileTap={{ scale: 0.95 }}
             onClick={handleToggleAdding}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors font-medium ${
               isAdding
@@ -160,7 +163,7 @@ export default function ProductsPage() {
           >
             {isAdding ? <X className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
             <span>{isAdding ? "إلغاء الإضافة" : "إضافة منتج"}</span>
-          </button>
+          </motion.button>
         </div>
 
         {/* Scanner + pending products – appears directly below header */}
@@ -169,7 +172,8 @@ export default function ProductsPage() {
 
             {/* Scan controls row */}
             <div className="flex items-center gap-2 relative flex-wrap">
-              <button
+              <motion.button
+                whileTap={{ scale: 0.95 }}
                 onClick={() => isScanning ? setIsScanning(false) : setShowScanMenu(!showScanMenu)}
                 className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
                   isScanning
@@ -179,17 +183,18 @@ export default function ProductsPage() {
               >
                 {isScanning ? <X className="h-5 w-5" /> : <QrCode className="h-5 w-5" />}
                 {isScanning ? "إيقاف المسح" : "مسح الباركود"}
-              </button>
+              </motion.button>
 
               {pendingProducts.length > 0 && (
-                <button
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
                   onClick={saveAll}
                   disabled={saving}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium bg-green-600 hover:bg-green-700 text-white transition-colors disabled:opacity-50"
                 >
                   {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
                   حفظ الكل ({pendingProducts.length})
-                </button>
+                </motion.button>
               )}
 
               {/* Camera selection dropdown */}
@@ -282,14 +287,15 @@ export default function ProductsPage() {
                       />
                     </div>
                     <div className="flex justify-end">
-                      <button
+                      <motion.button
+                        whileTap={{ scale: 0.95 }}
                         onClick={() => saveSingle(index)}
                         disabled={saving}
                         className="flex items-center gap-1 px-3 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50"
                       >
                         {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
                         حفظ هذا المنتج
-                      </button>
+                      </motion.button>
                     </div>
                   </div>
                 ))}

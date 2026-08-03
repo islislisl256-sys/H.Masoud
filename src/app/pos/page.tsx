@@ -5,6 +5,7 @@ import ProtectedLayout from "@/components/Layout/ProtectedLayout";
 import { QrCode, Search, Trash2, Plus, Minus, Save, ShoppingCart, Loader2, X, ImagePlus, Camera, ScanFace } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
+import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 
 type Product = {
@@ -244,14 +245,15 @@ export default function POSPage() {
               <span className="text-primary">{total.toLocaleString()} د.ج</span>
             </div>
             
-            <button 
+            <motion.button 
+              whileTap={{ scale: 0.95 }}
               onClick={saveInvoice}
               disabled={invoiceItems.length === 0 || saving}
               className="w-full flex items-center justify-center gap-2 bg-primary text-white py-4 rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-lg mt-2"
             >
               {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
               {saving ? "جاري الحفظ..." : "حفظ الفاتورة"}
-            </button>
+            </motion.button>
           </div>
         </div>
 
@@ -279,7 +281,8 @@ export default function POSPage() {
             </button>
           </div>
         )}
-        <button
+        <motion.button
+          whileTap={{ scale: 0.95 }}
           onClick={() => isScanning ? setIsScanning(false) : setShowScanMenu(!showScanMenu)}
           className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 active:scale-90 ${
             isScanning 
@@ -292,7 +295,7 @@ export default function POSPage() {
           ) : (
             <QrCode className="h-7 w-7 text-white" />
           )}
-        </button>
+        </motion.button>
       </div>
 
 
