@@ -28,7 +28,7 @@ type Invoice = {
 type InvoiceItem = {
   quantity: number;
   profit: number;
-  products: { name: string } | null;
+  products: { name: string } | { name: string }[] | null;
 };
 
 // الألوان للرسم البياني الشريطي
@@ -51,7 +51,7 @@ export default function StatisticsPage() {
         const { data: invoices } = await supabase.from('invoices').select('*').order('created_at', { ascending: true });
         const { data: items } = await supabase.from('invoice_items').select('quantity, profit, products(name)');
         setAllInvoices(invoices || []);
-        setAllItems((items as InvoiceItem[]) || []);
+        setAllItems((items as unknown as InvoiceItem[]) || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -92,7 +92,8 @@ export default function StatisticsPage() {
   const top5 = useMemo(() => {
     const map: Record<string, { name: string; qty: number; profit: number }> = {};
     allItems.forEach(item => {
-      const name = item.products?.name || 'غير معروف';
+      const p = Array.isArray(item.products) ? item.products[0] : item.products;
+      const name = p?.name || 'غير معروف';
       if (!map[name]) map[name] = { name, qty: 0, profit: 0 };
       map[name].qty += Number(item.quantity);
       map[name].profit += Number(item.profit);
