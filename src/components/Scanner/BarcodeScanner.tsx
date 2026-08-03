@@ -83,12 +83,12 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
           (decodedText) => {
             // Buffer to prevent false positive single-frame reads
             scanBuffer.current.push(decodedText);
-            if (scanBuffer.current.length > 2) {
+            if (scanBuffer.current.length > 3) {
               scanBuffer.current.shift();
             }
 
-            // Require 2 identical consecutive reads to consider it a valid scan
-            if (scanBuffer.current.length < 2 || scanBuffer.current[0] !== scanBuffer.current[1]) {
+            // Require 3 identical consecutive reads to consider it a valid scan
+            if (scanBuffer.current.length < 3 || scanBuffer.current[0] !== scanBuffer.current[1] || scanBuffer.current[1] !== scanBuffer.current[2]) {
                return; // Wait for next frame
             }
 
