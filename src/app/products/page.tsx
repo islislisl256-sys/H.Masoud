@@ -55,10 +55,10 @@ export default function ProductsPage() {
       console.error(error);
       alert("حدث خطأ أثناء الإضافة. تأكد من أن رقم المنتج غير مكرر.");
     } else {
-      // Update local state without refresh
+      // Update local state without refresh, keep form & scanner open for next product
       setProducts([data, ...products]);
       setNewProduct({ name: '', purchase_price: 0, sale_price: 0, quantity: 0, product_number: '' });
-      setIsAdding(false);
+      // Keep isAdding=true and isScanning=true so user can scan next product
     }
     setSaving(false);
   };
@@ -164,9 +164,9 @@ export default function ProductsPage() {
               )}
             </div>
 
-            {/* Inline scanner – full width, continuous */}
+            {/* Inline scanner – full width, white bg, continuous */}
             {isScanning && (
-              <div className="mb-3 w-full">
+              <div className="mb-3 w-full bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden p-2">
                 <BarcodeScanner 
                   defaultMode={scanMode || "environment"}
                   continuous={true}
