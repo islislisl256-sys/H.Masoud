@@ -41,6 +41,7 @@ export default function StatisticsPage() {
   defaultFrom.setDate(defaultFrom.getDate() - 30);
   const [fromDate, setFromDate] = useState(defaultFrom.toISOString().slice(0, 10));
   const [toDate, setToDate] = useState(new Date().toISOString().slice(0, 10));
+  const [showAllProducts, setShowAllProducts] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -85,8 +86,8 @@ export default function StatisticsPage() {
     return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
   }, [filteredInvoices]);
 
-  // أفضل 5 منتجات (بناءً على الكمية المباعة)
-  const top5 = useMemo(() => {
+  // المنتجات الأكثر مبيعاً
+  const topProducts = useMemo(() => {
     const map: Record<string, { name: string; qty: number; profit: number }> = {};
     allItems.forEach(item => {
       const p = Array.isArray(item.products) ? item.products[0] : item.products;
@@ -96,9 +97,10 @@ export default function StatisticsPage() {
       map[name].profit += Number(item.profit);
     });
     return Object.values(map)
-      .sort((a, b) => b.qty - a.qty)
-      .slice(0, 5);
+      .sort((a, b) => b.qty - a.qty);
   }, [allItems]);
+
+  const displayedProducts = showAllProducts ? topProducts : topProducts.slice(0, 5);
 
   if (loading) {
     return (
@@ -184,14 +186,24 @@ export default function StatisticsPage() {
           )}
         </div>
 
-        {/* أفضل 5 منتجات */}
+        {/* المنتجات الأكثر مبيعاً */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5">
-          <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-5">🏆 أفضل 5 منتجات مبيعاً</h3>
-          {top5.length === 0 ? (
+          <div className="flex justify-between items-center mb-5">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">🏆 المنتجات الأكثر مبيعاً</h3>
+            {topProducts.length > 5 && (
+              <button 
+                onClick={() => setShowAllProducts(!showAllProducts)}
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                {showAllProducts ? 'عرض أقل' : 'عرض الكل'}
+              </button>
+            )}
+          </div>
+          {displayedProducts.length === 0 ? (
             <div className="h-40 flex items-center justify-center text-gray-400">لا توجد بيانات</div>
           ) : (
             <div className="space-y-3">
-              {top5.map((item, i) => (
+              {displayedProducts.map((item, i) => (
                 <div key={item.name} className="flex items-center gap-4">
                   <span className="text-2xl font-black text-gray-200 dark:text-gray-600 w-6 text-center">{i + 1}</span>
                   <div className="flex-1">
@@ -203,8 +215,8 @@ export default function StatisticsPage() {
                       <div
                         className="h-full rounded-full transition-all duration-700"
                         style={{
-                          width: `${(item.qty / top5[0].qty) * 100}%`,
-                          backgroundColor: COLORS[i],
+                          width: `${(item.qty / topProducts[0].qty) * 100}%`,
+                          backgroundColor: COLORS[i % COLORS.length],
                         }}
                       />
                     </div>
