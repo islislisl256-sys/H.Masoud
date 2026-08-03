@@ -33,6 +33,7 @@ export default function POSPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [isReturnMode, setIsReturnMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
@@ -107,12 +108,13 @@ export default function POSPage() {
     if (invoiceItems.length === 0) return;
     setSaving(true);
     
-    const total = invoiceItems.reduce((sum, item) => sum + (item.sale_price * item.quantity), 0);
-    const totalProfit = invoiceItems.reduce((sum, item) => sum + ((item.sale_price - item.purchase_price) * item.quantity), 0);
+    const multiplier = isReturnMode ? -1 : 1;
+    const total = invoiceItems.reduce((sum, item) => sum + (item.sale_price * item.quantity), 0) * multiplier;
+    const totalProfit = invoiceItems.reduce((sum, item) => sum + ((item.sale_price - item.purchase_price) * item.quantity), 0) * multiplier;
 
     try {
       // 1. Insert Invoice
-      const invoiceNumber = `INV-${Date.now()}`;
+      const invoiceNumber = isReturnMode ? `RET-${Date.now()}` : `INV-${Date.now()}`;
       const { data: invoice, error: invoiceError } = await supabase
         .from('invoices')
         .insert([{ invoice_number: invoiceNumber, total: total, profit: totalProfit }])
@@ -125,10 +127,10 @@ export default function POSPage() {
       const itemsToInsert = invoiceItems.map(item => ({
         invoice_id: invoice.id,
         product_id: item.id,
-        quantity: item.quantity,
+        quantity: item.quantity * multiplier,
         unit_price: item.sale_price,
-        total_price: item.sale_price * item.quantity,
-        profit: (item.sale_price - item.purchase_price) * item.quantity,
+        total_price: (item.sale_price * item.quantity) * multiplier,
+        profit: ((item.sale_price - item.purchase_price) * item.quantity) * multiplier,
       }));
 
       const { error: itemsError } = await supabase.from('invoice_items').insert(itemsToInsert);
@@ -138,11 +140,11 @@ export default function POSPage() {
       for (const item of invoiceItems) {
          const product = products.find(p => p.id === item.id);
          if (product) {
-           await supabase.from('products').update({ quantity: product.quantity - item.quantity }).eq('id', item.id);
+           await supabase.from('products').update({ quantity: product.quantity - (item.quantity * multiplier) }).eq('id', item.id);
          }
       }
 
-      alert("تم حفظ الفاتورة بنجاح!");
+      alert(isReturnMode ? "تم حفظ وصل الاسترجاع بنجاح!" : "تم حفظ الفاتورة بنجاح!");
       setInvoiceItems([]);
       fetchProducts(); // Refresh stock
     } catch (error) {
@@ -170,6 +172,22 @@ export default function POSPage() {
     <ProtectedLayout>
       <div className="space-y-4 pb-24">
         
+        {/* Mode Toggle (Sale / Return) */}
+        <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+          <button
+            onClick={() => setIsReturnMode(false)}
+            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${!isReturnMode ? 'bg-white dark:bg-gray-700 text-primary shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'}`}
+          >
+            🛒 نقطة البيع
+          </button>
+          <button
+            onClick={() => setIsReturnMode(true)}
+            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all ${isReturnMode ? 'bg-orange-500 text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'}`}
+          >
+            ↩️ استرجاع منتج
+          </button>
+        </div>
+
         {/* Search Bar */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
           <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">بحث سريع بالاسم أو رقم الباركود</h3>
@@ -200,8 +218,10 @@ export default function POSPage() {
               />
             </div>
           )}
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white">تفاصيل الفاتورة</h2>
+          <div className={`p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between ${isReturnMode ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-gray-50 dark:bg-gray-900/50'}`}>
+            <h2 className={`text-lg font-bold ${isReturnMode ? 'text-orange-600 dark:text-orange-400' : 'text-gray-900 dark:text-white'}`}>
+              {isReturnMode ? "تفاصيل وصل الاسترجاع" : "تفاصيل الفاتورة"}
+            </h2>
             <span className="text-sm text-gray-500 dark:text-gray-400">{invoiceItems.length} منتج</span>
           </div>
           
@@ -249,10 +269,10 @@ export default function POSPage() {
               whileTap={{ scale: 0.95 }}
               onClick={saveInvoice}
               disabled={invoiceItems.length === 0 || saving}
-              className="w-full flex items-center justify-center gap-2 bg-primary text-white py-4 rounded-lg hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-lg mt-2"
+              className={`w-full flex items-center justify-center gap-2 text-white py-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-lg mt-2 ${isReturnMode ? 'bg-orange-500 hover:bg-orange-600' : 'bg-primary hover:bg-primary/90'}`}
             >
               {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-              {saving ? "جاري الحفظ..." : "حفظ الفاتورة"}
+              {saving ? "جاري الحفظ..." : (isReturnMode ? "تأكيد الاسترجاع" : "حفظ الفاتورة")}
             </motion.button>
           </div>
         </div>
