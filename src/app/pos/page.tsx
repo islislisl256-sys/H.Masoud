@@ -192,7 +192,7 @@ export default function POSPage() {
         <div className="w-full flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           {isScanning && (
             <div className="w-full border-b border-gray-200 dark:border-gray-700 bg-black/5 dark:bg-white/5 py-4 flex justify-center">
-              <div className="w-full max-w-[350px]">
+              <div className="w-full max-w-[200px]">
                 <BarcodeScanner 
                   defaultMode={scanMode || "environment"}
                   onScanSuccess={handleScanSuccess}

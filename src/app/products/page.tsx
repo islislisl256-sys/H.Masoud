@@ -176,12 +176,8 @@ export default function ProductsPage() {
             </div>
             
             {isScanning && (
-              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80">
-                <div className="bg-white dark:bg-gray-800 p-4 rounded-xl w-full max-w-md flex flex-col">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="font-bold">امسح الباركود</h3>
-                    <button onClick={() => setIsScanning(false)} className="text-gray-500 hover:text-red-500"><X className="h-5 w-5" /></button>
-                  </div>
+              <div className="mt-4 flex justify-center">
+                <div className="w-full max-w-[200px]">
                   <BarcodeScanner 
                     defaultMode={scanMode || "environment"}
                     onScanSuccess={(decodedText) => {
@@ -191,10 +187,10 @@ export default function ProductsPage() {
                   />
                   <button 
                     onClick={() => setIsScanning(false)}
-                    className="mt-4 w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 rounded-lg flex justify-center items-center gap-2"
+                    className="mt-2 w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2 rounded-lg flex justify-center items-center gap-2 text-sm"
                   >
-                    <X className="h-5 w-5" />
-                    إيقاف المسح والإغلاق
+                    <X className="h-4 w-4" />
+                    إيقاف المسح
                   </button>
                 </div>
               </div>

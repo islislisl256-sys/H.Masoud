@@ -62,8 +62,8 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
 
       const config = {
         fps: 10,
-        qrbox: { width: 250, height: 120 }, // مستطيل مناسب للباركود
-        aspectRatio: 2.0,
+        qrbox: { width: 140, height: 220 }, // مستطيل عمودي للباركود
+        aspectRatio: 0.5,
         disableFlip: true,
         formatsToSupport: [
           Html5QrcodeSupportedFormats.QR_CODE,
