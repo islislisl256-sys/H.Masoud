@@ -82,8 +82,10 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
           (decodedText) => {
             if (continuous) {
               const now = Date.now();
-              if (lastScanned.current.text === decodedText && now - lastScanned.current.time < 2000) {
-                return; // Skip duplicate scan within 2 seconds
+              // Prevent ANY new scan within 2000ms of the last scan to avoid false positives 
+              // when the camera is moving away or blurring.
+              if (now - lastScanned.current.time < 2000) {
+                return;
               }
               lastScanned.current = { text: decodedText, time: now };
               onScanSuccessRef.current(decodedText);
