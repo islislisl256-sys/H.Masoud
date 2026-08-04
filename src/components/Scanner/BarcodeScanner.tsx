@@ -52,7 +52,10 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
       };
 
       try {
-        const cameraConfig = { facingMode: defaultMode === "user" ? "user" : "environment" };
+        const cameraConfig = defaultMode === "user" 
+          ? { facingMode: "user" } 
+          : { facingMode: { exact: "environment" } };
+          
         await scannerRef.current.start(
           cameraConfig,
           config,
