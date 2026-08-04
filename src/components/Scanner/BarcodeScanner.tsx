@@ -24,33 +24,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
     onScanErrorRef.current = onScanError;
   }, [onScanSuccess, onScanError]);
 
-  const [cameras, setCameras] = useState<CameraDevice[]>([]);
-  const [currentCameraIndex, setCurrentCameraIndex] = useState<number>(0);
-  const [isInitializing, setIsInitializing] = useState(true);
-
-  // Fetch cameras on mount
   useEffect(() => {
-    Html5Qrcode.getCameras().then(devices => {
-      if (devices && devices.length > 0) {
-        setCameras(devices);
-        if (defaultMode === "user") {
-           const frontIndex = devices.findIndex(d => d.label.toLowerCase().includes('front') || d.label.toLowerCase().includes('user') || d.label.toLowerCase().includes('أمامية'));
-           setCurrentCameraIndex(frontIndex !== -1 ? frontIndex : 0);
-        } else {
-           const backIndex = devices.findIndex(d => d.label.toLowerCase().includes('back') || d.label.toLowerCase().includes('environment') || d.label.toLowerCase().includes('rear') || d.label.toLowerCase().includes('خلفية'));
-           setCurrentCameraIndex(backIndex !== -1 ? backIndex : (devices.length > 1 ? 1 : 0));
-        }
-      }
-    }).catch(err => {
-      console.error("Error getting cameras", err);
-    }).finally(() => {
-      setIsInitializing(false);
-    });
-  }, []);
-
-  useEffect(() => {
-    if (isInitializing || cameras.length === 0) return;
-
     const startScanner = async () => {
       if (scannerRef.current?.isScanning) {
         await scannerRef.current.stop();
@@ -76,33 +50,19 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
       };
 
       try {
-        const cameraId = cameras[currentCameraIndex].id;
+        const cameraConfig = { facingMode: defaultMode === "user" ? "user" : "environment" };
         await scannerRef.current.start(
-          cameraId,
+          cameraConfig,
           config,
           (decodedText) => {
-            // Buffer to prevent false positive single-frame reads
-            scanBuffer.current.push(decodedText);
-            if (scanBuffer.current.length > 3) {
-              scanBuffer.current.shift();
-            }
-
-            // Require 3 identical consecutive reads to consider it a valid scan
-            if (scanBuffer.current.length < 3 || scanBuffer.current[0] !== scanBuffer.current[1] || scanBuffer.current[1] !== scanBuffer.current[2]) {
-               return; // Wait for next frame
-            }
-
             if (continuous) {
               const now = Date.now();
-              // Prevent ANY new scan within 1000ms of the last scan to avoid false positives 
-              // when the camera is moving away or blurring.
-              if (now - lastScanned.current.time < 1000) {
+              // Cooldown of 300ms between scans of the same item
+              if (lastScanned.current.text === decodedText && now - lastScanned.current.time < 300) {
                 return;
               }
               lastScanned.current = { text: decodedText, time: now };
               onScanSuccessRef.current(decodedText);
-              // Clear buffer after success to avoid rapid repeating
-              scanBuffer.current = [];
             } else {
               onScanSuccessRef.current(decodedText);
               scannerRef.current?.stop().catch(() => {});
@@ -130,7 +90,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
         }
       }
     };
-  }, [currentCameraIndex, cameras, isInitializing, continuous]);
+  }, [defaultMode, continuous]);
 
   return (
     <div className="w-full mx-auto overflow-hidden rounded-xl bg-gray-900 shadow-inner relative flex flex-col items-center justify-center">
