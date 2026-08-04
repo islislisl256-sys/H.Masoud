@@ -55,14 +55,24 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
           cameraConfig,
           config,
           (decodedText) => {
+            // Buffer to require 2 identical consecutive reads for accuracy
+            scanBuffer.current.push(decodedText);
+            if (scanBuffer.current.length > 2) {
+              scanBuffer.current.shift();
+            }
+            if (scanBuffer.current.length < 2 || scanBuffer.current[0] !== scanBuffer.current[1]) {
+               return; // Wait for next frame to confirm
+            }
+
             if (continuous) {
               const now = Date.now();
-              // Cooldown of 300ms between scans of the same item
-              if (lastScanned.current.text === decodedText && now - lastScanned.current.time < 300) {
+              // Cooldown of 400ms between scans of the same item
+              if (lastScanned.current.text === decodedText && now - lastScanned.current.time < 400) {
                 return;
               }
               lastScanned.current = { text: decodedText, time: now };
               onScanSuccessRef.current(decodedText);
+              scanBuffer.current = []; // Clear buffer after success
             } else {
               onScanSuccessRef.current(decodedText);
               scannerRef.current?.stop().catch(() => {});
