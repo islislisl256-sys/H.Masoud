@@ -88,10 +88,10 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
         // Check if torch is supported
         setTimeout(() => {
           if (scannerRef.current?.isScanning) {
-            const track = scannerRef.current.getRunningTrack();
+            const track = (scannerRef.current as any).getRunningTrack?.();
             if (track) {
-              const capabilities = track.getCapabilities();
-              if (capabilities && (capabilities as any).torch) {
+              const capabilities = track.getCapabilities?.();
+              if (capabilities && capabilities.torch) {
                 setHasTorch(true);
               }
             }
@@ -121,7 +121,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
   const toggleTorch = async () => {
     if (scannerRef.current && scannerRef.current.isScanning) {
       try {
-        await scannerRef.current.applyVideoConstraints({
+        await (scannerRef.current as any).applyVideoConstraints({
           advanced: [{ torch: !isTorchOn }]
         });
         setIsTorchOn(!isTorchOn);
