@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from 'react';
-import { Html5Qrcode, Html5QrcodeSupportedFormats, CameraDevice } from 'html5-qrcode';
-import { RefreshCcw } from 'lucide-react';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { RefreshCcw, Flashlight, FlashlightOff } from 'lucide-react';
 
 interface BarcodeScannerProps {
   onScanSuccess: (decodedText: string) => void;
@@ -15,6 +15,8 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
   const scannerRef = useRef<Html5Qrcode | null>(null);
   const lastScanned = useRef<{text: string, time: number}>({ text: "", time: 0 });
   const scanBuffer = useRef<string[]>([]);
+  const [isTorchOn, setIsTorchOn] = useState(false);
+  const [hasTorch, setHasTorch] = useState(false);
   
   const onScanSuccessRef = useRef(onScanSuccess);
   const onScanErrorRef = useRef(onScanError);
@@ -82,6 +84,20 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
             if (onScanErrorRef.current) onScanErrorRef.current(errorMessage);
           }
         );
+
+        // Check if torch is supported
+        setTimeout(() => {
+          if (scannerRef.current?.isScanning) {
+            const track = scannerRef.current.getRunningTrack();
+            if (track) {
+              const capabilities = track.getCapabilities();
+              if (capabilities && (capabilities as any).torch) {
+                setHasTorch(true);
+              }
+            }
+          }
+        }, 1000);
+
       } catch (err) {
         console.error("Failed to start camera", err);
       }
@@ -102,10 +118,33 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
     };
   }, [defaultMode, continuous]);
 
+  const toggleTorch = async () => {
+    if (scannerRef.current && scannerRef.current.isScanning) {
+      try {
+        await scannerRef.current.applyVideoConstraints({
+          advanced: [{ torch: !isTorchOn }]
+        });
+        setIsTorchOn(!isTorchOn);
+      } catch (err) {
+        console.error("Failed to toggle torch", err);
+      }
+    }
+  };
+
   return (
     <div className="w-full mx-auto overflow-hidden rounded-xl bg-gray-900 shadow-inner relative flex flex-col items-center justify-center">
        <div id="qr-reader" className="w-full h-full [&_video]:object-cover"></div>
        <div className="absolute inset-0 border-4 border-primary/50 pointer-events-none rounded-xl"></div>
+       
+       {hasTorch && (
+         <button
+           onClick={toggleTorch}
+           className="absolute bottom-4 right-4 p-3 bg-black/50 backdrop-blur-md rounded-full text-white hover:bg-black/70 transition-colors z-10 shadow-lg border border-white/20"
+           title="تشغيل/إطفاء الفلاش"
+         >
+           {isTorchOn ? <Flashlight className="h-6 w-6 text-yellow-400" /> : <FlashlightOff className="h-6 w-6" />}
+         </button>
+       )}
     </div>
   );
 };
