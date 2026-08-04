@@ -17,6 +17,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
   const scanBuffer = useRef<string[]>([]);
   const [isTorchOn, setIsTorchOn] = useState(false);
   const [hasTorch, setHasTorch] = useState(false);
+  const [activeCameraId, setActiveCameraId] = useState<string | null>(null);
   
   const onScanSuccessRef = useRef(onScanSuccess);
   const onScanErrorRef = useRef(onScanError);
@@ -25,6 +26,31 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
     onScanSuccessRef.current = onScanSuccess;
     onScanErrorRef.current = onScanError;
   }, [onScanSuccess, onScanError]);
+
+  // Fetch available cameras and prefer a macro/close‑up lens if present
+  useEffect(() => {
+    Html5Qrcode.getCameras()
+      .then((devices) => {
+        if (devices && devices.length) {
+          // Try to find a camera whose label suggests macro capability
+          const macro = devices.find((d) =>
+            /macro|close|zoom|near|2/.test(d.label.toLowerCase())
+          );
+          if (macro) {
+            setActiveCameraId(macro.id);
+          } else {
+            // Fallback to any back‑facing camera
+            const back = devices.find((d) =>
+              d.label.toLowerCase().includes('back') ||
+              d.label.toLowerCase().includes('environment') ||
+              d.label.toLowerCase().includes('rear')
+            );
+            if (back) setActiveCameraId(back.id);
+          }
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   useEffect(() => {
     const startScanner = async () => {
@@ -52,8 +78,10 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
       };
 
       try {
-        const cameraConfig = defaultMode === "user" 
-          ? { facingMode: "user" } 
+        const cameraConfig = activeCameraId
+          ? { deviceId: { exact: activeCameraId } }
+          : defaultMode === "user"
+          ? { facingMode: "user" }
           : { facingMode: { exact: "environment" } };
           
         await scannerRef.current.start(
@@ -127,7 +155,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
         }
       }
     };
-  }, [defaultMode, continuous]);
+  }, [defaultMode, continuous, activeCameraId]);
 
   const toggleTorch = async () => {
     if (scannerRef.current && scannerRef.current.isScanning) {
