@@ -85,14 +85,22 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
           }
         );
 
-        // Check if torch is supported
-        setTimeout(() => {
+        // Check if torch is supported and turn it on automatically
+        setTimeout(async () => {
           if (scannerRef.current?.isScanning) {
             const track = (scannerRef.current as any).getRunningTrack?.();
             if (track) {
               const capabilities = track.getCapabilities?.();
               if (capabilities && capabilities.torch) {
                 setHasTorch(true);
+                try {
+                  await (scannerRef.current as any).applyVideoConstraints({
+                    advanced: [{ torch: true }]
+                  });
+                  setIsTorchOn(true);
+                } catch (e) {
+                  console.error("Auto torch failed", e);
+                }
               }
             }
           }
