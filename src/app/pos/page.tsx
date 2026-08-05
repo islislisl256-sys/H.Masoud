@@ -85,7 +85,7 @@ export default function POSPage() {
   // Handle capture from PhoneCameraPicker
   const handleCapture = async (dataUrl: string, source: 'rear' | 'front' | 'gallery' | 'scan') => {
     if (source === 'rear' || source === 'front') {
-      setScanMode(source);
+      setScanMode(source === 'rear' ? 'environment' : 'user');
       setIsScanning(true);
       setShowScanMenu(false);
     } else if (source === 'gallery') {
