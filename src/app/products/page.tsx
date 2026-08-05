@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
 import { Plus, Search, Trash2, Loader2, Save, X, QrCode, Camera, ScanFace, ImagePlus, CheckCircle, Pencil, Package } from "lucide-react";
+import PhoneCameraPicker from '@/components/PhoneCameraPicker';
 import { supabase } from "@/lib/supabase";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import { Html5Qrcode } from "html5-qrcode";
@@ -22,6 +23,7 @@ type PendingProduct = {
   purchase_price: number;
   sale_price: number;
   quantity: number;
+  imageDataUrl?: string;
 };
 
 import { motion } from "framer-motion";
@@ -38,6 +40,7 @@ export default function ProductsPage() {
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editQty, setEditQty] = useState(0);
+  const [imagePickerIndex, setImagePickerIndex] = useState<number | null>(null);
   const [editField, setEditField] = useState<'name' | 'sale_price' | 'quantity' | null>(null);
   const [editValue, setEditValue] = useState<string>('');
 
@@ -62,7 +65,8 @@ export default function ProductsPage() {
       name: '',
       purchase_price: 0,
       sale_price: 0,
-      quantity: 0
+      quantity: 0,
+      imageDataUrl: ''
     }]);
   };
 
@@ -81,7 +85,9 @@ export default function ProductsPage() {
       return;
     }
     setSaving(true);
-    const { data, error } = await supabase.from('products').insert([p]).select().single();
+    const payload = { ...p };
+    delete payload.imageDataUrl;
+    const { data, error } = await supabase.from('products').insert([payload]).select().single();
     if (error) {
       alert("خطأ أثناء الإضافة. تأكد من أن رقم المنتج غير مكرر.");
     } else {
@@ -92,7 +98,10 @@ export default function ProductsPage() {
   };
 
   const saveAll = async () => {
-    const valid = pendingProducts.filter(p => p.product_number && p.name);
+    const valid = pendingProducts.filter(p => p.product_number && p.name).map(p => {
+      const { imageDataUrl, ...rest } = p;
+      return rest;
+    });
     if (valid.length === 0) {
       alert("لا توجد منتجات صالحة للحفظ (تأكد من إدخال اسم كل منتج)");
       return;
@@ -308,6 +317,18 @@ export default function ProductsPage() {
                         value={p.quantity || ''}
                         onChange={e => updatePending(index, 'quantity', Number(e.target.value))}
                       />
+                      {/* Image picker button */}
+                      <div className="flex items-center mt-2">
+                        {p.imageDataUrl && <img src={p.imageDataUrl} alt="منتج" className="w-12 h-12 object-cover rounded mr-2" />}
+                        <button
+                          type="button"
+                          onClick={() => setImagePickerIndex(index)}
+                          className="flex items-center gap-2 px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded"
+                        >
+                          <ImagePlus className="h-4 w-4" />
+                          إضافة صورة
+                        </button>
+                      </div>
                     </div>
                     <div className="flex justify-end">
                       <motion.button
@@ -323,6 +344,28 @@ export default function ProductsPage() {
                   </div>
                 ))}
               </div>
+            )}
+              {/* PhoneCameraPicker modal */}
+              {imagePickerIndex !== null && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                  <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg max-w-md w-full">
+                    <PhoneCameraPicker
+                      onCapture={(dataUrl, source) => {
+                        setPendingProducts(prev =>
+                          prev.map((p, i) =>
+                            i === imagePickerIndex ? { ...p, imageDataUrl: dataUrl } : p
+                          )
+                        );
+                        setImagePickerIndex(null);
+                      }}
+                    />
+                    <button
+                      onClick={() => setImagePickerIndex(null)}
+                      className="mt-2 w-full px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded"
+                    >إلغاء</button>
+                  </div>
+                </div>
+              )}
             )}
           </div>
         )}
