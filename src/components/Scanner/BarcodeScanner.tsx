@@ -19,6 +19,7 @@ interface BarcodeScannerProps {
 const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
   onScanSuccess,
   onScanError,
+  onCaptureImage,
   defaultMode = "environment",
   continuous = false,
 }) => {
@@ -216,11 +217,12 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({
           onCaptureImage(dataUrl);
         } else if (onScanSuccessRef.current) {
           // Fallback: try to scan the image.
-          Html5Qrcode.scanFile(file, true)
-            .then((result) => {
+          const tempScanner = new Html5Qrcode("qr-reader");
+          tempScanner.scanFile(file, true)
+            .then((result: string) => {
               if (result) onScanSuccessRef.current(result);
             })
-            .catch((e) => {
+            .catch((e: any) => {
               if (onScanErrorRef.current) onScanErrorRef.current((e as Error).message);
             });
         }
