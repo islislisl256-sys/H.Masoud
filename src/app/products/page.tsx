@@ -42,6 +42,9 @@ export default function ProductsPage() {
   const [editQty, setEditQty] = useState(0);
   const [imagePickerIndex, setImagePickerIndex] = useState<number | null>(null);
   const [editField, setEditField] = useState<'name' | 'sale_price' | 'quantity' | null>(null);
+  // State to control PhoneCameraPicker visibility for product image upload
+  const [showImagePicker, setShowImagePicker] = useState(false);
+
   const [editValue, setEditValue] = useState<string>('');
 
   useEffect(() => {
@@ -344,7 +347,7 @@ export default function ProductsPage() {
                   </div>
                 ))}
               </div>
-            )}
+)}
               {/* PhoneCameraPicker modal */}
               {imagePickerIndex !== null && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -479,8 +482,8 @@ export default function ProductsPage() {
                         </button>
                       </td>
                     </tr>
-                  ))
-                )}
+                  ))}
+
               </tbody>
             </table>
           </div>

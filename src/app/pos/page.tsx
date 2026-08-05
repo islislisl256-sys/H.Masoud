@@ -37,6 +37,7 @@ export default function POSPage() {
   const [isReturnMode, setIsReturnMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [discount, setDiscount] = useState(0);
+  const [showImagePicker, setShowImagePicker] = useState(false);
 
   useEffect(() => {
     fetchProducts();
@@ -234,6 +235,25 @@ export default function POSPage() {
           </div>
           <p className="text-xs text-gray-400 mt-2 text-center">اضغط Enter للإضافة السريعة عند استخدام قارئ باركود خارجي</p>
         </div>
+        {/* Image picker */}
+        <div className="flex items-center mt-2">
+          <button
+            type="button"
+            onClick={() => setShowImagePicker(true)}
+            className="flex items-center gap-2 px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded"
+          >
+            <ImagePlus className="h-4 w-4" />
+            رفع صورة من الهاتف
+          </button>
+        </div>
+        {showImagePicker && (
+          <PhoneCameraPicker
+            onCapture={(dataUrl, source) => {
+              setShowImagePicker(false);
+              // TODO: handle captured image if needed
+            }}
+          />
+        )}
 
         {/* Invoice Details - Full Width */}
         <div className="w-full flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -322,7 +342,7 @@ export default function POSPage() {
               disabled={invoiceItems.length === 0 || saving}
               className={`w-full flex items-center justify-center gap-2 text-white py-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-lg mt-2 ${isReturnMode ? 'bg-orange-500 hover:bg-orange-600' : 'bg-primary hover:bg-primary/90'}`}
             >
-              {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+              {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <PhoneCameraPicker onCapture={handleCapture} />}
               {saving ? "جاري الحفظ..." : (isReturnMode ? "تأكيد الاسترجاع" : "حفظ الفاتورة")}
             </motion.button>
           </div>
