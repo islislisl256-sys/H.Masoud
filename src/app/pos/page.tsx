@@ -7,8 +7,6 @@ import { Html5Qrcode } from "html5-qrcode";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
-import PhoneCameraPicker from "@/components/PhoneCameraPicker";
-import { useNotification } from "@/contexts/NotificationContext";
 
 type Product = {
   id: string;
@@ -37,9 +35,7 @@ export default function POSPage() {
   const [saving, setSaving] = useState(false);
   const [isReturnMode, setIsReturnMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [manualTotal, setManualTotal] = useState<number | null>(null);
-  const [showImagePicker, setShowImagePicker] = useState(false);
-  const { showNotification } = useNotification();
+  const [discount, setDiscount] = useState(0);
 
   useEffect(() => {
     fetchProducts();
@@ -58,44 +54,20 @@ export default function POSPage() {
     if (product) {
       addProduct(product);
     } else {
-      showNotification("المنتج غير موجود في قاعدة البيانات!", "error");
+      alert("المنتج غير موجود في قاعدة البيانات!");
     }
   };
 
-  // Helper to process an image file for QR/barcode scanning
-  const processImageFile = async (file: File) => {
-    try {
-      const html5QrCode = new Html5Qrcode("hidden-qr-reader-pos");
-      const decodedText = await html5QrCode.scanFile(file, true);
-      handleScanSuccess(decodedText);
-    } catch (err) {
-      showNotification("لم يتم العثور على باركود في الصورة، تأكد من وضوح الصورة.", "error");
-    }
-    setShowScanMenu(false);
-  };
-
-  // Updated image scan handler using the helper
   const handleImageScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      await processImageFile(file);
-    }
-  };
-
-  const handleCapture = async (dataUrl: string, source: 'rear' | 'front' | 'gallery' | 'scan' | 'upload') => {
-    if (source === 'rear' || source === 'front') {
-      setScanMode(source === 'rear' ? 'environment' : 'user');
-      setIsScanning(true);
-      setShowScanMenu(false);
-    } else if (source === 'gallery') {
-      // Convert dataURL to File and process
-      const response = await fetch(dataUrl);
-      const blob = await response.blob();
-      const file = new File([blob], "capture.png", { type: blob.type });
-      await processImageFile(file);
-    } else if (source === 'scan') {
-      // Directly start scanning (same as tap QR button)
-      setIsScanning(true);
+      try {
+        const html5QrCode = new Html5Qrcode("hidden-qr-reader-pos");
+        const decodedText = await html5QrCode.scanFile(file, true);
+        handleScanSuccess(decodedText);
+      } catch (err) {
+        alert("لم يتم العثور على باركود في الصورة، تأكد من وضوح الصورة.");
+      }
       setShowScanMenu(false);
     }
   };
@@ -108,7 +80,6 @@ export default function POSPage() {
   };
 
   const addProduct = (product: Product) => {
-    setManualTotal(null);
     setInvoiceItems(prev => {
       const existing = prev.find(item => item.id === product.id);
       if (existing) {
@@ -121,7 +92,6 @@ export default function POSPage() {
   };
 
   const updateQuantity = (id: string, delta: number) => {
-    setManualTotal(null);
     setInvoiceItems(prev => prev.map(item => {
       if (item.id === id) {
         const newQ = item.quantity + delta;
@@ -132,7 +102,6 @@ export default function POSPage() {
   };
 
   const removeItem = (id: string) => {
-    setManualTotal(null);
     setInvoiceItems(prev => prev.filter(item => item.id !== id));
   };
 
@@ -141,21 +110,15 @@ export default function POSPage() {
     setSaving(true);
     
     const multiplier = isReturnMode ? -1 : 1;
-    
-    const rawTotal = invoiceItems.reduce((sum, item) => sum + (item.sale_price * item.quantity), 0);
-    const currentTotal = manualTotal !== null ? manualTotal : rawTotal;
-    const totalPurchaseCost = invoiceItems.reduce((sum, item) => sum + (item.purchase_price * item.quantity), 0);
-    const currentProfit = currentTotal - totalPurchaseCost;
-    
-    const finalTotal = currentTotal * multiplier;
-    const finalProfit = currentProfit * multiplier;
+    const total = invoiceItems.reduce((sum, item) => sum + (item.sale_price * item.quantity), 0) * multiplier;
+    const totalProfit = invoiceItems.reduce((sum, item) => sum + ((item.sale_price - item.purchase_price) * item.quantity), 0) * multiplier;
 
     try {
       // 1. Insert Invoice
       const invoiceNumber = isReturnMode ? `RET-${Date.now()}` : `INV-${Date.now()}`;
       const { data: invoice, error: invoiceError } = await supabase
         .from('invoices')
-        .insert([{ invoice_number: invoiceNumber, total: finalTotal, profit: finalProfit }])
+        .insert([{ invoice_number: invoiceNumber, total: total, profit: totalProfit }])
         .select()
         .single();
         
@@ -174,36 +137,28 @@ export default function POSPage() {
       const { error: itemsError } = await supabase.from('invoice_items').insert(itemsToInsert);
       if (itemsError) throw itemsError;
 
-      // 3. Update Stock & Auto-delete
+      // 3. Update Stock
       for (const item of invoiceItems) {
          const product = products.find(p => p.id === item.id);
          if (product) {
-           const newQty = product.quantity - (item.quantity * multiplier);
-           if (newQty <= 0) {
-             await supabase.from('products').delete().eq('id', item.id);
-             showNotification(`تم حذف المنتج ${product.name} لنفاد الكمية من المخزن`, "info");
-           } else {
-             await supabase.from('products').update({ quantity: newQty }).eq('id', item.id);
-           }
+           await supabase.from('products').update({ quantity: product.quantity - (item.quantity * multiplier) }).eq('id', item.id);
          }
       }
 
-      showNotification(isReturnMode ? "تم حفظ وصل الاسترجاع بنجاح!" : "تم حفظ الفاتورة بنجاح!", "success");
+      alert(isReturnMode ? "تم حفظ وصل الاسترجاع بنجاح!" : "تم حفظ الفاتورة بنجاح!");
       setInvoiceItems([]);
-      setManualTotal(null);
       fetchProducts(); // Refresh stock
     } catch (error) {
       console.error(error);
-      showNotification("حدث خطأ أثناء حفظ الفاتورة", "error");
+      alert("حدث خطأ أثناء حفظ الفاتورة");
     } finally {
       setSaving(false);
     }
   };
 
   const rawTotal = invoiceItems.reduce((sum, item) => sum + (item.sale_price * item.quantity), 0);
-  const currentTotal = manualTotal !== null ? manualTotal : rawTotal;
-  const totalPurchaseCost = invoiceItems.reduce((sum, item) => sum + (item.purchase_price * item.quantity), 0);
-  const currentProfit = currentTotal - totalPurchaseCost;
+  const total = rawTotal * (1 - discount / 100);
+  const totalProfit = invoiceItems.reduce((sum, item) => sum + ((item.sale_price - item.purchase_price) * item.quantity), 0);
 
   if (loading) {
     return (
@@ -253,25 +208,6 @@ export default function POSPage() {
           </div>
           <p className="text-xs text-gray-400 mt-2 text-center">اضغط Enter للإضافة السريعة عند استخدام قارئ باركود خارجي</p>
         </div>
-        {/* Image picker */}
-        <div className="flex items-center mt-2">
-          <button
-            type="button"
-            onClick={() => setShowImagePicker(true)}
-            className="flex items-center gap-2 px-3 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded"
-          >
-            <ImagePlus className="h-4 w-4" />
-            رفع صورة من الهاتف
-          </button>
-        </div>
-        {showImagePicker && (
-          <PhoneCameraPicker
-            onCapture={(dataUrl, source) => {
-              setShowImagePicker(false);
-              // TODO: handle captured image if needed
-            }}
-          />
-        )}
 
         {/* Invoice Details - Full Width */}
         <div className="w-full flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -322,36 +258,45 @@ export default function POSPage() {
           </div>
 
           <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 space-y-3">
-            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
               <span>عدد المنتجات:</span>
               <span className="font-medium text-gray-900 dark:text-white">{invoiceItems.length}</span>
             </div>
-            
-            <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
-              <span className="font-bold text-gray-900 dark:text-white text-lg">السعر الإجمالي:</span>
-              <div className="flex items-center gap-2">
-                <input 
-                  type="number" 
-                  value={currentTotal} 
-                  onChange={e => setManualTotal(Number(e.target.value))}
-                  className="w-32 text-left font-bold text-xl px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-primary focus:ring-2 focus:ring-primary dark:bg-gray-700 outline-none"
-                />
-                <span className="text-gray-500 font-medium">د.ج</span>
+            <div className="flex justify-between text-xl font-bold text-gray-900 dark:text-white border-b border-dashed border-gray-300 dark:border-gray-600 pb-3">
+              <span>الإجمالي:</span>
+              <div className="text-right">
+                {discount > 0 && <p className="text-sm line-through text-gray-400 font-normal">{rawTotal.toLocaleString()} د.ج</p>}
+                <span className="text-primary">{total.toLocaleString()} د.ج</span>
               </div>
             </div>
 
-            <div className="flex justify-between text-sm font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/10 p-3 rounded-lg border border-green-100 dark:border-green-900/30">
-              <span>الربح الإجمالي (متغير مع السعر):</span>
-              <span>{currentProfit.toLocaleString()} د.ج</span>
+            {/* أزرار الخصم */}
+            <div className="space-y-1.5">
+              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">تطبيق خصم:</p>
+              <div className="flex gap-2 flex-wrap">
+                {[0, 5, 7.5, 10, 15].map(d => (
+                  <button
+                    key={d}
+                    onClick={() => setDiscount(d)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                      discount === d
+                        ? 'bg-primary text-white shadow-md scale-105'
+                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-primary/10 hover:text-primary'
+                    }`}
+                  >
+                    {d === 0 ? 'بدون خصم' : `${d}%`}
+                  </button>
+                ))}
+              </div>
             </div>
             
             <motion.button 
               whileTap={{ scale: 0.95 }}
               onClick={saveInvoice}
               disabled={invoiceItems.length === 0 || saving}
-              className={`w-full flex items-center justify-center gap-2 text-white py-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-lg mt-4 ${isReturnMode ? 'bg-orange-500 hover:bg-orange-600' : 'bg-primary hover:bg-primary/90'}`}
+              className={`w-full flex items-center justify-center gap-2 text-white py-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-lg mt-2 ${isReturnMode ? 'bg-orange-500 hover:bg-orange-600' : 'bg-primary hover:bg-primary/90'}`}
             >
-              {saving ? <Loader2 className="h-6 w-6 animate-spin" /> : <Save className="h-6 w-6" />}
+              {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
               {saving ? "جاري الحفظ..." : (isReturnMode ? "تأكيد الاسترجاع" : "حفظ الفاتورة")}
             </motion.button>
           </div>
@@ -359,27 +304,44 @@ export default function POSPage() {
 
       </div>
 
-{/* Fixed Floating Scan Button - Above Bottom Nav */}
-<div className="fixed bottom-20 md:bottom-6 right-6 z-50 flex flex-col items-center">
-  {showScanMenu && !isScanning && (
-    <PhoneCameraPicker onCapture={handleCapture} />
-  )}
-  <motion.button
-    whileTap={{ scale: 0.95 }}
-    onClick={() => isScanning ? setIsScanning(false) : setShowScanMenu(!showScanMenu)}
-    className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 active:scale-90 ${
-            isScanning
-              ? "bg-red-500 hover:bg-red-600 shadow-red-500/30"
+      {/* Fixed Floating Scan Button - Above Bottom Nav */}
+      <div className="fixed bottom-20 md:bottom-6 right-6 z-50 flex flex-col items-center">
+        {showScanMenu && !isScanning && (
+          <div className="mb-4 flex flex-col gap-3 origin-bottom animate-in fade-in slide-in-from-bottom-4 items-center">
+            <label className="flex items-center justify-center w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg cursor-pointer transition-transform hover:scale-110" title="رفع صورة من الهاتف">
+               <ImagePlus className="h-5 w-5" />
+               <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
+            </label>
+            <button 
+              onClick={() => { setScanMode("user"); setIsScanning(true); setShowScanMenu(false); }}
+              className="flex items-center justify-center w-12 h-12 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg transition-transform hover:scale-110" title="تصوير بالكاميرا الأمامية"
+            >
+               <ScanFace className="h-5 w-5" />
+            </button>
+            <button 
+              onClick={() => { setScanMode("environment"); setIsScanning(true); setShowScanMenu(false); }}
+              className="flex items-center justify-center w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg transition-transform hover:scale-110" title="تصوير بالكاميرا الخلفية"
+            >
+               <Camera className="h-5 w-5" />
+            </button>
+          </div>
+        )}
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          onClick={() => isScanning ? setIsScanning(false) : setShowScanMenu(!showScanMenu)}
+          className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 active:scale-90 ${
+            isScanning 
+              ? "bg-red-500 hover:bg-red-600 shadow-red-500/30" 
               : "bg-primary hover:bg-primary-hover shadow-primary/30"
           }`}
-  >
-    {isScanning ? (
-      <X className="h-7 w-7 text-white" />
-    ) : (
-      <QrCode className="h-7 w-7 text-white" />
-    )}
-  </motion.button>
-</div>
+        >
+          {isScanning ? (
+            <X className="h-7 w-7 text-white" />
+          ) : (
+            <QrCode className="h-7 w-7 text-white" />
+          )}
+        </motion.button>
+      </div>
 
 
       
