@@ -7,6 +7,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import PhoneCameraPicker from "@/components/PhoneCameraPicker";
 
 type Product = {
   id: string;
@@ -58,16 +59,41 @@ export default function POSPage() {
     }
   };
 
+  // Helper to process an image file for QR/barcode scanning
+  const processImageFile = async (file: File) => {
+    try {
+      const html5QrCode = new Html5Qrcode("hidden-qr-reader-pos");
+      const decodedText = await html5QrCode.scanFile(file, true);
+      handleScanSuccess(decodedText);
+    } catch (err) {
+      alert("لم يتم العثور على باركود في الصورة، تأكد من وضوح الصورة.");
+    }
+    setShowScanMenu(false);
+  };
+
+  // Updated image scan handler using the helper
   const handleImageScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      try {
-        const html5QrCode = new Html5Qrcode("hidden-qr-reader-pos");
-        const decodedText = await html5QrCode.scanFile(file, true);
-        handleScanSuccess(decodedText);
-      } catch (err) {
-        alert("لم يتم العثور على باركود في الصورة، تأكد من وضوح الصورة.");
-      }
+      await processImageFile(file);
+    }
+  };
+
+  // Handle capture from PhoneCameraPicker
+  const handleCapture = async (dataUrl: string, source: 'rear' | 'front' | 'gallery' | 'scan') => {
+    if (source === 'rear' || source === 'front') {
+      setScanMode(source);
+      setIsScanning(true);
+      setShowScanMenu(false);
+    } else if (source === 'gallery') {
+      // Convert dataURL to File and process
+      const response = await fetch(dataUrl);
+      const blob = await response.blob();
+      const file = new File([blob], "capture.png", { type: blob.type });
+      await processImageFile(file);
+    } else if (source === 'scan') {
+      // Directly start scanning (same as tap QR button)
+      setIsScanning(true);
       setShowScanMenu(false);
     }
   };
@@ -304,44 +330,27 @@ export default function POSPage() {
 
       </div>
 
-      {/* Fixed Floating Scan Button - Above Bottom Nav */}
-      <div className="fixed bottom-20 md:bottom-6 right-6 z-50 flex flex-col items-center">
-        {showScanMenu && !isScanning && (
-          <div className="mb-4 flex flex-col gap-3 origin-bottom animate-in fade-in slide-in-from-bottom-4 items-center">
-            <label className="flex items-center justify-center w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg cursor-pointer transition-transform hover:scale-110" title="رفع صورة من الهاتف">
-               <ImagePlus className="h-5 w-5" />
-               <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
-            </label>
-            <button 
-              onClick={() => { setScanMode("user"); setIsScanning(true); setShowScanMenu(false); }}
-              className="flex items-center justify-center w-12 h-12 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg transition-transform hover:scale-110" title="تصوير بالكاميرا الأمامية"
-            >
-               <ScanFace className="h-5 w-5" />
-            </button>
-            <button 
-              onClick={() => { setScanMode("environment"); setIsScanning(true); setShowScanMenu(false); }}
-              className="flex items-center justify-center w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg transition-transform hover:scale-110" title="تصوير بالكاميرا الخلفية"
-            >
-               <Camera className="h-5 w-5" />
-            </button>
-          </div>
-        )}
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={() => isScanning ? setIsScanning(false) : setShowScanMenu(!showScanMenu)}
-          className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 active:scale-90 ${
-            isScanning 
-              ? "bg-red-500 hover:bg-red-600 shadow-red-500/30" 
+{/* Fixed Floating Scan Button - Above Bottom Nav */}
+<div className="fixed bottom-20 md:bottom-6 right-6 z-50 flex flex-col items-center">
+  {showScanMenu && !isScanning && (
+    <PhoneCameraPicker onCapture={handleCapture} />
+  )}
+  <motion.button
+    whileTap={{ scale: 0.95 }}
+    onClick={() => isScanning ? setIsScanning(false) : setShowScanMenu(!showScanMenu)}
+    className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 active:scale-90 ${
+            isScanning
+              ? "bg-red-500 hover:bg-red-600 shadow-red-500/30"
               : "bg-primary hover:bg-primary-hover shadow-primary/30"
           }`}
-        >
-          {isScanning ? (
-            <X className="h-7 w-7 text-white" />
-          ) : (
-            <QrCode className="h-7 w-7 text-white" />
-          )}
-        </motion.button>
-      </div>
+  >
+    {isScanning ? (
+      <X className="h-7 w-7 text-white" />
+    ) : (
+      <QrCode className="h-7 w-7 text-white" />
+    )}
+  </motion.button>
+</div>
 
 
       
