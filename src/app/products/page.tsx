@@ -369,7 +369,7 @@ export default function ProductsPage() {
                   </div>
                 </div>
               )}
-            )}
+
           </div>
         )}
 
@@ -482,8 +482,8 @@ export default function ProductsPage() {
                         </button>
                       </td>
                     </tr>
-                  ))}
-
+                  ))
+                )}
               </tbody>
             </table>
           </div>
