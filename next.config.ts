@@ -8,9 +8,9 @@ const nextConfig: NextConfig = {
   // Use Babel loader instead of SWC to avoid Windows binary issue
   webpack: (config, { defaultLoaders }) => {
     // Replace next-swc-loader with babel-loader
-    config.module.rules.forEach(rule => {
+    config.module.rules.forEach((rule: any) => {
       if (Array.isArray(rule.use)) {
-        rule.use = rule.use.map(u => {
+        rule.use = rule.use.map((u: any) => {
           if (typeof u === 'object' && u.loader && u.loader.includes('next-swc-loader')) {
             return { loader: 'babel-loader', options: { presets: ['next/babel'] } };
           }
