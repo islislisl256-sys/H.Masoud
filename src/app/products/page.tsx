@@ -7,6 +7,7 @@ import PhoneCameraPicker from '@/components/PhoneCameraPicker';
 import { supabase } from "@/lib/supabase";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import { Html5Qrcode } from "html5-qrcode";
+import { useNotification } from "@/contexts/NotificationContext";
 
 type Product = {
   id: string;
@@ -44,7 +45,7 @@ export default function ProductsPage() {
   const [editField, setEditField] = useState<'name' | 'sale_price' | 'quantity' | null>(null);
   // State to control PhoneCameraPicker visibility for product image upload
   const [showImagePicker, setShowImagePicker] = useState(false);
-
+  const { showNotification } = useNotification();
   const [editValue, setEditValue] = useState<string>('');
 
   useEffect(() => {
@@ -62,6 +63,10 @@ export default function ProductsPage() {
 
   const handleScanSuccess = (decodedText: string) => {
     // Prevent duplicate barcodes
+    if (products.some(p => p.product_number === decodedText)) {
+      showNotification("رقم الباركود موجود مسبقاً!", "error");
+      return;
+    }
     if (pendingProducts.some(p => p.product_number === decodedText)) return;
     setPendingProducts(prev => [...prev, {
       product_number: decodedText,
@@ -84,7 +89,15 @@ export default function ProductsPage() {
   const saveSingle = async (index: number) => {
     const p = pendingProducts[index];
     if (!p.product_number || !p.name) {
-      alert("الرجاء إدخال رقم واسم المنتج");
+      showNotification("الرجاء إدخال رقم واسم المنتج", "error");
+      return;
+    }
+    if (products.some(prod => prod.name === p.name)) {
+      showNotification("اسم المنتج موجود مسبقاً!", "error");
+      return;
+    }
+    if (products.some(prod => prod.product_number === p.product_number)) {
+      showNotification("رقم الباركود موجود مسبقاً!", "error");
       return;
     }
     setSaving(true);
@@ -92,10 +105,11 @@ export default function ProductsPage() {
     delete payload.imageDataUrl;
     const { data, error } = await supabase.from('products').insert([payload]).select().single();
     if (error) {
-      alert("خطأ أثناء الإضافة. تأكد من أن رقم المنتج غير مكرر.");
+      showNotification("خطأ أثناء الإضافة. تأكد من أن البيانات صحيحة.", "error");
     } else {
       setProducts(prev => [data, ...prev]);
       removePending(index);
+      showNotification("تمت إضافة المنتج بنجاح!", "success");
     }
     setSaving(false);
   };
@@ -105,17 +119,29 @@ export default function ProductsPage() {
       const { imageDataUrl, ...rest } = p;
       return rest;
     });
-    if (valid.length === 0) {
-      alert("لا توجد منتجات صالحة للحفظ (تأكد من إدخال اسم كل منتج)");
+    
+    const uniqueValid = [];
+    for (const p of valid) {
+       if (products.some(prod => prod.name === p.name || prod.product_number === p.product_number)) {
+           showNotification(`المنتج ${p.name} أو باركوده موجود مسبقاً، تم تجاهله`, "error");
+       } else {
+           uniqueValid.push(p);
+       }
+    }
+    
+    if (uniqueValid.length === 0) {
+      showNotification("لا توجد منتجات صالحة للحفظ", "error");
       return;
     }
+    
     setSaving(true);
-    const { data, error } = await supabase.from('products').insert(valid).select();
+    const { data, error } = await supabase.from('products').insert(uniqueValid).select();
     if (error) {
-      alert("خطأ أثناء الحفظ الجماعي");
+      showNotification("خطأ أثناء الحفظ الجماعي", "error");
     } else if (data) {
       setProducts(prev => [...data, ...prev]);
       setPendingProducts([]);
+      showNotification(`تم حفظ ${data.length} منتجات بنجاح!`, "success");
     }
     setSaving(false);
   };
@@ -128,16 +154,26 @@ export default function ProductsPage() {
         const decodedText = await html5QrCode.scanFile(file, true);
         handleScanSuccess(decodedText);
       } catch {
-        alert("لم يتم العثور على باركود في الصورة، تأكد من وضوح الصورة.");
+        showNotification("لم يتم العثور على باركود في الصورة، تأكد من وضوح الصورة.", "error");
       }
       setShowScanMenu(false);
     }
   };
 
   const handleUpdateQuantity = async (id: string) => {
-    const { error } = await supabase.from('products').update({ quantity: editQty }).eq('id', id);
-    if (!error) {
-      setProducts(prev => prev.map(p => p.id === id ? { ...p, quantity: editQty } : p));
+    if (editQty <= 0) {
+       const product = products.find(p => p.id === id);
+       const { error } = await supabase.from('products').delete().eq('id', id);
+       if (!error) {
+         setProducts(prev => prev.filter(p => p.id !== id));
+         showNotification(`تم مسح المنتج "${product?.name}" لانتهاء الكمية`, "info");
+       }
+    } else {
+       const { error } = await supabase.from('products').update({ quantity: editQty }).eq('id', id);
+       if (!error) {
+         setProducts(prev => prev.map(p => p.id === id ? { ...p, quantity: editQty } : p));
+         showNotification("تم تحديث الكمية بنجاح", "success");
+       }
     }
     setEditingId(null);
     setEditField(null);
@@ -157,9 +193,10 @@ export default function ProductsPage() {
     if (confirm("هل أنت متأكد من حذف هذا المنتج؟")) {
       const { error } = await supabase.from('products').delete().eq('id', id);
       if (error) {
-        alert("خطأ أثناء الحذف");
+        showNotification("خطأ أثناء الحذف", "error");
       } else {
         fetchProducts();
+        showNotification("تم حذف المنتج", "success");
       }
     }
   };
@@ -373,7 +410,7 @@ export default function ProductsPage() {
           </div>
         )}
 
-        {/* Products table */}
+        {/* Products List (Cards) */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <div className="relative w-full sm:max-w-md">
@@ -383,109 +420,96 @@ export default function ProductsPage() {
               <input
                 type="text"
                 placeholder="ابحث عن منتج (بالاسم أو الرقم)..."
-                className="w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm"
+                className="w-full pl-3 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
-
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-sm text-gray-500 dark:text-gray-400">
-              <thead className="bg-gray-50 dark:bg-gray-900/50 text-gray-700 dark:text-gray-300">
-                <tr>
-                  <th scope="col" className="px-6 py-4 font-bold">الرقم</th>
-                  <th scope="col" className="px-6 py-4 font-bold">اسم المنتج</th>
-                  <th scope="col" className="px-6 py-4 font-bold">سعر الشراء</th>
-                  <th scope="col" className="px-6 py-4 font-bold">سعر البيع</th>
-                  <th scope="col" className="px-6 py-4 font-bold">الربح</th>
-                  <th scope="col" className="px-6 py-4 font-bold">الكمية</th>
-                  <th scope="col" className="px-6 py-4 font-bold text-center">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr>
-                    <td colSpan={7} className="text-center py-12">
-                      <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
-                    </td>
-                  </tr>
-                ) : filteredProducts.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="text-center py-8">لا توجد منتجات</td>
-                  </tr>
-                ) : (
-                  filteredProducts.map((product) => (
-                    <tr key={product.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{product.product_number}</td>
-                      <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">
+          
+          <div className="p-4">
+            {loading ? (
+              <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 font-medium">لا توجد منتجات</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredProducts.map((product) => (
+                  <div key={product.id} className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-200 dark:border-gray-600 shadow-sm flex flex-col gap-3">
+                    {/* Header */}
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1">
                         {editingId === product.id && editField === 'name' ? (
-                          <div className="flex items-center gap-1">
-                            <input autoFocus type="text" className="w-28 px-2 py-1 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none" value={editValue} onChange={e => setEditValue(e.target.value)} />
-                            <button onClick={() => handleUpdateField(product.id, 'name')} className="p-1 text-green-600 hover:bg-green-50 rounded"><Save className="h-3.5 w-3.5" /></button>
-                            <button onClick={() => { setEditingId(null); setEditField(null); }} className="p-1 text-gray-400 hover:bg-gray-100 rounded"><X className="h-3.5 w-3.5" /></button>
+                          <div className="flex items-center gap-2 mb-2">
+                            <input autoFocus type="text" className="w-full px-3 py-2 border rounded-lg text-base dark:bg-gray-800 dark:border-gray-500 dark:text-white focus:ring-2 focus:ring-primary outline-none" value={editValue} onChange={e => setEditValue(e.target.value)} />
+                            <button onClick={() => handleUpdateField(product.id, 'name')} className="p-2 bg-green-100 text-green-700 hover:bg-green-200 rounded-lg"><Save className="h-5 w-5" /></button>
+                            <button onClick={() => { setEditingId(null); setEditField(null); }} className="p-2 bg-gray-200 text-gray-700 hover:bg-gray-300 rounded-lg"><X className="h-5 w-5" /></button>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-1">
-                            {product.name}
-                            <button onClick={() => { setEditingId(product.id); setEditField('name'); setEditValue(product.name); }} className="p-1 text-gray-300 hover:text-primary transition-colors rounded"><Pencil className="h-3 w-3" /></button>
+                          <div className="flex items-center justify-between mb-1">
+                            <h3 className="font-bold text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                              {product.name}
+                              <button onClick={() => { setEditingId(product.id); setEditField('name'); setEditValue(product.name); }} className="p-1.5 text-gray-400 hover:text-primary transition-colors rounded bg-white dark:bg-gray-800 border shadow-sm"><Pencil className="h-4 w-4" /></button>
+                            </h3>
+                            <button onClick={() => handleDelete(product.id)} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors bg-white dark:bg-gray-800 border shadow-sm">
+                              <Trash2 className="h-5 w-5" />
+                            </button>
                           </div>
                         )}
-                      </td>
-                      <td className="px-6 py-4">{product.purchase_price} د.ج</td>
-                      <td className="px-6 py-4 font-bold text-gray-900 dark:text-white">{product.sale_price} د.ج</td>
-                      <td className="px-6 py-4 text-green-600 dark:text-green-400">
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-mono bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300">
+                          <Package className="h-4 w-4" /> {product.product_number}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {/* Body */}
+                    <div className="grid grid-cols-2 gap-3 mt-2">
+                      <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-100 dark:border-gray-600 flex flex-col">
+                        <span className="text-xs text-gray-500 mb-1">سعر الشراء</span>
+                        <span className="font-medium text-lg">{product.purchase_price} د.ج</span>
+                      </div>
+                      
+                      <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-100 dark:border-gray-600 flex flex-col">
+                        <span className="text-xs text-gray-500 mb-1">سعر البيع</span>
                         {editingId === product.id && editField === 'sale_price' ? (
-                          <div className="flex items-center gap-1">
-                            <input autoFocus type="number" className="w-16 px-2 py-1 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none" value={editValue} onChange={e => setEditValue(e.target.value)} />
-                            <button onClick={() => handleUpdateField(product.id, 'sale_price')} className="p-1 text-green-600 hover:bg-green-50 rounded"><Save className="h-3.5 w-3.5" /></button>
-                            <button onClick={() => { setEditingId(null); setEditField(null); }} className="p-1 text-gray-400 hover:bg-gray-100 rounded"><X className="h-3.5 w-3.5" /></button>
+                          <div className="flex items-center gap-1 mt-1">
+                            <input autoFocus type="number" className="w-full px-2 py-1.5 border rounded-md text-sm dark:bg-gray-700 dark:border-gray-500 dark:text-white" value={editValue} onChange={e => setEditValue(e.target.value)} />
+                            <button onClick={() => handleUpdateField(product.id, 'sale_price')} className="p-1.5 bg-green-100 text-green-700 rounded-md"><Save className="h-4 w-4" /></button>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-1">
-                            <span>{product.sale_price - product.purchase_price} د.ج</span>
-                            <button onClick={() => { setEditingId(product.id); setEditField('sale_price'); setEditValue(String(product.sale_price)); }} className="p-1 text-gray-300 hover:text-primary transition-colors rounded"><Pencil className="h-3 w-3" /></button>
+                          <div className="flex items-center justify-between">
+                            <span className="font-bold text-primary text-lg">{product.sale_price} د.ج</span>
+                            <button onClick={() => { setEditingId(product.id); setEditField('sale_price'); setEditValue(String(product.sale_price)); }} className="p-1 text-gray-400 hover:text-primary"><Pencil className="h-4 w-4" /></button>
                           </div>
                         )}
-                      </td>
-                      <td className="px-6 py-4">
-                        {editingId === product.id ? (
-                          <div className="flex items-center gap-1">
-                            <input
-                              type="number"
-                              className="w-16 px-2 py-1 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none"
-                              value={editQty}
-                              onChange={e => setEditQty(Number(e.target.value))}
-                              autoFocus
-                            />
-                            <button onClick={() => handleUpdateQuantity(product.id)} className="p-1 text-green-600 hover:bg-green-50 rounded">
-                              <Save className="h-3.5 w-3.5" />
-                            </button>
-                            <button onClick={() => setEditingId(null)} className="p-1 text-gray-400 hover:bg-gray-100 rounded">
-                              <X className="h-3.5 w-3.5" />
-                            </button>
+                      </div>
+                      
+                      <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-100 dark:border-gray-600 flex flex-col">
+                        <span className="text-xs text-gray-500 mb-1">الربح</span>
+                        <span className="font-bold text-green-600 dark:text-green-400 text-lg">{product.sale_price - product.purchase_price} د.ج</span>
+                      </div>
+                      
+                      <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-100 dark:border-gray-600 flex flex-col">
+                        <span className="text-xs text-gray-500 mb-1">الكمية</span>
+                        {editingId === product.id && editField !== 'name' && editField !== 'sale_price' ? (
+                          <div className="flex items-center gap-1 mt-1">
+                            <input type="number" className="w-full px-2 py-1.5 border rounded-md text-sm dark:bg-gray-700 dark:border-gray-500 dark:text-white" value={editQty} onChange={e => setEditQty(Number(e.target.value))} autoFocus />
+                            <button onClick={() => handleUpdateQuantity(product.id)} className="p-1.5 bg-green-100 text-green-700 rounded-md"><Save className="h-4 w-4" /></button>
                           </div>
                         ) : (
-                          <div className="flex items-center gap-2">
-                            <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${product.quantity > 10 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>
+                          <div className="flex items-center justify-between">
+                            <span className={`font-bold text-lg ${product.quantity > 10 ? 'text-gray-900 dark:text-white' : 'text-red-600 dark:text-red-400'}`}>
                               {product.quantity}
                             </span>
-                            <button onClick={() => { setEditingId(product.id); setEditQty(product.quantity); }} className="p-1 text-gray-300 hover:text-primary transition-colors rounded">
-                              <Pencil className="h-3 w-3" />
-                            </button>
+                            <button onClick={() => { setEditingId(product.id); setEditQty(product.quantity); setEditField(null); }} className="p-1 text-gray-400 hover:text-primary"><Pencil className="h-4 w-4" /></button>
                           </div>
                         )}
-                      </td>
-                      <td className="px-6 py-4 text-center">
-                        <button onClick={() => handleDelete(product.id)} className="p-2 text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20">
-                          <Trash2 className="h-4 w-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

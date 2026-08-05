@@ -32,7 +32,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
       <Sidebar />
       <div className="flex flex-col flex-1 overflow-hidden relative">
         <Header />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 lg:p-8 pb-20 md:pb-8">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 lg:p-8 pb-32 md:pb-32">
           <AnimatePresence mode="wait">
             <motion.div
               key={pathname}

@@ -8,6 +8,7 @@ import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import PhoneCameraPicker from "@/components/PhoneCameraPicker";
+import { useNotification } from "@/contexts/NotificationContext";
 
 type Product = {
   id: string;
@@ -36,8 +37,9 @@ export default function POSPage() {
   const [saving, setSaving] = useState(false);
   const [isReturnMode, setIsReturnMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [discount, setDiscount] = useState(0);
+  const [manualTotal, setManualTotal] = useState<number | null>(null);
   const [showImagePicker, setShowImagePicker] = useState(false);
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     fetchProducts();
@@ -56,7 +58,7 @@ export default function POSPage() {
     if (product) {
       addProduct(product);
     } else {
-      alert("المنتج غير موجود في قاعدة البيانات!");
+      showNotification("المنتج غير موجود في قاعدة البيانات!", "error");
     }
   };
 
@@ -67,7 +69,7 @@ export default function POSPage() {
       const decodedText = await html5QrCode.scanFile(file, true);
       handleScanSuccess(decodedText);
     } catch (err) {
-      alert("لم يتم العثور على باركود في الصورة، تأكد من وضوح الصورة.");
+      showNotification("لم يتم العثور على باركود في الصورة، تأكد من وضوح الصورة.", "error");
     }
     setShowScanMenu(false);
   };
@@ -107,6 +109,7 @@ export default function POSPage() {
   };
 
   const addProduct = (product: Product) => {
+    setManualTotal(null);
     setInvoiceItems(prev => {
       const existing = prev.find(item => item.id === product.id);
       if (existing) {
@@ -119,6 +122,7 @@ export default function POSPage() {
   };
 
   const updateQuantity = (id: string, delta: number) => {
+    setManualTotal(null);
     setInvoiceItems(prev => prev.map(item => {
       if (item.id === id) {
         const newQ = item.quantity + delta;
@@ -129,6 +133,7 @@ export default function POSPage() {
   };
 
   const removeItem = (id: string) => {
+    setManualTotal(null);
     setInvoiceItems(prev => prev.filter(item => item.id !== id));
   };
 
@@ -137,15 +142,21 @@ export default function POSPage() {
     setSaving(true);
     
     const multiplier = isReturnMode ? -1 : 1;
-    const total = invoiceItems.reduce((sum, item) => sum + (item.sale_price * item.quantity), 0) * multiplier;
-    const totalProfit = invoiceItems.reduce((sum, item) => sum + ((item.sale_price - item.purchase_price) * item.quantity), 0) * multiplier;
+    
+    const rawTotal = invoiceItems.reduce((sum, item) => sum + (item.sale_price * item.quantity), 0);
+    const currentTotal = manualTotal !== null ? manualTotal : rawTotal;
+    const totalPurchaseCost = invoiceItems.reduce((sum, item) => sum + (item.purchase_price * item.quantity), 0);
+    const currentProfit = currentTotal - totalPurchaseCost;
+    
+    const finalTotal = currentTotal * multiplier;
+    const finalProfit = currentProfit * multiplier;
 
     try {
       // 1. Insert Invoice
       const invoiceNumber = isReturnMode ? `RET-${Date.now()}` : `INV-${Date.now()}`;
       const { data: invoice, error: invoiceError } = await supabase
         .from('invoices')
-        .insert([{ invoice_number: invoiceNumber, total: total, profit: totalProfit }])
+        .insert([{ invoice_number: invoiceNumber, total: finalTotal, profit: finalProfit }])
         .select()
         .single();
         
@@ -164,28 +175,36 @@ export default function POSPage() {
       const { error: itemsError } = await supabase.from('invoice_items').insert(itemsToInsert);
       if (itemsError) throw itemsError;
 
-      // 3. Update Stock
+      // 3. Update Stock & Auto-delete
       for (const item of invoiceItems) {
          const product = products.find(p => p.id === item.id);
          if (product) {
-           await supabase.from('products').update({ quantity: product.quantity - (item.quantity * multiplier) }).eq('id', item.id);
+           const newQty = product.quantity - (item.quantity * multiplier);
+           if (newQty <= 0) {
+             await supabase.from('products').delete().eq('id', item.id);
+             showNotification(`تم حذف المنتج ${product.name} لنفاد الكمية من المخزن`, "info");
+           } else {
+             await supabase.from('products').update({ quantity: newQty }).eq('id', item.id);
+           }
          }
       }
 
-      alert(isReturnMode ? "تم حفظ وصل الاسترجاع بنجاح!" : "تم حفظ الفاتورة بنجاح!");
+      showNotification(isReturnMode ? "تم حفظ وصل الاسترجاع بنجاح!" : "تم حفظ الفاتورة بنجاح!", "success");
       setInvoiceItems([]);
+      setManualTotal(null);
       fetchProducts(); // Refresh stock
     } catch (error) {
       console.error(error);
-      alert("حدث خطأ أثناء حفظ الفاتورة");
+      showNotification("حدث خطأ أثناء حفظ الفاتورة", "error");
     } finally {
       setSaving(false);
     }
   };
 
   const rawTotal = invoiceItems.reduce((sum, item) => sum + (item.sale_price * item.quantity), 0);
-  const total = rawTotal * (1 - discount / 100);
-  const totalProfit = invoiceItems.reduce((sum, item) => sum + ((item.sale_price - item.purchase_price) * item.quantity), 0);
+  const currentTotal = manualTotal !== null ? manualTotal : rawTotal;
+  const totalPurchaseCost = invoiceItems.reduce((sum, item) => sum + (item.purchase_price * item.quantity), 0);
+  const currentProfit = currentTotal - totalPurchaseCost;
 
   if (loading) {
     return (
@@ -304,45 +323,36 @@ export default function POSPage() {
           </div>
 
           <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 space-y-3">
-            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
+            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
               <span>عدد المنتجات:</span>
               <span className="font-medium text-gray-900 dark:text-white">{invoiceItems.length}</span>
             </div>
-            <div className="flex justify-between text-xl font-bold text-gray-900 dark:text-white border-b border-dashed border-gray-300 dark:border-gray-600 pb-3">
-              <span>الإجمالي:</span>
-              <div className="text-right">
-                {discount > 0 && <p className="text-sm line-through text-gray-400 font-normal">{rawTotal.toLocaleString()} د.ج</p>}
-                <span className="text-primary">{total.toLocaleString()} د.ج</span>
+            
+            <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+              <span className="font-bold text-gray-900 dark:text-white text-lg">السعر الإجمالي:</span>
+              <div className="flex items-center gap-2">
+                <input 
+                  type="number" 
+                  value={currentTotal} 
+                  onChange={e => setManualTotal(Number(e.target.value))}
+                  className="w-32 text-left font-bold text-xl px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg text-primary focus:ring-2 focus:ring-primary dark:bg-gray-700 outline-none"
+                />
+                <span className="text-gray-500 font-medium">د.ج</span>
               </div>
             </div>
 
-            {/* أزرار الخصم */}
-            <div className="space-y-1.5">
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">تطبيق خصم:</p>
-              <div className="flex gap-2 flex-wrap">
-                {[0, 5, 7.5, 10, 15].map(d => (
-                  <button
-                    key={d}
-                    onClick={() => setDiscount(d)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                      discount === d
-                        ? 'bg-primary text-white shadow-md scale-105'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-primary/10 hover:text-primary'
-                    }`}
-                  >
-                    {d === 0 ? 'بدون خصم' : `${d}%`}
-                  </button>
-                ))}
-              </div>
+            <div className="flex justify-between text-sm font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/10 p-3 rounded-lg border border-green-100 dark:border-green-900/30">
+              <span>الربح الإجمالي (متغير مع السعر):</span>
+              <span>{currentProfit.toLocaleString()} د.ج</span>
             </div>
             
             <motion.button 
               whileTap={{ scale: 0.95 }}
               onClick={saveInvoice}
               disabled={invoiceItems.length === 0 || saving}
-              className={`w-full flex items-center justify-center gap-2 text-white py-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-lg mt-2 ${isReturnMode ? 'bg-orange-500 hover:bg-orange-600' : 'bg-primary hover:bg-primary/90'}`}
+              className={`w-full flex items-center justify-center gap-2 text-white py-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-lg mt-4 ${isReturnMode ? 'bg-orange-500 hover:bg-orange-600' : 'bg-primary hover:bg-primary/90'}`}
             >
-              {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <PhoneCameraPicker onCapture={handleCapture} />}
+              {saving ? <Loader2 className="h-6 w-6 animate-spin" /> : <Save className="h-6 w-6" />}
               {saving ? "جاري الحفظ..." : (isReturnMode ? "تأكيد الاسترجاع" : "حفظ الفاتورة")}
             </motion.button>
           </div>

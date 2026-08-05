@@ -157,51 +157,50 @@ export default function InvoicesPage() {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-sm text-gray-500 dark:text-gray-400">
-              <thead className="bg-gray-50 dark:bg-gray-900/50 text-gray-700 dark:text-gray-300">
-                <tr>
-                  <th className="px-6 py-4 font-bold">معرف الفاتورة</th>
-                  <th className="px-6 py-4 font-bold">التاريخ والوقت</th>
-                  <th className="px-6 py-4 font-bold">الإجمالي</th>
-                  <th className="px-6 py-4 font-bold">الربح</th>
-                  <th className="px-6 py-4 font-bold text-center">إجراءات</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  <tr><td colSpan={5} className="text-center py-12"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></td></tr>
-                ) : filteredInvoices.length === 0 ? (
-                  <tr><td colSpan={5} className="text-center py-8">لا توجد فواتير</td></tr>
-                ) : (
-                  filteredInvoices.map(invoice => (
-                    <tr key={invoice.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                      <td className="px-6 py-4">
-                        <span className={`font-mono text-xs px-2 py-0.5 rounded-full font-medium ${isReturn(invoice) ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' : 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'}`}>
-                          {invoice.invoice_number}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 text-gray-600 dark:text-gray-300">{formatDate(invoice.created_at)}</td>
-                      <td className={`px-6 py-4 font-bold ${isReturn(invoice) ? 'text-orange-600' : 'text-gray-900 dark:text-white'}`}>{invoice.total} د.ج</td>
-                      <td className={`px-6 py-4 ${isReturn(invoice) ? 'text-orange-500' : 'text-green-600 dark:text-green-400'}`}>{invoice.profit} د.ج</td>
-                      <td className="px-6 py-4 text-center">
-                        <div className="flex items-center justify-center gap-2">
-                          <button onClick={() => handleViewInvoice(invoice)} className="p-2 text-gray-400 hover:text-primary transition-colors rounded-lg hover:bg-primary/10" title="عرض التفاصيل">
-                            <Eye className="h-4 w-4" />
-                          </button>
-                          <button onClick={() => handleSharePDF(invoice)} className="p-2 text-gray-400 hover:text-green-600 transition-colors rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20" title="مشاركة PDF">
-                            <Share2 className="h-4 w-4" />
-                          </button>
-                          <button onClick={() => handleDelete(invoice.id)} className="p-2 text-gray-400 hover:text-red-500 transition-colors rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20" title="حذف">
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+          <div className="p-4">
+            {loading ? (
+              <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" /></div>
+            ) : filteredInvoices.length === 0 ? (
+              <div className="text-center py-8 text-gray-500 font-medium">لا توجد فواتير</div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {filteredInvoices.map(invoice => (
+                  <div key={invoice.id} className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 border border-gray-200 dark:border-gray-600 shadow-sm flex flex-col gap-3">
+                    <div className="flex justify-between items-start">
+                      <span className={`font-mono text-sm px-2.5 py-1 rounded-md font-bold flex items-center gap-1.5 ${isReturn(invoice) ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' : 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'}`}>
+                        <Receipt className="h-4 w-4" /> {invoice.invoice_number}
+                      </span>
+                      <span className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                        <CalendarIcon className="h-3.5 w-3.5" /> {formatDate(invoice.created_at)}
+                      </span>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 mt-1">
+                      <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-100 dark:border-gray-600">
+                        <span className="text-xs text-gray-500 block mb-1">الإجمالي</span>
+                        <span className={`font-bold text-lg ${isReturn(invoice) ? 'text-orange-600' : 'text-gray-900 dark:text-white'}`}>{invoice.total} د.ج</span>
+                      </div>
+                      <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-100 dark:border-gray-600">
+                        <span className="text-xs text-gray-500 block mb-1">الربح</span>
+                        <span className={`font-bold text-lg ${isReturn(invoice) ? 'text-orange-500' : 'text-green-600 dark:text-green-400'}`}>{invoice.profit} د.ج</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between gap-2 mt-1 border-t border-gray-200 dark:border-gray-600 pt-3">
+                      <button onClick={() => handleViewInvoice(invoice)} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 border border-gray-200 dark:border-gray-600 rounded-lg hover:bg-gray-50 transition-colors">
+                        <Eye className="h-4 w-4" /> عرض
+                      </button>
+                      <button onClick={() => handleSharePDF(invoice)} className="flex-1 flex items-center justify-center gap-1.5 py-2 text-sm font-medium bg-green-50 text-green-700 border border-green-200 rounded-lg hover:bg-green-100 transition-colors">
+                        <Share2 className="h-4 w-4" /> PDF
+                      </button>
+                      <button onClick={() => handleDelete(invoice.id)} className="p-2 text-red-500 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 border border-red-100 dark:border-red-800 rounded-lg transition-colors">
+                        <Trash2 className="h-5 w-5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>

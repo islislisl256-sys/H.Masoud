@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import PwaGuard from "@/components/Layout/PwaGuard";
+import { NotificationProvider } from "@/contexts/NotificationContext";
 
 const cairo = Cairo({ subsets: ["arabic"], variable: "--font-cairo" });
 
@@ -29,7 +30,9 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <PwaGuard>
             <AuthProvider>
-              {children}
+              <NotificationProvider>
+                {children}
+              </NotificationProvider>
             </AuthProvider>
           </PwaGuard>
         </ThemeProvider>
