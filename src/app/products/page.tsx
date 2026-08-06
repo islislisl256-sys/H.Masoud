@@ -33,7 +33,6 @@ export default function ProductsPage() {
   const [isAdding, setIsAdding] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
   const [showScanMenu, setShowScanMenu] = useState(false);
-  const [scanMode, setScanMode] = useState<"environment" | "user" | null>(null);
   const [pendingProducts, setPendingProducts] = useState<PendingProduct[]>([]);
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -64,6 +63,7 @@ export default function ProductsPage() {
       sale_price: 0,
       quantity: 0
     }]);
+    setIsScanning(false);
   };
 
   const updatePending = (index: number, field: keyof PendingProduct, value: string | number) => {
@@ -231,22 +231,13 @@ export default function ProductsPage() {
                     <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
                   </label>
                   <button
-                    onClick={() => { setScanMode("environment"); setIsScanning(true); setShowScanMenu(false); }}
-                    className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right"
+                    onClick={() => { setIsScanning(true); setShowScanMenu(false); }}
+                    className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right w-full"
                   >
                     <div className="bg-green-100 dark:bg-green-900/50 p-2 rounded-full text-green-600 dark:text-green-400">
                       <Camera className="h-5 w-5" />
                     </div>
-                    <span className="font-medium text-sm text-gray-700 dark:text-gray-200">تصوير بالكاميرا الخلفية</span>
-                  </button>
-                  <button
-                    onClick={() => { setScanMode("user"); setIsScanning(true); setShowScanMenu(false); }}
-                    className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right"
-                  >
-                    <div className="bg-purple-100 dark:bg-purple-900/50 p-2 rounded-full text-purple-600 dark:text-purple-400">
-                      <ScanFace className="h-5 w-5" />
-                    </div>
-                    <span className="font-medium text-sm text-gray-700 dark:text-gray-200">تصوير بالكاميرا الأمامية</span>
+                    <span className="font-medium text-sm text-gray-700 dark:text-gray-200">فتح كاميرا المسح</span>
                   </button>
                 </div>
               )}
@@ -256,9 +247,8 @@ export default function ProductsPage() {
             {isScanning && (
               <div className="w-full bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden p-2 shadow-sm">
                 <BarcodeScanner
-                  defaultMode={scanMode || "environment"}
-                  continuous={true}
                   onScanSuccess={handleScanSuccess}
+                  continuous={true}
                 />
               </div>
             )}

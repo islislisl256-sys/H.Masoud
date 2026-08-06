@@ -29,7 +29,6 @@ export default function POSPage() {
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
   const [isScanning, setIsScanning] = useState(false);
   const [showScanMenu, setShowScanMenu] = useState(false);
-  const [scanMode, setScanMode] = useState<"user" | "environment">("environment");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -53,6 +52,7 @@ export default function POSPage() {
     const product = products.find(p => p.product_number === decodedText);
     if (product) {
       addProduct(product);
+      setIsScanning(false);
     } else {
       alert("المنتج غير موجود في قاعدة البيانات!");
     }
@@ -213,10 +213,9 @@ export default function POSPage() {
         <div className="w-full flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           {isScanning && (
             <div className="w-full border-b border-gray-200 dark:border-gray-700 bg-black/5 dark:bg-white/5 py-4 px-4">
-              <BarcodeScanner 
-                defaultMode={scanMode || "environment"}
+              <BarcodeScanner
                 onScanSuccess={handleScanSuccess}
-                continuous={true}
+                continuous={false}
               />
             </div>
           )}
@@ -308,19 +307,13 @@ export default function POSPage() {
       <div className="fixed bottom-20 md:bottom-6 right-6 z-50 flex flex-col items-center">
         {showScanMenu && !isScanning && (
           <div className="mb-4 flex flex-col gap-3 origin-bottom animate-in fade-in slide-in-from-bottom-4 items-center">
-            <label className="flex items-center justify-center w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg cursor-pointer transition-transform hover:scale-110" title="رفع صورة من الهاتف">
+            <label className="flex items-center justify-center w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg cursor-pointer transition-transform hover:scale-110" title="رفع صورة للباركود">
                <ImagePlus className="h-5 w-5" />
                <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
             </label>
             <button 
-              onClick={() => { setScanMode("user"); setIsScanning(true); setShowScanMenu(false); }}
-              className="flex items-center justify-center w-12 h-12 bg-purple-500 hover:bg-purple-600 text-white rounded-full shadow-lg transition-transform hover:scale-110" title="تصوير بالكاميرا الأمامية"
-            >
-               <ScanFace className="h-5 w-5" />
-            </button>
-            <button 
-              onClick={() => { setScanMode("environment"); setIsScanning(true); setShowScanMenu(false); }}
-              className="flex items-center justify-center w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg transition-transform hover:scale-110" title="تصوير بالكاميرا الخلفية"
+              onClick={() => { setIsScanning(true); setShowScanMenu(false); }}
+              className="flex items-center justify-center w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg transition-transform hover:scale-110" title="فتح كاميرا المسح"
             >
                <Camera className="h-5 w-5" />
             </button>
