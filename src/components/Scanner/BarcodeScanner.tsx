@@ -51,14 +51,16 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
 
   useEffect(() => {
     const startScanner = async () => {
-      if (scannerRef.current?.isScanning) {
-        await scannerRef.current.stop();
+      if (scannerRef.current) {
+        if (scannerRef.current.isScanning) {
+          try {
+            await scannerRef.current.stop();
+          } catch (e) {}
+        }
         scannerRef.current.clear();
       }
 
-      if (!scannerRef.current) {
-        scannerRef.current = new Html5Qrcode("qr-reader");
-      }
+      scannerRef.current = new Html5Qrcode("qr-reader");
 
       const config = {
         fps: 10,
