@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { QrCode, Search, Trash2, Plus, Minus, Save, ShoppingCart, Loader2, X, ImagePlus, Camera, ScanFace, Undo2 } from "lucide-react";
+import { QrCode, Search, Trash2, Plus, Minus, Save, ShoppingCart, Loader2, X, ImagePlus, Camera, Undo2 } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import { motion } from "framer-motion";
@@ -34,7 +34,7 @@ export default function POSPage() {
   const [saving, setSaving] = useState(false);
   const [isReturnMode, setIsReturnMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [discount, setDiscount] = useState(0);
+  const [customTotal, setCustomTotal] = useState<string>("");
 
   useEffect(() => {
     fetchProducts();
@@ -54,7 +54,7 @@ export default function POSPage() {
       addProduct(product);
       setIsScanning(false);
     } else {
-      alert("المنتج غير موجود في قاعدة البيانات!");
+      alert("المنتج غير موجود!");
     }
   };
 
@@ -66,7 +66,7 @@ export default function POSPage() {
         const decodedText = await html5QrCode.scanFile(file, true);
         handleScanSuccess(decodedText);
       } catch (err) {
-        alert("لم يتم العثور على باركود في الصورة، تأكد من وضوح الصورة.");
+        alert("لم يتم العثور على باركود في الصورة.");
       }
       setShowScanMenu(false);
     }
@@ -89,6 +89,7 @@ export default function POSPage() {
       }
       return [...prev, { ...product, quantity: 1 }];
     });
+    setCustomTotal(""); // Reset custom total when items change
   };
 
   const updateQuantity = (id: string, delta: number) => {
@@ -99,22 +100,30 @@ export default function POSPage() {
       }
       return item;
     }));
+    setCustomTotal("");
   };
 
   const removeItem = (id: string) => {
     setInvoiceItems(prev => prev.filter(item => item.id !== id));
+    setCustomTotal("");
   };
+
+  // الحسابات
+  const calculatedTotal = invoiceItems.reduce((sum, item) => sum + (item.sale_price * item.quantity), 0);
+  const activeTotal = customTotal !== "" ? Number(customTotal) : calculatedTotal;
+  const calculatedProfit = invoiceItems.reduce((sum, item) => sum + ((item.sale_price - item.purchase_price) * item.quantity), 0);
+  // إذا تم تعديل الإجمالي يدوياً، يتم تعديل الربح بنفس الفارق
+  const activeProfit = customTotal !== "" ? calculatedProfit - (calculatedTotal - Number(customTotal)) : calculatedProfit;
 
   const saveInvoice = async () => {
     if (invoiceItems.length === 0) return;
     setSaving(true);
     
     const multiplier = isReturnMode ? -1 : 1;
-    const total = invoiceItems.reduce((sum, item) => sum + (item.sale_price * item.quantity), 0) * multiplier;
-    const totalProfit = invoiceItems.reduce((sum, item) => sum + ((item.sale_price - item.purchase_price) * item.quantity), 0) * multiplier;
+    const total = activeTotal * multiplier;
+    const totalProfit = activeProfit * multiplier;
 
     try {
-      // 1. Insert Invoice
       const invoiceNumber = isReturnMode ? `RET-${Date.now()}` : `INV-${Date.now()}`;
       const { data: invoice, error: invoiceError } = await supabase
         .from('invoices')
@@ -124,7 +133,6 @@ export default function POSPage() {
         
       if (invoiceError) throw invoiceError;
 
-      // 2. Insert Invoice Items
       const itemsToInsert = invoiceItems.map(item => ({
         invoice_id: invoice.id,
         product_id: item.id,
@@ -137,7 +145,6 @@ export default function POSPage() {
       const { error: itemsError } = await supabase.from('invoice_items').insert(itemsToInsert);
       if (itemsError) throw itemsError;
 
-      // 3. Update Stock
       for (const item of invoiceItems) {
          const product = products.find(p => p.id === item.id);
          if (product) {
@@ -145,20 +152,17 @@ export default function POSPage() {
          }
       }
 
-      alert(isReturnMode ? "تم حفظ وصل الاسترجاع بنجاح!" : "تم حفظ الفاتورة بنجاح!");
+      alert(isReturnMode ? "تم حفظ الاسترجاع!" : "تم حفظ البيعة!");
       setInvoiceItems([]);
-      fetchProducts(); // Refresh stock
+      setCustomTotal("");
+      fetchProducts();
     } catch (error) {
       console.error(error);
-      alert("حدث خطأ أثناء حفظ الفاتورة");
+      alert("حدث خطأ أثناء الحفظ");
     } finally {
       setSaving(false);
     }
   };
-
-  const rawTotal = invoiceItems.reduce((sum, item) => sum + (item.sale_price * item.quantity), 0);
-  const total = rawTotal * (1 - discount / 100);
-  const totalProfit = invoiceItems.reduce((sum, item) => sum + ((item.sale_price - item.purchase_price) * item.quantity), 0);
 
   if (loading) {
     return (
@@ -174,42 +178,40 @@ export default function POSPage() {
     <ProtectedLayout>
       <div className="space-y-4 pb-24">
         
-        {/* Mode Toggle (Sale / Return) */}
+        {/* وضع البيع / الاسترجاع */}
         <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
           <button
             onClick={() => setIsReturnMode(false)}
-            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${!isReturnMode ? 'bg-white dark:bg-gray-700 text-primary shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'}`}
+            className={`flex-1 py-2.5 text-base font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${!isReturnMode ? 'bg-white dark:bg-gray-700 text-primary shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}
           >
-            <ShoppingCart className="h-4 w-4" /> نقطة البيع
+            <ShoppingCart className="h-5 w-5" /> بيع
           </button>
           <button
             onClick={() => setIsReturnMode(true)}
-            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${isReturnMode ? 'bg-orange-500 text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700'}`}
+            className={`flex-1 py-2.5 text-base font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${isReturnMode ? 'bg-orange-500 text-white shadow-sm' : 'text-gray-500 dark:text-gray-400'}`}
           >
-            <Undo2 className="h-4 w-4" /> استرجاع منتج
+            <Undo2 className="h-5 w-5" /> استرجاع
           </button>
         </div>
 
-        {/* Search Bar */}
+        {/* بحث */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-          <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">بحث سريع بالاسم أو رقم الباركود</h3>
           <div className="relative">
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <Search className="h-4 w-4 text-gray-400" />
+              <Search className="h-5 w-5 text-gray-400" />
             </div>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ابحث برقم المنتج أو الاسم..."
-              className="w-full pl-3 pr-10 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
+              placeholder="بحث بالرقم أو الاسم..."
+              className="w-full pl-3 pr-10 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white"
               onKeyDown={handleManualSearch}
             />
           </div>
-          <p className="text-xs text-gray-400 mt-2 text-center">اضغط Enter للإضافة السريعة عند استخدام قارئ باركود خارجي</p>
         </div>
 
-        {/* Invoice Details - Full Width */}
+        {/* تفاصيل البيعة */}
         <div className="w-full flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
           {isScanning && (
             <div className="w-full border-b border-gray-200 dark:border-gray-700 bg-black/5 dark:bg-white/5 py-4 px-4">
@@ -221,35 +223,35 @@ export default function POSPage() {
           )}
           <div className={`p-4 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between ${isReturnMode ? 'bg-orange-50 dark:bg-orange-900/20' : 'bg-gray-50 dark:bg-gray-900/50'}`}>
             <h2 className={`text-lg font-bold ${isReturnMode ? 'text-orange-600 dark:text-orange-400' : 'text-gray-900 dark:text-white'}`}>
-              {isReturnMode ? "تفاصيل وصل الاسترجاع" : "تفاصيل الفاتورة"}
+              {isReturnMode ? "استرجاع" : "البيعة"}
             </h2>
-            <span className="text-sm text-gray-500 dark:text-gray-400">{invoiceItems.length} منتج</span>
+            <span className="text-base text-gray-500 dark:text-gray-400 font-medium">{invoiceItems.length} منتج</span>
           </div>
           
           <div className="overflow-y-auto p-4 space-y-3 min-h-[200px] max-h-[50vh]">
             {invoiceItems.length === 0 ? (
               <div className="h-48 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
                 <ShoppingCart className="h-16 w-16 mb-3 opacity-20" />
-                <p className="text-lg">الفاتورة فارغة</p>
-                <p className="text-sm mt-1">اضغط على زر الماسح الأزرق لمسح منتج</p>
+                <p className="text-lg">لا توجد منتجات</p>
+                <p className="text-sm mt-1">امسح منتج للبدء</p>
               </div>
             ) : (
               invoiceItems.map(item => (
                 <div key={item.id} className="flex flex-col gap-2 p-4 border border-gray-100 dark:border-gray-700 rounded-lg bg-gray-50/50 dark:bg-gray-700/20">
                   <div className="flex justify-between items-start">
-                    <span className="font-semibold text-gray-900 dark:text-white text-base">{item.name}</span>
+                    <span className="font-bold text-gray-900 dark:text-white text-lg">{item.name}</span>
                     <button onClick={() => removeItem(item.id)} className="text-gray-400 hover:text-red-500 p-1"><Trash2 className="h-5 w-5" /></button>
                   </div>
                   <div className="flex justify-between items-center mt-1">
-                    <span className="text-primary font-bold text-lg">{item.sale_price} د.ج</span>
-                    <div className="flex items-center gap-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-2">
-                      <button onClick={() => updateQuantity(item.id, -1)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"><Minus className="h-4 w-4" /></button>
-                      <span className="text-base font-bold w-6 text-center text-gray-900 dark:text-white">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.id, 1)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"><Plus className="h-4 w-4" /></button>
+                    <span className="text-primary font-bold text-xl">{item.sale_price} د.ج</span>
+                    <div className="flex items-center gap-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-2">
+                      <button onClick={() => updateQuantity(item.id, -1)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"><Minus className="h-5 w-5" /></button>
+                      <span className="text-lg font-bold w-8 text-center text-gray-900 dark:text-white">{item.quantity}</span>
+                      <button onClick={() => updateQuantity(item.id, 1)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"><Plus className="h-5 w-5" /></button>
                     </div>
                   </div>
                   <div className="text-sm text-gray-500 dark:text-gray-400 text-left mt-1 border-t border-dashed border-gray-200 dark:border-gray-600 pt-2">
-                    الإجمالي: <span className="font-bold text-gray-900 dark:text-white">{(item.sale_price * item.quantity).toLocaleString()} د.ج</span>
+                    المجموع: <span className="font-bold text-gray-900 dark:text-white">{(item.sale_price * item.quantity).toLocaleString()} د.ج</span>
                   </div>
                 </div>
               ))
@@ -257,36 +259,24 @@ export default function POSPage() {
           </div>
 
           <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 space-y-3">
-            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400">
-              <span>عدد المنتجات:</span>
-              <span className="font-medium text-gray-900 dark:text-white">{invoiceItems.length}</span>
-            </div>
-            <div className="flex justify-between text-xl font-bold text-gray-900 dark:text-white border-b border-dashed border-gray-300 dark:border-gray-600 pb-3">
+            {/* الإجمالي - قابل للتعديل */}
+            <div className="flex justify-between items-center text-xl font-bold text-gray-900 dark:text-white">
               <span>الإجمالي:</span>
-              <div className="text-right">
-                {discount > 0 && <p className="text-sm line-through text-gray-400 font-normal">{rawTotal.toLocaleString()} د.ج</p>}
-                <span className="text-primary">{total.toLocaleString()} د.ج</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={customTotal !== "" ? customTotal : calculatedTotal}
+                  onChange={(e) => setCustomTotal(e.target.value)}
+                  className="w-32 text-left text-xl font-bold text-primary bg-transparent border-b-2 border-primary/30 focus:border-primary outline-none px-1 py-0.5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
+                <span className="text-primary text-base">د.ج</span>
               </div>
             </div>
-
-            {/* أزرار الخصم */}
-            <div className="space-y-1.5">
-              <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">تطبيق خصم:</p>
-              <div className="flex gap-2 flex-wrap">
-                {[0, 5, 7.5, 10, 15].map(d => (
-                  <button
-                    key={d}
-                    onClick={() => setDiscount(d)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                      discount === d
-                        ? 'bg-primary text-white shadow-md scale-105'
-                        : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-primary/10 hover:text-primary'
-                    }`}
-                  >
-                    {d === 0 ? 'بدون خصم' : `${d}%`}
-                  </button>
-                ))}
-              </div>
+            
+            {/* الربح - للقراءة فقط */}
+            <div className="flex justify-between items-center text-lg font-bold border-b border-dashed border-gray-300 dark:border-gray-600 pb-3">
+              <span className="text-green-600 dark:text-green-400">الربح:</span>
+              <span className="text-green-600 dark:text-green-400">{activeProfit.toLocaleString()} د.ج</span>
             </div>
             
             <motion.button 
@@ -296,24 +286,28 @@ export default function POSPage() {
               className={`w-full flex items-center justify-center gap-2 text-white py-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-lg mt-2 ${isReturnMode ? 'bg-orange-500 hover:bg-orange-600' : 'bg-primary hover:bg-primary/90'}`}
             >
               {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-              {saving ? "جاري الحفظ..." : (isReturnMode ? "تأكيد الاسترجاع" : "حفظ الفاتورة")}
+              {saving ? "جاري الحفظ..." : (isReturnMode ? "تأكيد الاسترجاع" : "حفظ البيعة")}
             </motion.button>
           </div>
         </div>
 
+        {/* Footer */}
+        <div className="pt-8 pb-4 text-center">
+          <p className="text-xs text-gray-400 dark:text-gray-500">®HERMA_LAISSAOUI_ISLAM_Developer</p>
+        </div>
       </div>
 
-      {/* Fixed Floating Scan Button - Above Bottom Nav */}
+      {/* زر المسح العائم */}
       <div className="fixed bottom-20 md:bottom-6 right-6 z-50 flex flex-col items-center">
         {showScanMenu && !isScanning && (
           <div className="mb-4 flex flex-col gap-3 origin-bottom animate-in fade-in slide-in-from-bottom-4 items-center">
-            <label className="flex items-center justify-center w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg cursor-pointer transition-transform hover:scale-110" title="رفع صورة للباركود">
+            <label className="flex items-center justify-center w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg cursor-pointer transition-transform hover:scale-110" title="رفع صورة">
                <ImagePlus className="h-5 w-5" />
                <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
             </label>
             <button 
               onClick={() => { setIsScanning(true); setShowScanMenu(false); }}
-              className="flex items-center justify-center w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg transition-transform hover:scale-110" title="فتح كاميرا المسح"
+              className="flex items-center justify-center w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg transition-transform hover:scale-110" title="كاميرا المسح"
             >
                <Camera className="h-5 w-5" />
             </button>
@@ -336,8 +330,6 @@ export default function POSPage() {
         </motion.button>
       </div>
 
-
-      
       <div id="hidden-qr-reader-pos" className="hidden"></div>
     </ProtectedLayout>
   );

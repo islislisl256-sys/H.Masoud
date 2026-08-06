@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { TrendingUp, Package, DollarSign, Loader2, Calendar, ShoppingCart, AlertTriangle, Trophy, LineChart as LineChartIcon } from "lucide-react";
+import { TrendingUp, DollarSign, Loader2, Calendar, Trophy, LineChart as LineChartIcon } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import {
   ResponsiveContainer,
@@ -28,21 +28,13 @@ type InvoiceItem = {
   products: { name: string } | { name: string }[] | null;
 };
 
-type Product = {
-  id: string;
-  quantity: number;
-};
-
-// الألوان للرسم البياني الشريطي
 const COLORS = ["#6366f1", "#8b5cf6", "#a78bfa", "#c4b5fd", "#ddd6fe"];
 
 export default function DashboardPage() {
   const [allInvoices, setAllInvoices] = useState<Invoice[]>([]);
   const [allItems, setAllItems] = useState<InvoiceItem[]>([]);
-  const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // فلتر التاريخ
   const defaultFrom = new Date();
   defaultFrom.setDate(defaultFrom.getDate() - 30);
   const [fromDate, setFromDate] = useState(defaultFrom.toISOString().slice(0, 10));
@@ -54,11 +46,9 @@ export default function DashboardPage() {
       try {
         const { data: invoices } = await supabase.from('invoices').select('*').order('created_at', { ascending: true });
         const { data: items } = await supabase.from('invoice_items').select('quantity, profit, products(name)');
-        const { data: products } = await supabase.from('products').select('id, quantity');
         
         setAllInvoices(invoices || []);
         setAllItems((items as unknown as InvoiceItem[]) || []);
-        setAllProducts(products || []);
       } catch (err) {
         console.error(err);
       } finally {
@@ -68,7 +58,6 @@ export default function DashboardPage() {
     fetchData();
   }, []);
 
-  // الفواتير المصفاة حسب نطاق التاريخ
   const filteredInvoices = useMemo(() => {
     return allInvoices.filter(inv => {
       const d = inv.created_at.slice(0, 10);
@@ -76,15 +65,12 @@ export default function DashboardPage() {
     });
   }, [allInvoices, fromDate, toDate]);
 
-  // إحصائيات ملخصة
   const stats = useMemo(() => {
     const totalSales = filteredInvoices.reduce((s, i) => s + Number(i.total), 0);
     const totalProfit = filteredInvoices.reduce((s, i) => s + Number(i.profit), 0);
-    const lowStock = allProducts.filter(p => p.quantity < 10).length;
-    return { totalSales, totalProfit, invoicesCount: filteredInvoices.length, lowStock };
-  }, [filteredInvoices, allProducts]);
+    return { totalSales, totalProfit };
+  }, [filteredInvoices]);
 
-  // بيانات الرسم البياني الخطي (مجمّعة يومياً)
   const chartData = useMemo(() => {
     const map: Record<string, { date: string; sales: number; profit: number }> = {};
     filteredInvoices.forEach(inv => {
@@ -96,7 +82,6 @@ export default function DashboardPage() {
     return Object.values(map).sort((a, b) => a.date.localeCompare(b.date));
   }, [filteredInvoices]);
 
-  // المنتجات الأكثر مبيعاً
   const topProducts = useMemo(() => {
     const map: Record<string, { name: string; qty: number; profit: number }> = {};
     allItems.forEach(item => {
@@ -106,11 +91,14 @@ export default function DashboardPage() {
       map[name].qty += Number(item.quantity);
       map[name].profit += Number(item.profit);
     });
-    return Object.values(map)
-      .sort((a, b) => b.qty - a.qty);
+    return Object.values(map).sort((a, b) => b.qty - a.qty);
   }, [allItems]);
 
   const displayedProducts = showAllProducts ? topProducts : topProducts.slice(0, 5);
+
+  const scrollToChart = () => {
+    document.getElementById('chart-section')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   if (loading) {
     return (
@@ -125,17 +113,14 @@ export default function DashboardPage() {
   return (
     <ProtectedLayout>
       <div className="space-y-6 pb-12">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">لوحة التحكم والإحصائيات</h1>
-          <p className="text-muted-foreground mt-1">نظرة شاملة على نشاط المكتبة والمبيعات</p>
-        </div>
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">الرئيسية</h1>
 
-        {/* فلتر الفترة الزمنية */}
+        {/* فلتر الفترة */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
               <Calendar className="h-4 w-4 text-primary" />
-              <span className="font-medium">الفترة الزمنية:</span>
+              <span className="font-medium">الفترة:</span>
             </div>
             <div className="flex flex-wrap gap-2">
               <input
@@ -166,19 +151,37 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* بطاقات الملخص */}
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-          <StatCard title="المبيعات (بالفترة)" value={`${stats.totalSales.toLocaleString()} د.ج`} icon={DollarSign} color="blue" />
-          <StatCard title="الأرباح (بالفترة)" value={`${stats.totalProfit.toLocaleString()} د.ج`} icon={TrendingUp} color="green" />
-          <StatCard title="الفواتير (بالفترة)" value={stats.invoicesCount.toString()} icon={ShoppingCart} color="purple" />
-          <StatCard title="تنبيهات المخزون" value={stats.lowStock.toString()} icon={AlertTriangle} color="red" />
+        {/* بطاقات المبيعات والأرباح - قابلة للنقر */}
+        <div className="grid gap-4 grid-cols-2">
+          <button onClick={scrollToChart} className="text-right bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 hover:border-primary/50 transition-colors active:scale-[0.98]">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400">المبيعات</p>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-1 leading-tight">{stats.totalSales.toLocaleString()} د.ج</h3>
+              </div>
+              <div className="p-2.5 rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
+                <DollarSign className="h-5 w-5" />
+              </div>
+            </div>
+          </button>
+          <button onClick={scrollToChart} className="text-right bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 hover:border-primary/50 transition-colors active:scale-[0.98]">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400">الأرباح</p>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-1 leading-tight">{stats.totalProfit.toLocaleString()} د.ج</h3>
+              </div>
+              <div className="p-2.5 rounded-xl bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400">
+                <TrendingUp className="h-5 w-5" />
+              </div>
+            </div>
+          </button>
         </div>
 
-        {/* الرسم البياني الخطي */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 w-full">
+        {/* المنحنى */}
+        <div id="chart-section" className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 w-full">
           <div className="flex items-center gap-2 mb-5">
             <LineChartIcon className="h-6 w-6 text-primary" />
-            <h3 className="text-lg font-bold text-gray-900 dark:text-white">المبيعات والأرباح اليومية</h3>
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white">المبيعات والأرباح</h3>
           </div>
           {chartData.length === 0 ? (
             <div className="h-64 flex items-center justify-center text-gray-400">لا توجد بيانات في هذه الفترة</div>
@@ -205,7 +208,7 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center mb-5">
             <div className="flex items-center gap-2">
               <Trophy className="h-6 w-6 text-yellow-500" />
-              <h3 className="text-lg font-bold text-gray-900 dark:text-white">المنتجات الأكثر مبيعاً</h3>
+              <h3 className="text-lg font-bold text-gray-900 dark:text-white">الأكثر مبيعاً</h3>
             </div>
             {topProducts.length > 5 && (
               <button 
@@ -245,29 +248,11 @@ export default function DashboardPage() {
           )}
         </div>
 
+        {/* Footer */}
+        <div className="pt-8 pb-4 text-center">
+          <p className="text-xs text-gray-400 dark:text-gray-500">®HERMA_LAISSAOUI_ISLAM_Developer</p>
+        </div>
       </div>
     </ProtectedLayout>
-  );
-}
-
-function StatCard({ title, value, icon: Icon, color }: { title: string; value: string; icon: React.ElementType; color: string }) {
-  const colors: Record<string, string> = {
-    blue: 'bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400',
-    green: 'bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400',
-    purple: 'bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400',
-    red: 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400',
-  };
-  return (
-    <div className="bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700">
-      <div className="flex justify-between items-start">
-        <div>
-          <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{title}</p>
-          <h3 className="text-xl font-bold text-gray-900 dark:text-white mt-1 leading-tight">{value}</h3>
-        </div>
-        <div className={`p-2.5 rounded-xl ${colors[color]}`}>
-          <Icon className="h-5 w-5" />
-        </div>
-      </div>
-    </div>
   );
 }
