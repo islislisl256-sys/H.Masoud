@@ -52,7 +52,7 @@ export default function POSPage() {
     const product = products.find(p => p.product_number === decodedText);
     if (product) {
       addProduct(product);
-      setIsScanning(false);
+      // Removed setIsScanning(false) so it keeps scanning
     } else {
       alert("المنتج غير موجود!");
     }
@@ -217,7 +217,7 @@ export default function POSPage() {
             <div className="w-full border-b border-gray-200 dark:border-gray-700 bg-black/5 dark:bg-white/5 py-4 px-4">
               <BarcodeScanner
                 onScanSuccess={handleScanSuccess}
-                continuous={false}
+                continuous={true}
               />
             </div>
           )}

@@ -19,9 +19,9 @@ type Product = {
 type PendingProduct = {
   product_number: string;
   name: string;
-  purchase_price: number;
-  sale_price: number;
-  quantity: number;
+  purchase_price: number | string;
+  sale_price: number | string;
+  quantity: number | string;
 };
 
 import { motion } from "framer-motion";
@@ -62,7 +62,7 @@ export default function ProductsPage() {
       sale_price: 0,
       quantity: 0
     }]);
-    setIsScanning(false);
+    // Removed setIsScanning(false) so it keeps scanning
   };
 
   const updatePending = (index: number, field: keyof PendingProduct, value: string | number) => {
@@ -74,11 +74,17 @@ export default function ProductsPage() {
   };
 
   const saveSingle = async (index: number) => {
-    const p = pendingProducts[index];
-    if (!p.product_number || !p.name) {
+    const rawP = pendingProducts[index];
+    if (!rawP.product_number || !rawP.name) {
       alert("أدخل رقم واسم المنتج");
       return;
     }
+    const p = {
+      ...rawP,
+      purchase_price: Number(rawP.purchase_price) || 0,
+      sale_price: Number(rawP.sale_price) || 0,
+      quantity: Number(rawP.quantity) || 0,
+    };
     setSaving(true);
     const { data, error } = await supabase.from('products').insert([p]).select().single();
     if (error) {
@@ -91,7 +97,14 @@ export default function ProductsPage() {
   };
 
   const saveAll = async () => {
-    const valid = pendingProducts.filter(p => p.product_number && p.name);
+    const valid = pendingProducts
+      .filter(p => p.product_number && p.name)
+      .map(p => ({
+        ...p,
+        purchase_price: Number(p.purchase_price) || 0,
+        sale_price: Number(p.sale_price) || 0,
+        quantity: Number(p.quantity) || 0,
+      }));
     if (valid.length === 0) {
       alert("تأكد من إدخال اسم كل منتج");
       return;
@@ -298,22 +311,22 @@ export default function ProductsPage() {
                         type="number"
                         placeholder="سعر الشراء"
                         className="px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none"
-                        value={p.purchase_price || ''}
-                        onChange={e => updatePending(index, 'purchase_price', Number(e.target.value))}
+                        value={p.purchase_price === 0 ? '' : p.purchase_price}
+                        onChange={e => updatePending(index, 'purchase_price', e.target.value)}
                       />
                       <input
                         type="number"
                         placeholder="سعر البيع"
                         className="px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none"
-                        value={p.sale_price || ''}
-                        onChange={e => updatePending(index, 'sale_price', Number(e.target.value))}
+                        value={p.sale_price === 0 ? '' : p.sale_price}
+                        onChange={e => updatePending(index, 'sale_price', e.target.value)}
                       />
                       <input
                         type="number"
                         placeholder="الكمية"
                         className="col-span-2 px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none"
-                        value={p.quantity || ''}
-                        onChange={e => updatePending(index, 'quantity', Number(e.target.value))}
+                        value={p.quantity === 0 ? '' : p.quantity}
+                        onChange={e => updatePending(index, 'quantity', e.target.value)}
                       />
                     </div>
                     <div className="flex justify-end">
