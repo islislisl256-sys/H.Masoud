@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { Loader2, Eye, Share2, Trash2, X, Undo2, Receipt, Calendar as CalendarIcon, CircleDollarSign, TrendingUp as TrendingUpIcon, Package } from "lucide-react";
+import { Loader2, Eye, Share2, Trash2, X, Undo2, Receipt, Calendar as CalendarIcon, CircleDollarSign, TrendingUp as TrendingUpIcon, Package, FileText, FileEdit } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import CustomInvoicesTab from "@/components/Invoices/CustomInvoicesTab";
 
 type Invoice = {
   id: string;
@@ -23,6 +24,7 @@ type InvoiceItem = {
 };
 
 export default function InvoicesPage() {
+  const [activeTab, setActiveTab] = useState<'system' | 'custom'>('system');
   const [searchDate, setSearchDate] = useState("");
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,10 +135,41 @@ export default function InvoicesPage() {
   return (
     <ProtectedLayout>
       <div className="space-y-4 pb-12">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">سجل المبيعات</h1>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">الفواتير والمبيعات</h1>
+          
+          <div className="flex bg-gray-100 dark:bg-gray-800 p-1 rounded-xl w-full sm:w-auto">
+            <button
+              onClick={() => setActiveTab('system')}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                activeTab === 'system'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
+            >
+              <FileText className="h-4 w-4" />
+              سجل المبيعات
+            </button>
+            <button
+              onClick={() => setActiveTab('custom')}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all ${
+                activeTab === 'custom'
+                  ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm'
+                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
+              }`}
+            >
+              <FileEdit className="h-4 w-4" />
+              فواتير مخصصة
+            </button>
+          </div>
+        </div>
 
-        {/* فلتر التاريخ */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
+        {activeTab === 'custom' ? (
+          <CustomInvoicesTab />
+        ) : (
+          <>
+            {/* فلتر التاريخ */}
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
           <div className="relative">
             <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
               <CalendarIcon className="h-5 w-5 text-gray-400" />
@@ -201,10 +234,12 @@ export default function InvoicesPage() {
           </div>
         )}
 
-        {/* Footer */}
-        <div className="pt-8 pb-4 text-center">
-          <p className="text-xs text-gray-400 dark:text-gray-500">®HERMA_LAISSAOUI_ISLAM_Developer</p>
-        </div>
+            {/* Footer */}
+            <div className="pt-8 pb-4 text-center">
+              <p className="text-xs text-gray-400 dark:text-gray-500">®HERMA_LAISSAOUI_ISLAM_Developer</p>
+            </div>
+          </>
+        )}
       </div>
 
       {/* Invoice Details Modal */}

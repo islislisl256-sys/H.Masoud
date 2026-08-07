@@ -24,8 +24,7 @@ const navigation = [
   { name: "لوحة التحكم", href: "/", icon: LayoutDashboard },
   { name: "المنتجات", href: "/products", icon: Package },
   { name: "نقطة البيع", href: "/pos", icon: ShoppingCart },
-  { name: "سجل المبيعات", href: "/invoices", icon: FileText },
-  { name: "فواتير مخصصة", href: "/custom-invoices", icon: FileEdit },
+  { name: "الفواتير", href: "/invoices", icon: FileText },
   { name: "الإعدادات", href: "/settings", icon: Settings },
 ];
 

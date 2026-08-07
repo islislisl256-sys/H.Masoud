@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import ProtectedLayout from "@/components/Layout/ProtectedLayout";
 import { Plus, Trash2, Save, FileText, Loader2, Download, History, Store, User } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -18,7 +17,7 @@ type HistoryEntry = {
   total: number;
 };
 
-export default function CustomInvoicesPage() {
+export default function CustomInvoicesTab() {
   // Static state
   const [storeInfo, setStoreInfo] = useState({
     store_name: "مكتبة مسعود",
@@ -139,7 +138,6 @@ export default function CustomInvoicesPage() {
   };
 
   return (
-    <ProtectedLayout>
       <div className="space-y-6 pb-12">
         <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
           <FileText className="h-6 w-6 text-primary" />
@@ -267,6 +265,5 @@ export default function CustomInvoicesPage() {
           )}
         </div>
       </div>
-    </ProtectedLayout>
   );
 }
