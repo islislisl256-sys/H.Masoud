@@ -38,7 +38,7 @@ export async function POST(req: Request) {
     const merger = new DocxMerger({}, [buf1, buf2]);
     
     // docx-merger's save function expects a callback in some versions, but can also be used as:
-    return new Promise((resolve, reject) => {
+    return new Promise<NextResponse>((resolve, reject) => {
       merger.save('nodebuffer', function (mergedBuf: Buffer) {
         resolve(
           new NextResponse(mergedBuf, {
