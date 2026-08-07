@@ -41,7 +41,7 @@ export async function POST(req: Request) {
     return new Promise<NextResponse>((resolve, reject) => {
       merger.save('nodebuffer', function (mergedBuf: Buffer) {
         resolve(
-          new NextResponse(mergedBuf, {
+          new NextResponse(mergedBuf as any, {
             status: 200,
             headers: {
               'Content-Type': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
