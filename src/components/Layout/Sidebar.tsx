@@ -10,7 +10,8 @@ import {
   FileText, 
   BarChart3, 
   Settings,
-  BookOpen
+  BookOpen,
+  FileEdit
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -23,7 +24,8 @@ const navigation = [
   { name: "لوحة التحكم", href: "/", icon: LayoutDashboard },
   { name: "المنتجات", href: "/products", icon: Package },
   { name: "نقطة البيع", href: "/pos", icon: ShoppingCart },
-  { name: "الفواتير", href: "/invoices", icon: FileText },
+  { name: "سجل المبيعات", href: "/invoices", icon: FileText },
+  { name: "فواتير مخصصة", href: "/custom-invoices", icon: FileEdit },
   { name: "الإعدادات", href: "/settings", icon: Settings },
 ];
 
