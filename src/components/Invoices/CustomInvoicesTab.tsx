@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Plus, Trash2, Save, FileText, Loader2, Download, History, Store, User, Edit, Calculator } from "lucide-react";
 import { motion } from "framer-motion";
+import InvoicePrintLayout from "./InvoicePrintLayout";
 
 type InvoiceItem = {
   item_index: number;
@@ -119,23 +120,21 @@ export default function CustomInvoicesTab() {
     if (!payload.client_name) { alert("الرجاء إدخال اسم العميل"); return; }
     
     setGenerating(true);
+    
     try {
-      const response = await fetch('/api/generate-invoice', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-      if (!response.ok) throw new Error('فشل توليد الفاتورة');
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `Invoice_${payload.client_name}_${payload.invoice_number || Date.now()}.docx`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      window.URL.revokeObjectURL(url);
+      const element = document.getElementById('invoice-print-container');
+      if (element) {
+        const html2pdf = (await import('html2pdf.js')).default;
+        const opt = {
+          margin:       0,
+          filename:     `Invoice_${payload.client_name}_${payload.invoice_number || Date.now()}.pdf`,
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 2, useCORS: true },
+          jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+        
+        await html2pdf().set(opt).from(element).save();
+      }
 
       if (!payloadOverride) {
         const newEntry: HistoryEntry = {
@@ -191,6 +190,12 @@ export default function CustomInvoicesTab() {
 
   return (
     <div className="space-y-6 pb-12">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
+          <FileText className="h-6 w-6 text-primary" />
+          توليد فواتير مخصصة (PDF)
+        </h1>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 space-y-4">
           <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-3">
@@ -261,7 +266,7 @@ export default function CustomInvoicesTab() {
               </div>
             </div>
             <motion.button whileTap={{ scale: 0.98 }} onClick={() => handleGenerate()} disabled={generating} className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-bold transition-colors">
-              {generating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />} توليد DOCX
+              {generating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />} توليد PDF نهائي
             </motion.button>
           </div>
         </div>
@@ -284,7 +289,7 @@ export default function CustomInvoicesTab() {
                     <td className="px-4 py-3 text-center">
                       <div className="flex items-center justify-center gap-2">
                         <button onClick={() => loadHistoryItem(entry)} className="p-1.5 text-blue-600 bg-blue-50 rounded" title="تعديل"><Edit className="h-4 w-4" /></button>
-                        <button onClick={() => handleGenerate(entry.payload)} className="p-1.5 text-green-600 bg-green-50 rounded" title="إعادة طباعة"><Download className="h-4 w-4" /></button>
+                        <button onClick={() => handleGenerate(entry.payload)} className="p-1.5 text-green-600 bg-green-50 rounded" title="إعادة طباعة (PDF)"><Download className="h-4 w-4" /></button>
                         <button onClick={() => deleteHistoryItem(entry.id)} className="p-1.5 text-red-500 bg-red-50 rounded" title="حذف"><Trash2 className="h-4 w-4" /></button>
                       </div>
                     </td>
@@ -294,6 +299,13 @@ export default function CustomInvoicesTab() {
             </table>
           </div>
         )}
+      </div>
+
+      {/* Hidden PDF Layout */}
+      <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
+        <div id="invoice-print-container">
+          <InvoicePrintLayout payload={buildPayload()} />
+        </div>
       </div>
     </div>
   );

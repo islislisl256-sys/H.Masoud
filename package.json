@@ -20,6 +20,7 @@
     "docx-merger": "^1.2.2",
     "docxtemplater": "^3.69.3",
     "framer-motion": "^12.43.0",
+    "html2pdf.js": "^0.14.0",
     "html5-qrcode": "^2.3.8",
     "jspdf": "^4.2.1",
     "lucide-react": "^1.28.0",
