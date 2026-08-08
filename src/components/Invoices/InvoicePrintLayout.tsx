@@ -15,129 +15,209 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
     amount_in_words_arabic
   } = payload;
 
-  const renderHeader = (title: string) => (
-    <div className="flex justify-between items-start mb-6 pb-4" style={{ borderBottom: '2px solid #000000' }}>
-      <div className="w-1/3 text-right text-sm">
-        <h2 className="font-bold text-xl mb-1">{store_name}</h2>
-        <p className="font-bold">{store_activity}</p>
-        <p>{store_address}</p>
-        <p>س.ت: {store_rc} | ر.ج: {store_mf}</p>
-        <p>المادة: {store_art} | ر.ت.إ: {store_nif}</p>
-        <p>CCP: {store_ccp_1} {store_ccp_2 ? `Clé: ${store_ccp_2}` : ''}</p>
-      </div>
-      <div className="w-1/3 text-center">
-        <h1 className="text-3xl font-bold uppercase rounded-xl p-2 inline-block shadow-sm" style={{ border: '2px solid #000000' }}>
-          {title}
-        </h1>
-      </div>
-      <div className="w-1/3 text-left text-sm">
-        <div className="p-3 rounded-lg inline-block min-w-[200px]" style={{ backgroundColor: '#f3f4f6', border: '1px solid #000000' }}>
-          <p className="font-bold mb-1 pb-1" style={{ borderBottom: '1px solid #d1d5db' }}>معلومات الزبون</p>
-          <p><span className="font-bold">في ذمة:</span> {client_name}</p>
-          {client_rc && <p><span className="font-bold">س.ت:</span> {client_rc}</p>}
-          {client_mf && <p><span className="font-bold">ر.ج:</span> {client_mf}</p>}
-          {client_art && <p><span className="font-bold">المادة:</span> {client_art}</p>}
+  // ---------------------------------------------------------------------------
+  // RECEIPT RENDERERS (Image 2 style)
+  // ---------------------------------------------------------------------------
+  const renderReceiptHeader = () => (
+    <div className="mb-6 text-center text-sm font-bold leading-tight font-sans">
+      <h2 className="text-xl mb-1">{store_name}</h2>
+      <p>{store_activity}</p>
+      {store_address && <p>{store_address}</p>}
+      {(store_ccp_1 || store_ccp_2) && (
+        <p>Compte CCP : {store_ccp_1} {store_ccp_2 ? `clé ${store_ccp_2}` : ''}</p>
+      )}
+      <p>
+        {store_rc && `RC : ${store_rc} - `}
+        {store_mf && `MF: ${store_mf} - `}
+        {store_art && `ART: ${store_art} - `}
+        {store_nif && `NIF: ${store_nif}`}
+      </p>
+    </div>
+  );
+
+  const renderReceiptClientAndTitle = () => (
+    <div className="mb-4">
+      <div className="text-right mb-4">
+        <div style={{ border: '1px solid #000000', padding: '8px', display: 'inline-block', minWidth: '350px', textAlign: 'right', fontWeight: 'bold' }}>
+          الزبون: {client_name}
+          {client_rc && <div>س.ت: {client_rc}</div>}
+          {client_mf && <div>الرقم الجبائي: {client_mf}</div>}
+          {client_art && <div>رقم المادة: {client_art}</div>}
         </div>
+      </div>
+      <div className="text-center font-bold text-xl">
+        وصل استلام : {receipt_date}
       </div>
     </div>
   );
 
-  const renderTable = () => (
-    <table className="w-full text-right border-collapse mb-6" style={{ border: '1px solid #000000' }}>
+  const renderReceiptTable = () => (
+    <table className="w-full text-center border-collapse mb-8" style={{ border: '1px solid #000000', fontWeight: 'bold' }}>
       <thead>
-        <tr style={{ backgroundColor: '#e5e7eb' }}>
-          <th className="px-2 py-1 text-center w-12" style={{ border: '1px solid #000000' }}>N°</th>
-          <th className="px-2 py-1 text-center" style={{ border: '1px solid #000000' }}>التعيين (Designation)</th>
-          <th className="px-2 py-1 text-center w-24" style={{ border: '1px solid #000000' }}>الكمية</th>
-          <th className="px-2 py-1 text-center w-32" style={{ border: '1px solid #000000' }}>السعر الفردي</th>
-          <th className="px-2 py-1 text-center w-32" style={{ border: '1px solid #000000' }}>المبلغ (د.ج)</th>
+        <tr>
+          <th style={{ border: '1px solid #000000', padding: '8px' }}>
+            الرقم<br/>N°
+          </th>
+          <th style={{ border: '1px solid #000000', padding: '8px' }}>
+            التعيين<br/>Designation
+          </th>
+          <th style={{ border: '1px solid #000000', padding: '8px' }}>
+            الكمية<br/>Unit
+          </th>
+          <th style={{ border: '1px solid #000000', padding: '8px' }}>
+            السعر الفردي<br/>Prix Unit
+          </th>
+          <th style={{ border: '1px solid #000000', padding: '8px' }}>
+            المبلغ<br/>Montant
+          </th>
         </tr>
       </thead>
       <tbody>
         {items?.map((item: any) => (
           <tr key={item.item_index}>
-            <td className="px-2 py-1 text-center" style={{ border: '1px solid #000000' }}>{item.item_index}</td>
-            <td className="px-2 py-1" style={{ border: '1px solid #000000' }}>{item.item_designation}</td>
-            <td className="px-2 py-1 text-center" style={{ border: '1px solid #000000' }}>{item.item_quantity}</td>
-            <td className="px-2 py-1 text-center" style={{ border: '1px solid #000000' }}>{Number(item.item_unit_price).toFixed(2)}</td>
-            <td className="px-2 py-1 text-center font-bold" style={{ border: '1px solid #000000' }}>{Number(item.item_total_price).toFixed(2)}</td>
+            <td style={{ border: '1px solid #000000', padding: '8px' }}>{String(item.item_index).padStart(2, '0')}</td>
+            <td style={{ border: '1px solid #000000', padding: '8px' }}>{item.item_designation}</td>
+            <td style={{ border: '1px solid #000000', padding: '8px' }}>{String(item.item_quantity).padStart(2, '0')}</td>
+            <td style={{ border: '1px solid #000000', padding: '8px' }}>{Number(item.item_unit_price).toFixed(2).replace('.', ',')}</td>
+            <td style={{ border: '1px solid #000000', padding: '8px' }}>{Number(item.item_total_price).toFixed(2).replace('.', ',')}</td>
           </tr>
         ))}
-        {/* Fill empty rows if needed to make it look standard */}
-        {Array.from({ length: Math.max(0, 10 - (items?.length || 0)) }).map((_, i) => (
-          <tr key={`empty-${i}`}>
-            <td className="px-2 py-4" style={{ border: '1px solid #000000' }}></td>
-            <td className="px-2 py-4" style={{ border: '1px solid #000000' }}></td>
-            <td className="px-2 py-4" style={{ border: '1px solid #000000' }}></td>
-            <td className="px-2 py-4" style={{ border: '1px solid #000000' }}></td>
-            <td className="px-2 py-4" style={{ border: '1px solid #000000' }}></td>
-          </tr>
-        ))}
+        {/* Totals row for receipt */}
+        <tr>
+          <td colSpan={3} style={{ border: '1px solid #ffffff' }}></td>
+          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>المجموع</td>
+          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(total_amount_receipt).toFixed(2).replace('.', ',')}</td>
+        </tr>
       </tbody>
     </table>
   );
 
-  const renderFooter = (isInvoice: boolean) => (
-    <div className="flex justify-between items-start">
-      <div className="w-1/2">
-        <p className="mb-2 font-bold underline">المبلغ بالحروف:</p>
-        <p className="italic p-2 rounded min-h-[60px]" style={{ backgroundColor: '#f9fafb', border: '1px solid #e5e7eb' }}>{amount_in_words_arabic}</p>
-        <div className="mt-8 text-center font-bold">
-          <p>إمضاء و ختم المورد</p>
-        </div>
+  const renderReceiptFooter = () => (
+    <div>
+      <div className="text-center font-bold text-lg mb-12">
+        {amount_in_words_arabic}
       </div>
-      <div className="w-1/3">
-        <table className="w-full border-collapse text-right" style={{ border: '1px solid #000000' }}>
-          <tbody>
-            <tr>
-              <th className="px-2 py-1" style={{ border: '1px solid #000000', backgroundColor: '#e5e7eb' }}>المجموع (HT)</th>
-              <td className="px-2 py-1 font-bold" style={{ border: '1px solid #000000' }}>{Number(isInvoice ? total_amount_invoice : total_amount_receipt).toFixed(2)}</td>
-            </tr>
-            {isInvoice && (
-              <>
-                <tr>
-                  <th className="px-2 py-1" style={{ border: '1px solid #000000', backgroundColor: '#e5e7eb' }}>TVA (19%)</th>
-                  <td className="px-2 py-1" style={{ border: '1px solid #000000' }}>{Number(tva_amount).toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <th className="px-2 py-1" style={{ border: '1px solid #000000', backgroundColor: '#e5e7eb' }}>حق الطابع (Timbre)</th>
-                  <td className="px-2 py-1" style={{ border: '1px solid #000000' }}>{Number(stamp_duty).toFixed(2)}</td>
-                </tr>
-                <tr>
-                  <th className="px-2 py-2 font-bold text-lg" style={{ border: '1px solid #000000', backgroundColor: '#d1d5db' }}>المجموع الكلي (TTC)</th>
-                  <td className="px-2 py-2 font-bold text-lg" style={{ border: '1px solid #000000' }}>{Number(grand_total_invoice).toFixed(2)}</td>
-                </tr>
-              </>
-            )}
-          </tbody>
-        </table>
+      <div className="text-left font-bold text-xl ml-20">
+        الممون
+      </div>
+    </div>
+  );
+
+  // ---------------------------------------------------------------------------
+  // INVOICE RENDERERS (Image 1 style)
+  // ---------------------------------------------------------------------------
+  const renderInvoiceHeader = () => (
+    <div className="mb-4">
+      {/* Top Box */}
+      <div style={{ border: '1px solid #000000', padding: '10px', textAlign: 'center', fontWeight: 'bold', marginBottom: '10px' }}>
+        <h2 className="text-2xl mb-2">{store_name}</h2>
+        <p className="text-lg leading-snug">{store_activity}</p>
+        <p className="text-lg leading-snug">{store_address}</p>
+      </div>
+      {/* Right details */}
+      <div className="text-left font-bold text-sm" style={{ direction: 'rtl' }}>
+        {store_rc && <div>س.ت.رقم : {store_rc}</div>}
+        {store_art && <div>رقم المادة : {store_art}</div>}
+        {store_mf && <div>الرقم الجبائي : {store_mf}</div>}
+        {(store_ccp_1 || store_ccp_2) && <div>CCP : {store_ccp_1} {store_ccp_2 ? ` Clé: ${store_ccp_2}` : ''}</div>}
+        {store_nif && <div>NIF : {store_nif}</div>}
+      </div>
+    </div>
+  );
+
+  const renderInvoiceClientAndTitle = () => (
+    <div className="mb-6 relative">
+      <div style={{ border: '1px solid #000000', padding: '10px', display: 'inline-block', minWidth: '350px', textAlign: 'right', fontWeight: 'bold' }}>
+        <div className="text-xl mb-1">في ذمة {client_name}</div>
+        <div>
+          {client_art && `رقم المادة: ${client_art} `}
+          {client_mf && `الرقم الجبائي: `}
+        </div>
+        {client_mf && <div>{client_mf}</div>}
+        {client_rc && <div>س.ت.رقم : {client_rc}</div>}
+      </div>
+      <div className="text-center font-bold text-2xl mt-4">
+        فاتورة رقم {invoice_number}
+      </div>
+    </div>
+  );
+
+  const renderInvoiceTable = () => (
+    <table className="w-full text-center border-collapse mb-4" style={{ border: '1px solid #000000', fontWeight: 'bold' }}>
+      <thead>
+        <tr>
+          <th style={{ border: '1px solid #000000', padding: '8px' }}>الرقم</th>
+          <th style={{ border: '1px solid #000000', padding: '8px' }}>التعيين</th>
+          <th style={{ border: '1px solid #000000', padding: '8px' }}>الكمية</th>
+          <th style={{ border: '1px solid #000000', padding: '8px' }}>سعر الوحدة</th>
+          <th style={{ border: '1px solid #000000', padding: '8px' }}>السعر الكلي</th>
+        </tr>
+      </thead>
+      <tbody>
+        {items?.map((item: any) => (
+          <tr key={item.item_index}>
+            <td style={{ border: '1px solid #000000', padding: '8px' }}>{String(item.item_index).padStart(2, '0')}</td>
+            <td style={{ border: '1px solid #000000', padding: '8px' }}>{item.item_designation}</td>
+            <td style={{ border: '1px solid #000000', padding: '8px' }}>{String(item.item_quantity).padStart(2, '0')}</td>
+            <td style={{ border: '1px solid #000000', padding: '8px' }}>{Number(item.item_unit_price).toFixed(2).replace('.', ',')}</td>
+            <td style={{ border: '1px solid #000000', padding: '8px' }}>{Number(item.item_total_price).toFixed(2).replace('.', ',')}</td>
+          </tr>
+        ))}
+        {/* Totals rows for invoice */}
+        <tr>
+          <td colSpan={3} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
+          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>المجموع</td>
+          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(total_amount_invoice).toFixed(2).replace('.', ',')}</td>
+        </tr>
+        <tr>
+          <td colSpan={3} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
+          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>الرسم ع القيمة<br/>المضافة 19%</td>
+          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(tva_amount).toFixed(2).replace('.', ',')}</td>
+        </tr>
+        <tr>
+          <td colSpan={3} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
+          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>الرسم على الطابع</td>
+          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(stamp_duty).toFixed(2).replace('.', ',')}</td>
+        </tr>
+        <tr>
+          <td colSpan={3} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
+          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>المجموع الكلي</td>
+          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(grand_total_invoice).toFixed(2).replace('.', ',')}</td>
+        </tr>
+      </tbody>
+    </table>
+  );
+
+  const renderInvoiceFooter = () => (
+    <div>
+      <div className="text-center font-bold text-lg mb-12 px-4">
+        {amount_in_words_arabic}
+      </div>
+      <div className="text-left font-bold text-xl ml-20">
+        الممون
       </div>
     </div>
   );
 
   return (
-    <div ref={ref} style={{ width: '210mm', minHeight: '297mm', padding: '15mm', margin: '0 auto', fontSize: '12pt', direction: 'rtl', backgroundColor: '#ffffff', color: '#000000' }}>
-      {/* Page 1: Receipt */}
+    <div ref={ref} style={{ width: '210mm', minHeight: '297mm', padding: '15mm', margin: '0 auto', fontSize: '12pt', direction: 'rtl', backgroundColor: '#ffffff', color: '#000000', fontFamily: 'Arial, sans-serif' }}>
+      
+      {/* Page 1: Receipt (Image 2 Style) */}
       <div className="page-break-after" style={{ pageBreakAfter: 'always', minHeight: '260mm' }}>
-        <div className="flex justify-between items-center mb-2">
-          <span className="font-bold">التاريخ: {receipt_date}</span>
-          <span className="font-bold">الرقم: {invoice_number}</span>
-        </div>
-        {renderHeader('وصل استلام')}
-        {renderTable()}
-        {renderFooter(false)}
+        {renderReceiptHeader()}
+        {renderReceiptClientAndTitle()}
+        {renderReceiptTable()}
+        {renderReceiptFooter()}
       </div>
 
-      {/* Page 2: Invoice */}
+      {/* Page 2: Invoice (Image 1 Style) */}
       <div style={{ minHeight: '260mm', paddingTop: '10mm' }}>
-        <div className="flex justify-between items-center mb-2">
-          <span className="font-bold">التاريخ: {receipt_date}</span>
-          <span className="font-bold">رقم الفاتورة: {invoice_number}</span>
-        </div>
-        {renderHeader('فــــاتـــورة')}
-        {renderTable()}
-        {renderFooter(true)}
+        {renderInvoiceHeader()}
+        {renderInvoiceClientAndTitle()}
+        {renderInvoiceTable()}
+        {renderInvoiceFooter()}
       </div>
+
     </div>
   );
 });
