@@ -124,7 +124,10 @@ export default function CustomInvoicesTab() {
     try {
       const element = document.getElementById('invoice-print-container');
       if (element) {
-        const html2pdf = (await import('html2pdf.js')).default;
+        // Handle dynamic import more robustly
+        const html2pdfModule = await import('html2pdf.js');
+        const html2pdf = html2pdfModule.default || html2pdfModule;
+        
         const opt: any = {
           margin:       0,
           filename:     `Invoice_${payload.client_name}_${payload.invoice_number || Date.now()}.pdf`,
@@ -134,6 +137,8 @@ export default function CustomInvoicesTab() {
         };
         
         await html2pdf().set(opt).from(element).save();
+      } else {
+        throw new Error("لم يتم العثور على قالب الطباعة");
       }
 
       if (!payloadOverride) {
@@ -157,9 +162,9 @@ export default function CustomInvoicesTab() {
         setFinancials({ tva_amount: 0, stamp_duty: 0 });
         setAmountInWords("");
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert("حدث خطأ أثناء التوليد");
+      alert(`حدث خطأ أثناء التوليد: ${error?.message || "خطأ غير معروف"}`);
     } finally {
       setGenerating(false);
     }
