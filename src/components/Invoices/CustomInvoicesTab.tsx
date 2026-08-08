@@ -125,7 +125,7 @@ export default function CustomInvoicesTab() {
       const element = document.getElementById('invoice-print-container');
       if (element) {
         const html2pdf = (await import('html2pdf.js')).default;
-        const opt = {
+        const opt: any = {
           margin:       0,
           filename:     `Invoice_${payload.client_name}_${payload.invoice_number || Date.now()}.pdf`,
           image:        { type: 'jpeg', quality: 0.98 },
