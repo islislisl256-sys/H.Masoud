@@ -1,134 +1,163 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Plus, Trash2, Save, FileText, Loader2, Download, History, Store, User } from "lucide-react";
+import { Plus, Trash2, Save, FileText, Loader2, Download, History, Store, User, Edit, Calculator } from "lucide-react";
 import { motion } from "framer-motion";
 
 type InvoiceItem = {
-  description: string;
-  quantity: number;
-  unit_price: number;
+  item_index: number;
+  item_designation: string;
+  item_quantity: number;
+  item_unit_price: number;
+  item_total_price: number;
 };
 
 type HistoryEntry = {
   id: string;
   date: string;
-  clientName: string;
-  total: number;
+  client_name: string;
+  invoice_number: string;
+  grand_total_invoice: number;
+  payload: any;
 };
 
 export default function CustomInvoicesTab() {
-  // Static state
   const [storeInfo, setStoreInfo] = useState({
-    store_name: "مكتبة مسعود",
-    store_address: "العنوان هنا",
-    store_phone: "0000000000",
+    store_name: "بحصية الشيخ",
+    store_activity: "تجارة للاجهزة الكهرومنزلية",
+    store_address: "",
+    store_ccp_1: "",
+    store_ccp_2: "",
+    store_rc: "",
+    store_mf: "",
+    store_art: "",
+    store_nif: "",
   });
 
-  // Dynamic state
   const [clientInfo, setClientInfo] = useState({
     client_name: "",
-    client_address: "",
-    client_phone: "",
+    client_art: "",
+    client_mf: "",
+    client_rc: "",
+    receipt_date: new Date().toLocaleDateString('en-GB'),
+    invoice_number: "",
   });
-  
+
   const [items, setItems] = useState<InvoiceItem[]>([]);
-  const [discount, setDiscount] = useState(0);
+  const [financials, setFinancials] = useState({ tva_amount: 0, stamp_duty: 0 });
+  const [amountInWords, setAmountInWords] = useState("");
   
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [generating, setGenerating] = useState(false);
 
-  // Load static info & history on mount
   useEffect(() => {
-    const savedStore = localStorage.getItem("custom_invoice_store");
+    const savedStore = localStorage.getItem("custom_invoice_store_v2");
     if (savedStore) setStoreInfo(JSON.parse(savedStore));
 
-    const savedHistory = localStorage.getItem("custom_invoice_history");
+    const savedHistory = localStorage.getItem("custom_invoice_history_v2");
     if (savedHistory) setHistory(JSON.parse(savedHistory));
   }, []);
 
   const saveStoreInfo = () => {
-    localStorage.setItem("custom_invoice_store", JSON.stringify(storeInfo));
+    localStorage.setItem("custom_invoice_store_v2", JSON.stringify(storeInfo));
     alert("تم حفظ معلومات المتجر!");
   };
 
   const addItem = () => {
-    setItems([...items, { description: "", quantity: 1, unit_price: 0 }]);
+    setItems([
+      ...items,
+      {
+        item_index: items.length + 1,
+        item_designation: "",
+        item_quantity: 1,
+        item_unit_price: 0,
+        item_total_price: 0,
+      }
+    ]);
   };
 
   const updateItem = (index: number, field: keyof InvoiceItem, value: any) => {
     const newItems = [...items];
-    newItems[index] = { ...newItems[index], [field]: value };
+    const updatedItem = { ...newItems[index], [field]: value };
+    
+    if (field === 'item_quantity' || field === 'item_unit_price') {
+      updatedItem.item_total_price = (updatedItem.item_quantity || 0) * (updatedItem.item_unit_price || 0);
+    }
+    
+    newItems[index] = updatedItem;
+    newItems.forEach((it, i) => it.item_index = i + 1);
+    
     setItems(newItems);
   };
 
   const removeItem = (index: number) => {
-    setItems(items.filter((_, i) => i !== index));
+    const newItems = items.filter((_, i) => i !== index);
+    newItems.forEach((it, i) => it.item_index = i + 1);
+    setItems(newItems);
   };
 
-  const calculateSubTotal = () => items.reduce((sum, item) => sum + (item.quantity * item.unit_price), 0);
-  const calculateTotal = () => calculateSubTotal() - discount;
+  const total_amount_receipt = items.reduce((sum, item) => sum + item.item_total_price, 0);
+  const total_amount_invoice = total_amount_receipt;
+  const grand_total_invoice = total_amount_invoice + Number(financials.tva_amount) + Number(financials.stamp_duty);
 
-  const handleGenerate = async () => {
-    if (!clientInfo.client_name) {
-      alert("الرجاء إدخال اسم العميل");
-      return;
-    }
-    
-    setGenerating(true);
-    
-    const payload = {
+  const buildPayload = () => {
+    return {
       ...storeInfo,
       ...clientInfo,
-      date: new Date().toLocaleDateString('ar-DZ'),
-      items: items.map((item, index) => ({
-        index: index + 1,
-        description: item.description,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        total_price: item.quantity * item.unit_price
-      })),
-      subtotal: calculateSubTotal(),
-      discount: discount,
-      total: calculateTotal()
+      items: items,
+      total_amount_receipt,
+      total_amount_invoice,
+      tva_amount: Number(financials.tva_amount),
+      stamp_duty: Number(financials.stamp_duty),
+      grand_total_invoice,
+      amount_in_words_arabic: amountInWords,
     };
+  };
 
+  const handleGenerate = async (payloadOverride?: any) => {
+    const payload = payloadOverride || buildPayload();
+    if (!payload.client_name) { alert("الرجاء إدخال اسم العميل"); return; }
+    
+    setGenerating(true);
     try {
       const response = await fetch('/api/generate-invoice', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       });
-
       if (!response.ok) throw new Error('فشل توليد الفاتورة');
 
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `Invoice_${clientInfo.client_name}_${Date.now()}.docx`;
+      a.download = `Invoice_${payload.client_name}_${payload.invoice_number || Date.now()}.docx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
       window.URL.revokeObjectURL(url);
 
-      // Add to history
-      const newHistoryEntry: HistoryEntry = {
-        id: Date.now().toString(),
-        date: new Date().toLocaleString('ar-DZ'),
-        clientName: clientInfo.client_name,
-        total: calculateTotal()
-      };
-      
-      const newHistory = [newHistoryEntry, ...history];
-      setHistory(newHistory);
-      localStorage.setItem("custom_invoice_history", JSON.stringify(newHistory));
+      if (!payloadOverride) {
+        const newEntry: HistoryEntry = {
+          id: Date.now().toString(),
+          date: new Date().toLocaleString('ar-DZ'),
+          client_name: payload.client_name,
+          invoice_number: payload.invoice_number,
+          grand_total_invoice: payload.grand_total_invoice,
+          payload
+        };
+        const newHistory = [newEntry, ...history];
+        setHistory(newHistory);
+        localStorage.setItem("custom_invoice_history_v2", JSON.stringify(newHistory));
 
-      // Reset dynamic form
-      setClientInfo({ client_name: "", client_address: "", client_phone: "" });
-      setItems([]);
-      setDiscount(0);
-      
+        setClientInfo({
+          client_name: "", client_art: "", client_mf: "", client_rc: "",
+          receipt_date: new Date().toLocaleDateString('en-GB'), invoice_number: "",
+        });
+        setItems([]);
+        setFinancials({ tva_amount: 0, stamp_duty: 0 });
+        setAmountInWords("");
+      }
     } catch (error) {
       console.error(error);
       alert("حدث خطأ أثناء التوليد");
@@ -137,133 +166,135 @@ export default function CustomInvoicesTab() {
     }
   };
 
-  return (
-      <div className="space-y-6 pb-12">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white flex items-center gap-2">
-          <FileText className="h-6 w-6 text-primary" />
-          توليد فواتير مخصصة (DOCX)
-        </h1>
+  const loadHistoryItem = (entry: HistoryEntry) => {
+    const p = entry.payload;
+    if (confirm("هل تريد تحميل هذه الفاتورة للتعديل عليها؟ سيتم استبدال البيانات الحالية.")) {
+      setClientInfo({
+        client_name: p.client_name || "", client_art: p.client_art || "",
+        client_mf: p.client_mf || "", client_rc: p.client_rc || "",
+        receipt_date: p.receipt_date || "", invoice_number: p.invoice_number || "",
+      });
+      setItems(p.items || []);
+      setFinancials({ tva_amount: p.tva_amount || 0, stamp_duty: p.stamp_duty || 0 });
+      setAmountInWords(p.amount_in_words_arabic || "");
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Static Info Form */}
+  const deleteHistoryItem = (id: string) => {
+    if (confirm("تأكيد الحذف؟")) {
+      const newHistory = history.filter(h => h.id !== id);
+      setHistory(newHistory);
+      localStorage.setItem("custom_invoice_history_v2", JSON.stringify(newHistory));
+    }
+  };
+
+  return (
+    <div className="space-y-6 pb-12">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 space-y-4">
+          <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-3">
+            <Store className="h-5 w-5 text-gray-400" /> معلومات المتجر
+          </h2>
+          <div className="space-y-3">
+            <div><label className="text-xs text-gray-500">store_name</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_name} onChange={e => setStoreInfo({...storeInfo, store_name: e.target.value})} /></div>
+            <div><label className="text-xs text-gray-500">store_activity</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_activity} onChange={e => setStoreInfo({...storeInfo, store_activity: e.target.value})} /></div>
+            <div><label className="text-xs text-gray-500">store_address</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_address} onChange={e => setStoreInfo({...storeInfo, store_address: e.target.value})} /></div>
+            <div><label className="text-xs text-gray-500">store_ccp_1</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_ccp_1} onChange={e => setStoreInfo({...storeInfo, store_ccp_1: e.target.value})} /></div>
+            <div><label className="text-xs text-gray-500">store_ccp_2</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_ccp_2} onChange={e => setStoreInfo({...storeInfo, store_ccp_2: e.target.value})} /></div>
+            <div><label className="text-xs text-gray-500">store_rc</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_rc} onChange={e => setStoreInfo({...storeInfo, store_rc: e.target.value})} /></div>
+            <div><label className="text-xs text-gray-500">store_mf</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_mf} onChange={e => setStoreInfo({...storeInfo, store_mf: e.target.value})} /></div>
+            <div><label className="text-xs text-gray-500">store_art</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_art} onChange={e => setStoreInfo({...storeInfo, store_art: e.target.value})} /></div>
+            <div><label className="text-xs text-gray-500">store_nif</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_nif} onChange={e => setStoreInfo({...storeInfo, store_nif: e.target.value})} /></div>
+            <button onClick={saveStoreInfo} className="w-full flex items-center justify-center gap-2 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-lg transition-colors text-sm font-medium mt-4"><Save className="h-4 w-4" /> حفظ</button>
+          </div>
+        </div>
+
+        <div className="lg:col-span-2 space-y-6">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 space-y-4">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-3">
-              <Store className="h-5 w-5 text-gray-400" />
-              معلومات المتجر (ثابتة)
-            </h2>
-            <div className="space-y-3">
-              <input type="text" placeholder="اسم المتجر" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_name} onChange={e => setStoreInfo({...storeInfo, store_name: e.target.value})} />
-              <input type="text" placeholder="العنوان" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_address} onChange={e => setStoreInfo({...storeInfo, store_address: e.target.value})} />
-              <input type="text" placeholder="الهاتف" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_phone} onChange={e => setStoreInfo({...storeInfo, store_phone: e.target.value})} />
-              <button onClick={saveStoreInfo} className="w-full flex items-center justify-center gap-2 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-lg transition-colors text-sm font-medium">
-                <Save className="h-4 w-4" /> حفظ للمرات القادمة
-              </button>
+            <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-3"><User className="h-5 w-5 text-primary" /> الزبون والوثيقة</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div><label className="text-xs text-gray-500">client_name</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.client_name} onChange={e => setClientInfo({...clientInfo, client_name: e.target.value})} /></div>
+              <div><label className="text-xs text-gray-500">invoice_number</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.invoice_number} onChange={e => setClientInfo({...clientInfo, invoice_number: e.target.value})} /></div>
+              <div><label className="text-xs text-gray-500">client_art</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.client_art} onChange={e => setClientInfo({...clientInfo, client_art: e.target.value})} /></div>
+              <div><label className="text-xs text-gray-500">client_mf</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.client_mf} onChange={e => setClientInfo({...clientInfo, client_mf: e.target.value})} /></div>
+              <div><label className="text-xs text-gray-500">client_rc</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.client_rc} onChange={e => setClientInfo({...clientInfo, client_rc: e.target.value})} /></div>
+              <div><label className="text-xs text-gray-500">receipt_date</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.receipt_date} onChange={e => setClientInfo({...clientInfo, receipt_date: e.target.value})} /></div>
             </div>
           </div>
 
-          {/* Dynamic Info Form */}
-          <div className="lg:col-span-2 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 space-y-4">
-            <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-3">
-              <User className="h-5 w-5 text-primary" />
-              بيانات العميل والفاتورة
-            </h2>
-            
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <input type="text" placeholder="اسم العميل *" className="px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.client_name} onChange={e => setClientInfo({...clientInfo, client_name: e.target.value})} />
-              <input type="text" placeholder="عنوان العميل" className="px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.client_address} onChange={e => setClientInfo({...clientInfo, client_address: e.target.value})} />
-              <input type="text" placeholder="هاتف العميل" className="px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.client_phone} onChange={e => setClientInfo({...clientInfo, client_phone: e.target.value})} />
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 space-y-4">
+            <div className="flex justify-between items-center mb-3 border-b border-gray-100 dark:border-gray-700 pb-3">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /> المشتريات</h2>
+              <button onClick={addItem} className="flex items-center gap-1 text-sm bg-primary/10 text-primary px-3 py-1.5 rounded-lg hover:bg-primary/20"><Plus className="h-4 w-4" /> إضافة</button>
             </div>
+            <div className="space-y-2">
+              {items.length === 0 ? (
+                <p className="text-center text-sm text-gray-400 py-4 border border-dashed rounded-lg">أضف منتجاً للبدء</p>
+              ) : (
+                items.map((item, index) => (
+                  <div key={index} className="flex flex-wrap sm:flex-nowrap items-center gap-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg">
+                    <div className="w-8 text-center text-xs text-gray-400 font-bold">{item.item_index}</div>
+                    <div className="flex-1 min-w-[150px]"><label className="text-[10px] text-gray-500">item_designation</label><input type="text" className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={item.item_designation} onChange={e => updateItem(index, 'item_designation', e.target.value)} /></div>
+                    <div className="w-16"><label className="text-[10px] text-gray-500">item_quantity</label><input type="number" className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 text-center outline-none" value={item.item_quantity} onChange={e => updateItem(index, 'item_quantity', Number(e.target.value))} /></div>
+                    <div className="w-24"><label className="text-[10px] text-gray-500">item_unit_price</label><input type="number" className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 text-center outline-none" value={item.item_unit_price} onChange={e => updateItem(index, 'item_unit_price', Number(e.target.value))} /></div>
+                    <div className="w-24"><label className="text-[10px] text-gray-500">item_total_price</label><div className="w-full px-2 py-1.5 bg-gray-100 dark:bg-gray-800 rounded text-sm text-center font-bold">{item.item_total_price}</div></div>
+                    <button onClick={() => removeItem(index)} className="p-2 mt-4 text-gray-400 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
 
-            <div className="mt-6">
-              <div className="flex justify-between items-center mb-3">
-                <h3 className="font-bold text-gray-700 dark:text-gray-300">المنتجات</h3>
-                <button onClick={addItem} className="flex items-center gap-1 text-sm bg-primary/10 text-primary px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors">
-                  <Plus className="h-4 w-4" /> إضافة منتج
-                </button>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 space-y-6">
+            <h2 className="text-lg font-bold flex items-center gap-2 border-b border-gray-100 pb-3"><Calculator className="h-5 w-5 text-green-500" /> المجاميع</h2>
+            <div className="flex flex-col md:flex-row gap-6">
+              <div className="flex-1 space-y-3">
+                <div className="flex justify-between items-center text-sm"><span>total_amount_receipt/invoice:</span><span className="font-bold bg-gray-100 px-3 py-1 rounded">{total_amount_invoice}</span></div>
+                <div className="flex justify-between items-center text-sm"><span>tva_amount:</span><input type="number" className="w-28 px-3 py-1.5 border rounded text-right" value={financials.tva_amount} onChange={e => setFinancials({...financials, tva_amount: Number(e.target.value)})} /></div>
+                <div className="flex justify-between items-center text-sm"><span>stamp_duty:</span><input type="number" className="w-28 px-3 py-1.5 border rounded text-right" value={financials.stamp_duty} onChange={e => setFinancials({...financials, stamp_duty: Number(e.target.value)})} /></div>
+                <div className="flex justify-between items-center font-bold pt-2 border-t border-dashed"><span>grand_total_invoice:</span><span className="text-primary font-mono text-xl bg-primary/10 px-3 py-1 rounded-lg">{grand_total_invoice}</span></div>
               </div>
-              
-              <div className="space-y-2">
-                {items.length === 0 ? (
-                  <p className="text-center text-sm text-gray-400 py-4 border border-dashed rounded-lg dark:border-gray-700">لا توجد منتجات، أضف منتجاً للبدء.</p>
-                ) : (
-                  items.map((item, index) => (
-                    <div key={index} className="flex flex-wrap sm:flex-nowrap items-center gap-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg">
-                      <input type="text" placeholder="البيان (اسم المنتج)" className="flex-1 min-w-[150px] px-3 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={item.description} onChange={e => updateItem(index, 'description', e.target.value)} />
-                      <input type="number" placeholder="الكمية" className="w-20 px-3 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none text-center" value={item.quantity} onChange={e => updateItem(index, 'quantity', Number(e.target.value))} />
-                      <input type="number" placeholder="السعر" className="w-28 px-3 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none text-center" value={item.unit_price} onChange={e => updateItem(index, 'unit_price', Number(e.target.value))} />
-                      <div className="w-24 text-center font-bold text-sm text-gray-700 dark:text-gray-300">
-                        {item.quantity * item.unit_price} د.ج
-                      </div>
-                      <button onClick={() => removeItem(index)} className="p-2 text-gray-400 hover:text-red-500 bg-white dark:bg-gray-800 rounded shadow-sm">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))
-                )}
+              <div className="flex-1">
+                <label className="text-sm font-bold block mb-2">amount_in_words_arabic</label>
+                <textarea rows={4} className="w-full px-3 py-2 border rounded-lg text-sm resize-none dark:bg-gray-700" placeholder="أقفلت هذه الفاتورة عند مبلغ..." value={amountInWords} onChange={e => setAmountInWords(e.target.value)} />
               </div>
             </div>
-
-            <div className="flex justify-end pt-4 border-t border-gray-100 dark:border-gray-700">
-              <div className="w-full max-w-xs space-y-2">
-                <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
-                  <span>المجموع الفرعي:</span>
-                  <span>{calculateSubTotal()} د.ج</span>
-                </div>
-                <div className="flex justify-between items-center text-sm text-gray-600 dark:text-gray-400">
-                  <span>تخفيض:</span>
-                  <input type="number" className="w-24 px-2 py-1 border rounded text-right dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={discount} onChange={e => setDiscount(Number(e.target.value))} />
-                </div>
-                <div className="flex justify-between items-center font-bold text-lg text-gray-900 dark:text-white pt-2 border-t border-dashed dark:border-gray-700">
-                  <span>الإجمالي:</span>
-                  <span className="text-primary">{calculateTotal()} د.ج</span>
-                </div>
-              </div>
-            </div>
-
-            <motion.button
-              whileTap={{ scale: 0.98 }}
-              onClick={handleGenerate}
-              disabled={generating}
-              className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-bold transition-colors disabled:opacity-50 mt-4"
-            >
-              {generating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />}
-              توليد وحفظ الفاتورة (DOCX)
+            <motion.button whileTap={{ scale: 0.98 }} onClick={() => handleGenerate()} disabled={generating} className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-bold transition-colors">
+              {generating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />} توليد DOCX
             </motion.button>
           </div>
         </div>
-
-        {/* History */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 mt-6">
-          <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-3 mb-4">
-            <History className="h-5 w-5 text-gray-400" />
-            سجل الفواتير المخصصة
-          </h2>
-          
-          {history.length === 0 ? (
-            <p className="text-center text-gray-400 py-6">لا يوجد سجل للفواتير المخصصة بعد.</p>
-          ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-right text-sm text-gray-500 dark:text-gray-400">
-                <thead className="bg-gray-50 dark:bg-gray-900/50 text-gray-700 dark:text-gray-300">
-                  <tr>
-                    <th className="px-4 py-3 font-bold">التاريخ</th>
-                    <th className="px-4 py-3 font-bold">العميل</th>
-                    <th className="px-4 py-3 font-bold">الإجمالي</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {history.map((entry) => (
-                    <tr key={entry.id} className="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                      <td className="px-4 py-3">{entry.date}</td>
-                      <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{entry.clientName}</td>
-                      <td className="px-4 py-3 font-bold text-primary">{entry.total} د.ج</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </div>
       </div>
+
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 mt-6">
+        <h2 className="text-lg font-bold flex items-center gap-2 border-b pb-3 mb-4"><History className="h-5 w-5 text-gray-400" /> سجل الفواتير المخصصة</h2>
+        {history.length === 0 ? (
+          <p className="text-center py-6 text-gray-400">لا يوجد سجل</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-right text-sm">
+              <thead className="bg-gray-50 text-gray-700">
+                <tr><th className="px-4 py-3">التاريخ</th><th className="px-4 py-3">العميل</th><th className="px-4 py-3">الفاتورة</th><th className="px-4 py-3">الإجمالي</th><th className="px-4 py-3 text-center">إجراءات</th></tr>
+              </thead>
+              <tbody>
+                {history.map(entry => (
+                  <tr key={entry.id} className="border-b">
+                    <td className="px-4 py-3">{entry.date}</td><td className="px-4 py-3">{entry.client_name}</td><td className="px-4 py-3">{entry.invoice_number}</td><td className="px-4 py-3 font-bold text-primary">{entry.grand_total_invoice}</td>
+                    <td className="px-4 py-3 text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <button onClick={() => loadHistoryItem(entry)} className="p-1.5 text-blue-600 bg-blue-50 rounded" title="تعديل"><Edit className="h-4 w-4" /></button>
+                        <button onClick={() => handleGenerate(entry.payload)} className="p-1.5 text-green-600 bg-green-50 rounded" title="إعادة طباعة"><Download className="h-4 w-4" /></button>
+                        <button onClick={() => deleteHistoryItem(entry.id)} className="p-1.5 text-red-500 bg-red-50 rounded" title="حذف"><Trash2 className="h-4 w-4" /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
