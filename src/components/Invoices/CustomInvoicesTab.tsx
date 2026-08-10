@@ -171,8 +171,7 @@ export default function CustomInvoicesTab() {
     const p = entry.payload;
     if (confirm("هل تريد تحميل هذه الفاتورة للتعديل عليها؟ سيتم استبدال البيانات الحالية.")) {
       setClientInfo({
-        client_name: p.client_name || "", client_art: p.client_art || "",
-        client_mf: p.client_mf || "", client_rc: p.client_rc || "",
+        client_name: p.client_name || "",
         receipt_date: p.receipt_date || "", invoice_number: p.invoice_number || "",
       });
       setItems(p.items || []);
