@@ -37,9 +37,6 @@ export default function CustomInvoicesTab() {
 
   const [clientInfo, setClientInfo] = useState({
     client_name: "",
-    client_art: "",
-    client_mf: "",
-    client_rc: "",
     receipt_date: new Date().toLocaleDateString('en-GB'),
     invoice_number: "",
   });
