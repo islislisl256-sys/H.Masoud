@@ -40,9 +40,9 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
       <div className="text-right mb-4">
         <div style={{ border: '1px solid #000000', padding: '8px', display: 'inline-block', minWidth: '350px', textAlign: 'right', fontWeight: 'bold' }}>
           الزبون: {client_name}
-          {client_rc && <div>س.ت: {client_rc}</div>}
-          {client_mf && <div>الرقم الجبائي: {client_mf}</div>}
-          {client_art && <div>رقم المادة: {client_art}</div>}
+          {store_rc && <div>س.ت: {store_rc}</div>}
+          {store_mf && <div>الرقم الجبائي: {store_mf}</div>}
+          {store_art && <div>رقم المادة: {store_art}</div>}
         </div>
       </div>
       <div className="text-center font-bold text-xl">
@@ -130,11 +130,11 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
       <div style={{ border: '1px solid #000000', padding: '10px', display: 'inline-block', minWidth: '350px', textAlign: 'right', fontWeight: 'bold' }}>
         <div className="text-xl mb-1">في ذمة {client_name}</div>
         <div>
-          {client_art && `رقم المادة: ${client_art} `}
-          {client_mf && `الرقم الجبائي: `}
+          {store_art && `رقم المادة: ${store_art} `}
+          {store_mf && `الرقم الجبائي: `}
         </div>
-        {client_mf && <div>{client_mf}</div>}
-        {client_rc && <div>س.ت.رقم : {client_rc}</div>}
+        {store_mf && <div>{store_mf}</div>}
+        {store_rc && <div>س.ت.رقم : {store_rc}</div>}
       </div>
       <div className="text-center font-bold text-2xl mt-4">
         فاتورة رقم {invoice_number}

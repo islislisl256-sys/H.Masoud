@@ -155,7 +155,7 @@ export default function CustomInvoicesTab() {
         localStorage.setItem("custom_invoice_history_v2", JSON.stringify(newHistory));
 
         setClientInfo({
-          client_name: "", client_art: "", client_mf: "", client_rc: "",
+          client_name: "",
           receipt_date: new Date().toLocaleDateString('en-GB'), invoice_number: "",
         });
         setItems([]);
@@ -226,9 +226,6 @@ export default function CustomInvoicesTab() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div><label className="text-xs text-gray-500 font-bold">اسم_الزبون</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.client_name} onChange={e => setClientInfo({...clientInfo, client_name: e.target.value})} /></div>
               <div><label className="text-xs text-gray-500 font-bold">رقم_الفاتورة_و_الوصل</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.invoice_number} onChange={e => setClientInfo({...clientInfo, invoice_number: e.target.value})} /></div>
-              <div><label className="text-xs text-gray-500 font-bold">رقم_المادة</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.client_art} onChange={e => setClientInfo({...clientInfo, client_art: e.target.value})} /></div>
-              <div><label className="text-xs text-gray-500 font-bold">رقم_الجبائي</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.client_mf} onChange={e => setClientInfo({...clientInfo, client_mf: e.target.value})} /></div>
-              <div><label className="text-xs text-gray-500 font-bold">س.ت.رقم</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.client_rc} onChange={e => setClientInfo({...clientInfo, client_rc: e.target.value})} /></div>
               <div><label className="text-xs text-gray-500 font-bold">تاريخ الوصل</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.receipt_date} onChange={e => setClientInfo({...clientInfo, receipt_date: e.target.value})} /></div>
             </div>
           </div>
