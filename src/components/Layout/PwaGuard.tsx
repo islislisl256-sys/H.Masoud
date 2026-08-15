@@ -12,8 +12,13 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Check if app is in standalone mode
     const checkStandalone = () => {
+      const isElectronProtocol = typeof window !== 'undefined' && (window.location.protocol === 'app:' || window.location.protocol === 'file:');
+      const isElectronPreload = typeof window !== 'undefined' && (window as any).isElectronApp === true;
+      const isElectronUrlParam = typeof window !== 'undefined' && window.location.search.includes('electron=true');
+      
       const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || 
-                               (window.navigator as any).standalone === true;
+                               (window.navigator as any).standalone === true ||
+                               isElectronProtocol || isElectronPreload || isElectronUrlParam;
       setIsStandalone(isStandaloneMode);
     };
 
@@ -39,6 +44,8 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  const [showIOSInstructions, setShowIOSInstructions] = useState(false);
+
   const handleInstallClick = async () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
@@ -47,7 +54,7 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
         setDeferredPrompt(null);
       }
     } else if (isIOS) {
-      alert("لتثبيت التطبيق على الآيفون: اضغط على زر 'المشاركة' في الأسفل ثم اختر 'إضافة للشاشة الرئيسية' (Add to Home Screen).");
+      setShowIOSInstructions(true);
     } else {
       alert("التطبيق مثبت بالفعل أو أن متصفحك لا يدعم التثبيت المباشر. جرب الإضافة للشاشة الرئيسية من القائمة.");
     }
@@ -88,20 +95,35 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
           نظام إدارة المكتبة والمبيعات متوفر حصرياً عبر التطبيق المخصص. يرجى التثبيت للتمكن من الدخول بأمان.
         </p>
 
-        <div className="space-y-4">
-          <button
-            onClick={handleInstallClick}
-            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-primary/25 transition-all active:scale-95"
+        {showIOSInstructions ? (
+          <motion.div 
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className="bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 p-4 rounded-xl text-sm leading-relaxed mb-6 border border-blue-200 dark:border-blue-800"
           >
-            <Download className="w-5 h-5" />
-            تثبيت التطبيق الآن
-          </button>
-          
-          <div className="flex items-center justify-center gap-2 text-xs text-gray-400 dark:text-gray-500 mt-6">
-            <ShieldCheck className="w-4 h-4" />
-            <span>تطبيق آمن ومشفر</span>
+            <p className="font-bold mb-2 text-base">لتثبيت التطبيق على جهازك (الآيفون):</p>
+            <ol className="text-right list-decimal list-inside space-y-2">
+              <li>افتح هذا الرابط في متصفح <strong>Safari</strong>.</li>
+              <li>اضغط على زر <strong>المشاركة</strong> (المربع الذي يخرج منه سهم للأعلى) في أسفل الشاشة.</li>
+              <li>مرر لأسفل واختر <strong>إضافة للشاشة الرئيسية (Add to Home Screen)</strong>.</li>
+            </ol>
+          </motion.div>
+        ) : (
+          <div className="space-y-4">
+            <button
+              onClick={handleInstallClick}
+              className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-primary/25 transition-all active:scale-95"
+            >
+              {isIOS ? <Smartphone className="w-5 h-5" /> : <Download className="w-5 h-5" />}
+              {isIOS ? "كيفية التثبيت للآيفون" : "تثبيت التطبيق الآن"}
+            </button>
+            
+            <div className="flex items-center justify-center gap-2 text-xs text-gray-400 dark:text-gray-500 mt-6">
+              <ShieldCheck className="w-4 h-4" />
+              <span>تطبيق آمن ومشفر</span>
+            </div>
           </div>
-        </div>
+        )}
       </motion.div>
     </div>
   );

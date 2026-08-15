@@ -17,19 +17,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Check local storage for auth state on load
-    const storedAuth = localStorage.getItem("isAuthenticated");
-    if (storedAuth === "true") {
-      setIsAuthenticated(true);
+    try {
+      // Check local storage for auth state on load
+      const storedAuth = localStorage.getItem("isAuthenticated");
+      if (storedAuth === "true") {
+        setIsAuthenticated(true);
+      }
+    } catch (e) {
+      console.warn("Local storage not available:", e);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   const login = (username: string, pass: string) => {
     // Default credentials as requested
     if (username === "HERMA" && pass === "123456") {
       setIsAuthenticated(true);
-      localStorage.setItem("isAuthenticated", "true");
+      try {
+        localStorage.setItem("isAuthenticated", "true");
+      } catch (e) {}
       router.push("/");
       return true;
     }
@@ -38,7 +45,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = () => {
     setIsAuthenticated(false);
-    localStorage.removeItem("isAuthenticated");
+    try {
+      localStorage.removeItem("isAuthenticated");
+    } catch (e) {}
     router.push("/login");
   };
 
