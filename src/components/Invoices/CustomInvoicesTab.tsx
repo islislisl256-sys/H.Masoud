@@ -43,6 +43,7 @@ export default function CustomInvoicesTab() {
 
   const [items, setItems] = useState<InvoiceItem[]>([]);
   const [financials, setFinancials] = useState({ tva_amount: 0, stamp_duty: 0 });
+  const [includeTva, setIncludeTva] = useState(true);
   const [amountInWords, setAmountInWords] = useState("");
   
   const [history, setHistory] = useState<HistoryEntry[]>([]);
@@ -97,7 +98,7 @@ export default function CustomInvoicesTab() {
   const total_amount_receipt = items.reduce((sum, item) => sum + item.item_total_price, 0);
   const total_amount_invoice = total_amount_receipt;
   const computed_tva = Math.round(total_amount_invoice * 0.19 * 100) / 100;
-  const grand_total_invoice = total_amount_invoice + computed_tva + Number(financials.stamp_duty);
+  const grand_total_invoice = total_amount_invoice + (includeTva ? computed_tva : 0) + Number(financials.stamp_duty);
 
   const buildPayload = () => {
     return {
@@ -106,7 +107,7 @@ export default function CustomInvoicesTab() {
       items: items,
       total_amount_receipt,
       total_amount_invoice,
-      tva_amount: computed_tva,
+      tva_amount: includeTva ? computed_tva : 0,
       stamp_duty: Number(financials.stamp_duty),
       grand_total_invoice,
       amount_in_words_arabic: amountInWords,
@@ -254,7 +255,23 @@ export default function CustomInvoicesTab() {
             <div className="flex flex-col md:flex-row gap-6">
               <div className="flex-1 space-y-3">
                 <div className="flex justify-between items-center text-sm"><span>المجموع:</span><span className="font-bold bg-gray-100 px-3 py-1 rounded">{total_amount_invoice}</span></div>
-                <div className="flex justify-between items-center text-sm"><span>رسم_ع_القيمة_المضافة (19%):</span><span className="font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-3 py-1 rounded">{computed_tva.toFixed(2)}</span></div>
+                <div className="flex justify-between items-center text-sm">
+                  <span>رسم_ع_القيمة_المضافة (19%):</span>
+                  <div className="flex items-center gap-2">
+                    <span className={`font-bold px-3 py-1 rounded ${includeTva ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300' : 'bg-gray-100 text-gray-400 line-through'}`}>{computed_tva.toFixed(2)}</span>
+                    <button
+                      onClick={() => setIncludeTva(!includeTva)}
+                      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none ${
+                        includeTva ? 'bg-blue-500' : 'bg-gray-300 dark:bg-gray-600'
+                      }`}
+                      title={includeTva ? 'إلغاء إضافة التفت' : 'إضافة التفت للمجموع'}
+                    >
+                      <span className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
+                        includeTva ? 'translate-x-4' : 'translate-x-1'
+                      }`} />
+                    </button>
+                  </div>
+                </div>
                 <div className="flex justify-between items-center text-sm"><span>الرسم_ع_الطابع:</span><input type="number" className="w-28 px-3 py-1.5 border rounded text-right" value={financials.stamp_duty} onChange={e => setFinancials({...financials, stamp_duty: Number(e.target.value)})} /></div>
                 <div className="flex justify-between items-center font-bold pt-2 border-t border-dashed"><span>المجموع_الكلي:</span><span className="text-primary font-mono text-xl bg-primary/10 px-3 py-1 rounded-lg">{grand_total_invoice.toFixed(2)}</span></div>
               </div>
