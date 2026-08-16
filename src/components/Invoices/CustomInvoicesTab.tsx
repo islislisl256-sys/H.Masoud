@@ -96,7 +96,8 @@ export default function CustomInvoicesTab() {
 
   const total_amount_receipt = items.reduce((sum, item) => sum + item.item_total_price, 0);
   const total_amount_invoice = total_amount_receipt;
-  const grand_total_invoice = total_amount_invoice + Number(financials.tva_amount) + Number(financials.stamp_duty);
+  const computed_tva = Math.round(total_amount_invoice * 0.19 * 100) / 100;
+  const grand_total_invoice = total_amount_invoice + computed_tva + Number(financials.stamp_duty);
 
   const buildPayload = () => {
     return {
@@ -105,7 +106,7 @@ export default function CustomInvoicesTab() {
       items: items,
       total_amount_receipt,
       total_amount_invoice,
-      tva_amount: Number(financials.tva_amount),
+      tva_amount: computed_tva,
       stamp_duty: Number(financials.stamp_duty),
       grand_total_invoice,
       amount_in_words_arabic: amountInWords,
@@ -222,7 +223,6 @@ export default function CustomInvoicesTab() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div><label className="text-xs text-gray-500 font-bold">اسم_الزبون</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.client_name} onChange={e => setClientInfo({...clientInfo, client_name: e.target.value})} /></div>
               <div><label className="text-xs text-gray-500 font-bold">رقم_الفاتورة_و_الوصل</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.invoice_number} onChange={e => setClientInfo({...clientInfo, invoice_number: e.target.value})} /></div>
-              <div><label className="text-xs text-gray-500 font-bold">تاريخ الوصل</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.receipt_date} onChange={e => setClientInfo({...clientInfo, receipt_date: e.target.value})} /></div>
             </div>
           </div>
 
@@ -254,9 +254,9 @@ export default function CustomInvoicesTab() {
             <div className="flex flex-col md:flex-row gap-6">
               <div className="flex-1 space-y-3">
                 <div className="flex justify-between items-center text-sm"><span>المجموع:</span><span className="font-bold bg-gray-100 px-3 py-1 rounded">{total_amount_invoice}</span></div>
-                <div className="flex justify-between items-center text-sm"><span>رسم_ع_القيمة_المضافة:</span><input type="number" className="w-28 px-3 py-1.5 border rounded text-right" value={financials.tva_amount} onChange={e => setFinancials({...financials, tva_amount: Number(e.target.value)})} /></div>
+                <div className="flex justify-between items-center text-sm"><span>رسم_ع_القيمة_المضافة (19%):</span><span className="font-bold bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 px-3 py-1 rounded">{computed_tva.toFixed(2)}</span></div>
                 <div className="flex justify-between items-center text-sm"><span>الرسم_ع_الطابع:</span><input type="number" className="w-28 px-3 py-1.5 border rounded text-right" value={financials.stamp_duty} onChange={e => setFinancials({...financials, stamp_duty: Number(e.target.value)})} /></div>
-                <div className="flex justify-between items-center font-bold pt-2 border-t border-dashed"><span>المجموع_الكلي:</span><span className="text-primary font-mono text-xl bg-primary/10 px-3 py-1 rounded-lg">{grand_total_invoice}</span></div>
+                <div className="flex justify-between items-center font-bold pt-2 border-t border-dashed"><span>المجموع_الكلي:</span><span className="text-primary font-mono text-xl bg-primary/10 px-3 py-1 rounded-lg">{grand_total_invoice.toFixed(2)}</span></div>
               </div>
               <div className="flex-1">
                 <label className="text-sm font-bold block mb-2">المبلغ_بالحروف_للمجموع_الكلي</label>
