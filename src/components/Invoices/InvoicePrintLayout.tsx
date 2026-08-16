@@ -46,7 +46,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
         </div>
       </div>
       <div className="text-center font-bold text-xl">
-        وصل الاستلام:
+        وصل الاستلام: {invoice_number}
       </div>
     </div>
   );
