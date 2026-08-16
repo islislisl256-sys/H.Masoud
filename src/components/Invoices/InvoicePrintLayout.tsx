@@ -46,7 +46,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
         </div>
       </div>
       <div className="text-center font-bold text-xl">
-        رقم الفاتورة: {invoice_number} / رقم الوصل: {invoice_number}
+        وصل الاستلام:
       </div>
     </div>
   );
@@ -94,16 +94,16 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
 
   const renderReceiptFooter = () => (
     <div>
-      <div className="flex justify-between px-20 mt-12 mb-8">
+      <div className="text-right font-bold text-lg mt-4 pr-4">
+        التاريخ:
+      </div>
+      <div className="flex justify-between px-20 mt-8 mb-8">
         <div className="text-right font-bold text-xl">
-          المستلم: .................
+          المستلم
         </div>
         <div className="text-left font-bold text-xl">
-          الممون: .................
+          الممون
         </div>
-      </div>
-      <div className="text-right font-bold text-lg mt-8 pr-4">
-        التاريخ:
       </div>
     </div>
   );
@@ -122,7 +122,6 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
       {/* Right details */}
       <div className="text-left font-bold text-sm" style={{ direction: 'rtl' }}>
         {store_rc && <div>س.ت.رقم : {store_rc}</div>}
-        <div>بتاريخ: </div>
         {store_art && <div>رقم المادة : {store_art}</div>}
         {store_mf && <div>الرقم الجبائي : {store_mf}</div>}
         {(store_ccp_1 || store_ccp_2) && <div>CCP : {store_ccp_1} {store_ccp_2 ? ` Clé: ${store_ccp_2}` : ''}</div>}
@@ -142,7 +141,10 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
         {store_mf && <div>{store_mf}</div>}
         {store_rc && <div>س.ت.رقم : {store_rc}</div>}
       </div>
-      <div className="text-center font-bold text-2xl mt-4">
+      <div className="text-center font-bold text-lg mt-4 mb-1">
+        التاريخ:
+      </div>
+      <div className="text-center font-bold text-2xl">
         فاتورة رقم {invoice_number}
       </div>
     </div>
