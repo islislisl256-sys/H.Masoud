@@ -46,7 +46,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
         </div>
       </div>
       <div className="text-center font-bold text-xl">
-        وصل استلام : {receipt_date}
+        رقم الفاتورة: {invoice_number} / رقم الوصل: {invoice_number}
       </div>
     </div>
   );
@@ -79,14 +79,14 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
             <td style={{ border: '1px solid #000000', padding: '8px' }}>{item.item_designation}</td>
             <td style={{ border: '1px solid #000000', padding: '8px' }}>{String(item.item_quantity).padStart(2, '0')}</td>
             <td style={{ border: '1px solid #000000', padding: '8px' }}>{Number(item.item_unit_price).toFixed(2).replace('.', ',')}</td>
-            <td style={{ border: '1px solid #000000', padding: '8px' }}>{Number(item.item_total_price).toFixed(2).replace('.', ',')}</td>
+            <td style={{ border: '1px solid #000000', padding: '8px' }}>0</td>
           </tr>
         ))}
         {/* Totals row for receipt */}
         <tr>
           <td colSpan={3} style={{ border: '1px solid #ffffff' }}></td>
           <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>المجموع</td>
-          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(total_amount_receipt).toFixed(2).replace('.', ',')}</td>
+          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}></td>
         </tr>
       </tbody>
     </table>
@@ -94,11 +94,16 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
 
   const renderReceiptFooter = () => (
     <div>
-      <div className="text-center font-bold text-lg mb-12">
-        {amount_in_words_arabic}
+      <div className="flex justify-between px-20 mt-12 mb-8">
+        <div className="text-right font-bold text-xl">
+          المستلم: .................
+        </div>
+        <div className="text-left font-bold text-xl">
+          الممون: .................
+        </div>
       </div>
-      <div className="text-left font-bold text-xl ml-20">
-        الممون
+      <div className="text-right font-bold text-lg mt-8 pr-4">
+        التاريخ:
       </div>
     </div>
   );
@@ -117,6 +122,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
       {/* Right details */}
       <div className="text-left font-bold text-sm" style={{ direction: 'rtl' }}>
         {store_rc && <div>س.ت.رقم : {store_rc}</div>}
+        <div>بتاريخ: </div>
         {store_art && <div>رقم المادة : {store_art}</div>}
         {store_mf && <div>الرقم الجبائي : {store_mf}</div>}
         {(store_ccp_1 || store_ccp_2) && <div>CCP : {store_ccp_1} {store_ccp_2 ? ` Clé: ${store_ccp_2}` : ''}</div>}
@@ -142,56 +148,59 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
     </div>
   );
 
-  const renderInvoiceTable = () => (
-    <table className="w-full text-center border-collapse mb-4" style={{ border: '1px solid #000000', fontWeight: 'bold' }}>
-      <thead>
-        <tr>
-          <th style={{ border: '1px solid #000000', padding: '8px' }}>الرقم</th>
-          <th style={{ border: '1px solid #000000', padding: '8px' }}>التعيين</th>
-          <th style={{ border: '1px solid #000000', padding: '8px' }}>الكمية</th>
-          <th style={{ border: '1px solid #000000', padding: '8px' }}>سعر الوحدة</th>
-          <th style={{ border: '1px solid #000000', padding: '8px' }}>السعر الكلي</th>
-        </tr>
-      </thead>
-      <tbody>
-        {items?.map((item: any) => (
-          <tr key={item.item_index}>
-            <td style={{ border: '1px solid #000000', padding: '8px' }}>{String(item.item_index).padStart(2, '0')}</td>
-            <td style={{ border: '1px solid #000000', padding: '8px' }}>{item.item_designation}</td>
-            <td style={{ border: '1px solid #000000', padding: '8px' }}>{String(item.item_quantity).padStart(2, '0')}</td>
-            <td style={{ border: '1px solid #000000', padding: '8px' }}>{Number(item.item_unit_price).toFixed(2).replace('.', ',')}</td>
-            <td style={{ border: '1px solid #000000', padding: '8px' }}>{Number(item.item_total_price).toFixed(2).replace('.', ',')}</td>
+  const renderInvoiceTable = () => {
+    const calculated_tva = (Number(total_amount_invoice) || 0) * 0.19;
+    return (
+      <table className="w-full text-center border-collapse mb-4" style={{ border: '1px solid #000000', fontWeight: 'bold' }}>
+        <thead>
+          <tr>
+            <th style={{ border: '1px solid #000000', padding: '8px' }}>الرقم</th>
+            <th style={{ border: '1px solid #000000', padding: '8px' }}>التعيين</th>
+            <th style={{ border: '1px solid #000000', padding: '8px' }}>الكمية</th>
+            <th style={{ border: '1px solid #000000', padding: '8px' }}>سعر الوحدة</th>
+            <th style={{ border: '1px solid #000000', padding: '8px' }}>السعر الكلي</th>
           </tr>
-        ))}
-        {/* Totals rows for invoice */}
-        <tr>
-          <td colSpan={3} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
-          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>المجموع</td>
-          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(total_amount_invoice).toFixed(2).replace('.', ',')}</td>
-        </tr>
-        <tr>
-          <td colSpan={3} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
-          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>الرسم ع القيمة<br/>المضافة 19%</td>
-          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(tva_amount).toFixed(2).replace('.', ',')}</td>
-        </tr>
-        <tr>
-          <td colSpan={3} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
-          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>الرسم على الطابع</td>
-          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(stamp_duty).toFixed(2).replace('.', ',')}</td>
-        </tr>
-        <tr>
-          <td colSpan={3} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
-          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>المجموع الكلي</td>
-          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(grand_total_invoice).toFixed(2).replace('.', ',')}</td>
-        </tr>
-      </tbody>
-    </table>
-  );
+        </thead>
+        <tbody>
+          {items?.map((item: any) => (
+            <tr key={item.item_index}>
+              <td style={{ border: '1px solid #000000', padding: '8px' }}>{String(item.item_index).padStart(2, '0')}</td>
+              <td style={{ border: '1px solid #000000', padding: '8px' }}>{item.item_designation}</td>
+              <td style={{ border: '1px solid #000000', padding: '8px' }}>{String(item.item_quantity).padStart(2, '0')}</td>
+              <td style={{ border: '1px solid #000000', padding: '8px' }}>{Number(item.item_unit_price).toFixed(2).replace('.', ',')}</td>
+              <td style={{ border: '1px solid #000000', padding: '8px' }}>{Number(item.item_total_price).toFixed(2).replace('.', ',')}</td>
+            </tr>
+          ))}
+          {/* Totals rows for invoice */}
+          <tr>
+            <td colSpan={3} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
+            <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>المجموع</td>
+            <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(total_amount_invoice).toFixed(2).replace('.', ',')}</td>
+          </tr>
+          <tr>
+            <td colSpan={3} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
+            <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>الرسم ع القيمة<br/>المضافة 19%</td>
+            <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(calculated_tva).toFixed(2).replace('.', ',')}</td>
+          </tr>
+          <tr>
+            <td colSpan={3} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
+            <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>الرسم على الطابع</td>
+            <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(stamp_duty).toFixed(2).replace('.', ',')}</td>
+          </tr>
+          <tr>
+            <td colSpan={3} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
+            <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>المجموع الكلي</td>
+            <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(grand_total_invoice).toFixed(2).replace('.', ',')}</td>
+          </tr>
+        </tbody>
+      </table>
+    );
+  };
 
   const renderInvoiceFooter = () => (
     <div>
       <div className="text-center font-bold text-lg mb-12 px-4">
-        {amount_in_words_arabic}
+        وقفت هذه الفاتورة عند مبلغ: {amount_in_words_arabic}
       </div>
       <div className="text-left font-bold text-xl ml-20">
         الممون
