@@ -256,10 +256,10 @@ export default function CustomInvoicesTab() {
               <div className="flex-1 space-y-3">
                 <div className="flex justify-between items-center text-sm"><span>المجموع:</span><span className="font-bold bg-gray-100 px-3 py-1 rounded">{total_amount_invoice}</span></div>
                 <div className="flex justify-between items-center text-sm">
-                  <span>\u0631\u0633\u0645_\u0639_\u0627\u0644\u0642\u064a\u0645\u0629_\u0627\u0644\u0645\u0636\u0627\u0641\u0629:</span>
+                  <span>رسم_ع_القيمة_المضافة:</span>
                   <div className="flex items-center gap-2">
-                    <input type="number" readOnly className={`w-28 px-3 py-1.5 border rounded text-right bg-gray-50 dark:bg-gray-700 cursor-default ${!includeTva ? 'opacity-40 line-through' : ''}`} value={computed_tva.toFixed(2)} />
-                    <input type="checkbox" checked={includeTva} onChange={e => setIncludeTva(e.target.checked)} className="w-4 h-4 accent-blue-500 cursor-pointer" title="\u062a\u0636\u0645\u064a\u0646 \u0641\u064a \u0627\u0644\u0645\u062c\u0645\u0648\u0639" />
+                    <input type="number" readOnly className={`w-28 px-3 py-1.5 border rounded text-right bg-gray-50 dark:bg-gray-700 cursor-default ${!includeTva ? 'opacity-40' : ''}`} value={computed_tva.toFixed(2)} />
+                    <input type="checkbox" checked={includeTva} onChange={e => setIncludeTva(e.target.checked)} className="w-4 h-4 accent-blue-500 cursor-pointer" title="تضمين في المجموع" />
                   </div>
                 </div>
                 <div className="flex justify-between items-center text-sm"><span>الرسم_ع_الطابع:</span><input type="number" className="w-28 px-3 py-1.5 border rounded text-right" value={financials.stamp_duty} onChange={e => setFinancials({...financials, stamp_duty: Number(e.target.value)})} /></div>
