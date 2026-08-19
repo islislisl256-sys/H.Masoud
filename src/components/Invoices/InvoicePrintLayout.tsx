@@ -62,7 +62,10 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
             التعيين<br/>Designation
           </th>
           <th style={{ border: '1px solid #000000', padding: '8px' }}>
-            الكمية<br/>Unit
+            الوحدة<br/>Unit
+          </th>
+          <th style={{ border: '1px solid #000000', padding: '8px' }}>
+            الكمية<br/>Quantité
           </th>
           <th style={{ border: '1px solid #000000', padding: '8px' }}>
             السعر الفردي<br/>Prix Unit
@@ -77,6 +80,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
           <tr key={item.item_index}>
             <td style={{ border: '1px solid #000000', padding: '8px' }}>{String(item.item_index).padStart(2, '0')}</td>
             <td style={{ border: '1px solid #000000', padding: '8px' }}>{item.item_designation}</td>
+            <td style={{ border: '1px solid #000000', padding: '8px' }}>{item.item_unit}</td>
             <td style={{ border: '1px solid #000000', padding: '8px' }}>{String(item.item_quantity).padStart(2, '0')}</td>
             <td style={{ border: '1px solid #000000', padding: '8px' }}>{Number(item.item_unit_price).toFixed(2).replace('.', ',')}</td>
             <td style={{ border: '1px solid #000000', padding: '8px' }}>0</td>
@@ -84,7 +88,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
         ))}
         {/* Totals row for receipt */}
         <tr>
-          <td colSpan={3} style={{ border: '1px solid #ffffff' }}></td>
+          <td colSpan={4} style={{ border: '1px solid #ffffff' }}></td>
           <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>المجموع</td>
           <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}></td>
         </tr>
@@ -158,6 +162,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
           <tr>
             <th style={{ border: '1px solid #000000', padding: '8px' }}>الرقم</th>
             <th style={{ border: '1px solid #000000', padding: '8px' }}>التعيين</th>
+            <th style={{ border: '1px solid #000000', padding: '8px' }}>الوحدة</th>
             <th style={{ border: '1px solid #000000', padding: '8px' }}>الكمية</th>
             <th style={{ border: '1px solid #000000', padding: '8px' }}>سعر الوحدة</th>
             <th style={{ border: '1px solid #000000', padding: '8px' }}>السعر الكلي</th>
@@ -168,6 +173,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
             <tr key={item.item_index}>
               <td style={{ border: '1px solid #000000', padding: '8px' }}>{String(item.item_index).padStart(2, '0')}</td>
               <td style={{ border: '1px solid #000000', padding: '8px' }}>{item.item_designation}</td>
+              <td style={{ border: '1px solid #000000', padding: '8px' }}>{item.item_unit}</td>
               <td style={{ border: '1px solid #000000', padding: '8px' }}>{String(item.item_quantity).padStart(2, '0')}</td>
               <td style={{ border: '1px solid #000000', padding: '8px' }}>{Number(item.item_unit_price).toFixed(2).replace('.', ',')}</td>
               <td style={{ border: '1px solid #000000', padding: '8px' }}>{Number(item.item_total_price).toFixed(2).replace('.', ',')}</td>
@@ -175,22 +181,22 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
           ))}
           {/* Totals rows for invoice */}
           <tr>
-            <td colSpan={3} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
+            <td colSpan={4} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
             <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>المجموع</td>
             <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(total_amount_invoice).toFixed(2).replace('.', ',')}</td>
           </tr>
           <tr>
-            <td colSpan={3} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
+            <td colSpan={4} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
             <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>الرسم ع القيمة<br/>المضافة 19%</td>
             <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(calculated_tva).toFixed(2).replace('.', ',')}</td>
           </tr>
           <tr>
-            <td colSpan={3} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
+            <td colSpan={4} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
             <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>الرسم على الطابع</td>
             <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(stamp_duty).toFixed(2).replace('.', ',')}</td>
           </tr>
           <tr>
-            <td colSpan={3} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
+            <td colSpan={4} style={{ border: '1px solid #ffffff', borderRight: '1px solid #000000' }}></td>
             <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>المجموع الكلي</td>
             <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(grand_total_invoice).toFixed(2).replace('.', ',')}</td>
           </tr>
@@ -236,3 +242,5 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
 InvoicePrintLayout.displayName = 'InvoicePrintLayout';
 
 export default InvoicePrintLayout;
+
+

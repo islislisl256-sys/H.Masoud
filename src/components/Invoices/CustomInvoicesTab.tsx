@@ -8,6 +8,7 @@ import InvoicePrintLayout from "./InvoicePrintLayout";
 type InvoiceItem = {
   item_index: number;
   item_designation: string;
+  item_unit: string;
   item_quantity: number;
   item_unit_price: number;
   item_total_price: number;
@@ -68,6 +69,7 @@ export default function CustomInvoicesTab() {
       {
         item_index: items.length + 1,
         item_designation: "",
+        item_unit: "",
         item_quantity: 1,
         item_unit_price: 0,
         item_total_price: 0,
@@ -240,6 +242,7 @@ export default function CustomInvoicesTab() {
                   <div key={index} className="flex flex-wrap sm:flex-nowrap items-center gap-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg">
                     <div className="w-8 text-center text-xs text-gray-400 font-bold">{item.item_index}</div>
                     <div className="flex-1 min-w-[150px]"><label className="text-[10px] text-gray-500">item_designation</label><input type="text" className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={item.item_designation} onChange={e => updateItem(index, 'item_designation', e.target.value)} /></div>
+                    <div className="w-16"><label className="text-[10px] text-gray-500">item_unit</label><input type="text" className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 text-center outline-none" value={item.item_unit || ''} onChange={e => updateItem(index, 'item_unit', e.target.value)} /></div>
                     <div className="w-16"><label className="text-[10px] text-gray-500">item_quantity</label><input type="number" className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 text-center outline-none" value={item.item_quantity} onChange={e => updateItem(index, 'item_quantity', Number(e.target.value))} /></div>
                     <div className="w-24"><label className="text-[10px] text-gray-500">item_unit_price</label><input type="number" className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 text-center outline-none" value={item.item_unit_price} onChange={e => updateItem(index, 'item_unit_price', Number(e.target.value))} /></div>
                     <div className="w-24"><label className="text-[10px] text-gray-500">item_total_price</label><div className="w-full px-2 py-1.5 bg-gray-100 dark:bg-gray-800 rounded text-sm text-center font-bold">{item.item_total_price}</div></div>
@@ -315,3 +318,4 @@ export default function CustomInvoicesTab() {
     </div>
   );
 }
+
