@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { 
@@ -30,12 +30,15 @@ const navigation = [
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
-    <div className="hidden md:flex flex-col w-64 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 h-full shadow-sm">
-      <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200 dark:border-gray-700">
-        <BookOpen className="h-6 w-6 text-primary ml-2" />
-        <span className="text-lg font-bold text-gray-900 dark:text-white">مكتبة الحاج مسعود</span>
+    <div className={cn("hidden md:flex flex-col bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 h-full shadow-sm transition-all duration-300 relative", isCollapsed ? "w-20" : "w-64")}>
+      <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200 dark:border-gray-700 overflow-hidden">
+        <button onClick={() => setIsCollapsed(!isCollapsed)} className="focus:outline-none p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0">
+          <BookOpen className={cn("h-6 w-6 text-primary transition-all duration-300", !isCollapsed && "ml-2")} />
+        </button>
+        {!isCollapsed && <span className="text-lg font-bold text-gray-900 dark:text-white whitespace-nowrap animate-in fade-in duration-300">مكتبة الحاج مسعود</span>}
       </div>
       <div className="flex-1 overflow-y-auto py-4">
         <nav className="px-2 space-y-1">
@@ -49,17 +52,17 @@ export default function Sidebar() {
                   isActive
                     ? "bg-primary/10 text-primary"
                     : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700",
-                  "group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-colors"
+                  "group flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-colors", isCollapsed && "justify-center"
                 )}
               >
                 <item.icon
                   className={cn(
                     isActive ? "text-primary" : "text-gray-400 group-hover:text-gray-500 dark:group-hover:text-gray-300",
-                    "flex-shrink-0 ml-3 h-5 w-5"
+                    "flex-shrink-0 h-5 w-5 transition-all duration-300", !isCollapsed && "ml-3"
                   )}
                   aria-hidden="true"
                 />
-                {item.name}
+                {!isCollapsed && <span className="whitespace-nowrap animate-in fade-in duration-300">{item.name}</span>}
               </Link>
             );
           })}
