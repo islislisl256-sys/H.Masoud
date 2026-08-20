@@ -63,6 +63,33 @@ export default function CustomInvoicesTab() {
     alert("تم حفظ معلومات المتجر!");
   };
 
+  
+  const handleKeyDown = (e: React.KeyboardEvent, rowIndex: number, colIndex: number) => {
+    let nextRow = rowIndex;
+    let nextCol = colIndex;
+
+    if (e.key === 'ArrowUp') {
+      nextRow -= 1;
+    } else if (e.key === 'ArrowDown') {
+      nextRow += 1;
+    } else if (e.key === 'ArrowRight') {
+      // In RTL, Right means going to previous column
+      nextCol -= 1;
+    } else if (e.key === 'ArrowLeft') {
+      // In RTL, Left means going to next column
+      nextCol += 1;
+    } else {
+      return;
+    }
+
+    const nextInput = document.getElementById(`input-${nextRow}-${nextCol}`);
+    if (nextInput) {
+      e.preventDefault();
+      (nextInput as HTMLInputElement).focus();
+      (nextInput as HTMLInputElement).select();
+    }
+  };
+
   const addItem = () => {
     setItems([
       ...items,
@@ -241,10 +268,10 @@ export default function CustomInvoicesTab() {
                 items.map((item, index) => (
                   <div key={index} className="flex flex-wrap sm:flex-nowrap items-center gap-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg">
                     <div className="w-8 text-center text-xs text-gray-400 font-bold">{item.item_index}</div>
-                    <div className="flex-1 min-w-[150px]"><label className="text-[10px] text-gray-500">item_designation</label><input type="text" className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={item.item_designation} onChange={e => updateItem(index, 'item_designation', e.target.value)} /></div>
-                    <div className="w-16"><label className="text-[10px] text-gray-500">item_unit</label><input type="text" className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 text-center outline-none" value={item.item_unit || ''} onChange={e => updateItem(index, 'item_unit', e.target.value)} /></div>
-                    <div className="w-16"><label className="text-[10px] text-gray-500">item_quantity</label><input type="number" className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 text-center outline-none" value={item.item_quantity} onChange={e => updateItem(index, 'item_quantity', Number(e.target.value))} /></div>
-                    <div className="w-24"><label className="text-[10px] text-gray-500">item_unit_price</label><input type="number" className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 text-center outline-none" value={item.item_unit_price} onChange={e => updateItem(index, 'item_unit_price', Number(e.target.value))} /></div>
+                    <div className="flex-1 min-w-[150px]"><label className="text-[10px] text-gray-500">item_designation</label><input type="text" id={`input-${index}-0`} className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all" value={item.item_designation} onChange={e => updateItem(index, 'item_designation', e.target.value)} onKeyDown={(e) => handleKeyDown(e, index, 0)} onFocus={(e) => e.target.select()} /></div>
+                    <div className="w-16"><label className="text-[10px] text-gray-500">item_unit</label><input type="text" id={`input-${index}-1`} className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 text-center outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all dark:text-white" value={item.item_unit || ''} onChange={e => updateItem(index, 'item_unit', e.target.value)} onKeyDown={(e) => handleKeyDown(e, index, 1)} onFocus={(e) => e.target.select()} /></div>
+                    <div className="w-16"><label className="text-[10px] text-gray-500">item_quantity</label><input type="number" id={`input-${index}-2`} className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 text-center outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all dark:text-white" value={item.item_quantity} onChange={e => updateItem(index, 'item_quantity', e.target.value === '' ? 0 : Number(e.target.value))} onKeyDown={(e) => handleKeyDown(e, index, 2)} onFocus={(e) => e.target.select()} /></div>
+                    <div className="w-24"><label className="text-[10px] text-gray-500">item_unit_price</label><input type="number" id={`input-${index}-3`} className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 text-center outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all dark:text-white" value={item.item_unit_price} onChange={e => updateItem(index, 'item_unit_price', e.target.value === '' ? 0 : Number(e.target.value))} onKeyDown={(e) => handleKeyDown(e, index, 3)} onFocus={(e) => e.target.select()} /></div>
                     <div className="w-24"><label className="text-[10px] text-gray-500">item_total_price</label><div className="w-full px-2 py-1.5 bg-gray-100 dark:bg-gray-800 rounded text-sm text-center font-bold">{item.item_total_price}</div></div>
                     <button onClick={() => removeItem(index)} className="p-2 mt-4 text-gray-400 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
                   </div>
@@ -318,4 +345,6 @@ export default function CustomInvoicesTab() {
     </div>
   );
 }
+
+
 
