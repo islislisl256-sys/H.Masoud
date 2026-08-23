@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
-import { Shield, Trash2, Smartphone, Key, Plus, ArrowRight } from "lucide-react";
+import { Shield, Trash2, Smartphone, Key, Plus, ArrowRight, Monitor, Hash } from "lucide-react";
 import Link from "next/link";
 
 export default function AdminPage() {
@@ -105,69 +105,104 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8" dir="rtl">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
-          <div className="flex items-center gap-4">
-            <Shield className="h-8 w-8 text-red-600" />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">إدارة حسابات التطبيق</h1>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8" dir="rtl">
+      <div className="max-w-7xl mx-auto space-y-4">
+        <div className="flex flex-wrap justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm gap-4">
+          <div className="flex items-center gap-3">
+            <Shield className="h-6 w-6 text-red-600" />
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">إدارة حسابات التطبيق</h1>
           </div>
-          <div className="flex items-center gap-4">
-            <Link href="/login" className="px-4 py-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
-              العودة للتطبيق
+          <div className="flex items-center gap-3">
+            <Link href="/login" className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors bg-gray-100 dark:bg-gray-700 rounded-lg">
+              رجوع
             </Link>
-            <button onClick={() => setShowAddModal(true)} className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">
-              <Plus className="h-5 w-5" />
-              إضافة حساب جديد
+            <button onClick={() => setShowAddModal(true)} className="flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors shadow-sm">
+              <Plus className="h-4 w-4" />
+              حساب جديد
             </button>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden">
-          <table className="w-full text-right text-sm text-gray-500 dark:text-gray-400">
-            <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-x-auto">
+          <table className="w-full text-right text-xs md:text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
+            <thead className="bg-gray-50/80 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-gray-700">
               <tr>
-                <th className="px-6 py-4">الاسم والإيميل</th>
-                <th className="px-6 py-4">نمط التجارة</th>
-                <th className="px-6 py-4">رقم القبول</th>
-                <th className="px-6 py-4">حالة الجهاز</th>
-                <th className="px-6 py-4 text-left">إجراءات</th>
+                <th className="px-4 py-2 font-semibold">المستخدم</th>
+                <th className="px-4 py-2 font-semibold">بيانات الدخول</th>
+                <th className="px-4 py-2 font-semibold">نمط التجارة</th>
+                <th className="px-4 py-2 font-semibold">رقم القبول</th>
+                <th className="px-4 py-2 font-semibold min-w-[200px]">تفاصيل الجهاز / UUID</th>
+                <th className="px-4 py-2 font-semibold text-left">إجراءات</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
               {accounts.map(acc => (
-                <tr key={acc.id} className="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-750">
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-gray-900 dark:text-white">{acc.name}</div>
-                    <div className="text-xs">{acc.email}</div>
+                <tr key={acc.id} className="hover:bg-blue-50/50 dark:hover:bg-gray-750/50 transition-colors">
+                  <td className="px-4 py-2">
+                    <div className="font-bold text-gray-900 dark:text-white">{acc.name}</div>
+                    <div className="text-[10px] text-gray-400">ID: {acc.id.split('-')[0]}...</div>
                   </td>
-                  <td className="px-6 py-4">{acc.business_type}</td>
-                  <td className="px-6 py-4">{acc.acceptance_number}</td>
-                  <td className="px-6 py-4">
+                  <td className="px-4 py-2 space-y-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-block w-14 text-[10px] uppercase text-gray-400">الإيميل:</span>
+                      <span className="font-medium text-gray-700 dark:text-gray-300">{acc.email}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="inline-block w-14 text-[10px] uppercase text-gray-400">المرور:</span>
+                      <span className="font-mono bg-gray-100 dark:bg-gray-700 px-1 rounded text-gray-800 dark:text-gray-200 text-[11px]">{acc.password}</span>
+                    </div>
+                  </td>
+                  <td className="px-4 py-2">
+                    <span className="px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 font-medium text-[11px]">
+                      {acc.business_type}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2 font-mono text-[11px] font-medium text-gray-600 dark:text-gray-300">
+                    {acc.acceptance_number}
+                  </td>
+                  <td className="px-4 py-2">
                     {acc.device_uuid ? (
-                      <div className="flex flex-col gap-1 text-xs text-green-600 dark:text-green-400">
-                        <span className="flex items-center gap-1"><Smartphone className="h-3 w-3"/> مرتبط بجهاز</span>
-                        <span className="truncate max-w-[150px]" title={acc.device_info}>{acc.device_info}</span>
+                      <div className="flex flex-col gap-0.5 text-[10px] max-w-[250px] md:max-w-xs whitespace-normal break-words">
+                        <div className="flex items-center gap-1 text-green-600 dark:text-green-400 font-bold mb-0.5">
+                          <Monitor className="h-3 w-3"/>
+                          <span>مرتبط بنجاح</span>
+                        </div>
+                        <div className="text-gray-600 dark:text-gray-300 leading-tight">
+                          <span className="font-semibold text-gray-400">UUID: </span>
+                          <span className="font-mono">{acc.device_uuid}</span>
+                        </div>
+                        <div className="text-gray-500 dark:text-gray-400 leading-tight mt-0.5">
+                          <span className="font-semibold text-gray-400">نظام/متصفح: </span>
+                          {acc.device_info}
+                        </div>
                       </div>
                     ) : (
-                      <span className="text-gray-400 text-xs">غير مرتبط</span>
+                      <span className="inline-flex items-center gap-1 text-gray-400 text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 rounded-md">
+                        <Hash className="h-3 w-3" /> غير مرتبط بعد
+                      </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 flex items-center justify-end gap-2">
-                    {acc.device_uuid && (
-                      <button onClick={() => handleUnlinkDevice(acc.id)} className="p-2 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg" title="فك ارتباط الجهاز">
-                        <Key className="h-4 w-4" />
+                  <td className="px-4 py-2">
+                    <div className="flex items-center justify-end gap-1.5">
+                      {acc.device_uuid && (
+                        <button onClick={() => handleUnlinkDevice(acc.id)} className="flex items-center gap-1 px-2 py-1 text-[11px] font-medium text-orange-600 hover:bg-orange-50 dark:text-orange-400 dark:hover:bg-orange-900/20 rounded border border-orange-200 dark:border-orange-800/30 transition-colors" title="فك ارتباط الجهاز">
+                          <Key className="h-3 w-3" />
+                          فك الربط
+                        </button>
+                      )}
+                      <button onClick={() => handleDeleteAccount(acc.id)} className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded border border-transparent hover:border-red-200 dark:hover:border-red-800/30 transition-colors" title="حذف الحساب">
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
-                    )}
-                    <button onClick={() => handleDeleteAccount(acc.id)} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg" title="حذف الحساب">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+                    </div>
                   </td>
                 </tr>
               ))}
               {accounts.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">لا توجد حسابات حالياً</td>
+                  <td colSpan={6} className="px-4 py-12 text-center text-gray-500">
+                    <Shield className="h-12 w-12 mx-auto text-gray-300 dark:text-gray-600 mb-3 opacity-50" />
+                    لا توجد حسابات حالياً في قاعدة البيانات
+                  </td>
                 </tr>
               )}
             </tbody>
@@ -176,34 +211,37 @@ export default function AdminPage() {
       </div>
 
       {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6 shadow-xl">
-            <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">إضافة حساب جديد</h3>
-            <form onSubmit={handleAddAccount} className="space-y-4">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6 shadow-2xl border border-gray-100 dark:border-gray-700">
+            <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
+              <Plus className="h-5 w-5 text-primary" />
+              إضافة حساب جديد
+            </h3>
+            <form onSubmit={handleAddAccount} className="space-y-3">
               <div>
-                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">الاسم</label>
-                <input required type="text" value={newName} onChange={e => setNewName(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">الاسم</label>
+                <input required type="text" value={newName} onChange={e => setNewName(e.target.value)} className="w-full px-3 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all" />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">الإيميل</label>
-                <input required type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" dir="ltr" />
+                <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">الإيميل</label>
+                <input required type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} className="w-full px-3 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all" dir="ltr" />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">كلمة المرور</label>
-                <input required type="text" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" dir="ltr" />
+                <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">كلمة المرور</label>
+                <input required type="text" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-3 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all" dir="ltr" />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">نمط التجارة</label>
-                <input required type="text" value={newBusinessType} onChange={e => setNewBusinessType(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
+                <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">نمط التجارة</label>
+                <input required type="text" value={newBusinessType} onChange={e => setNewBusinessType(e.target.value)} className="w-full px-3 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all" />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">رقم القبول</label>
-                <input required type="text" value={newAcceptanceNumber} onChange={e => setNewAcceptanceNumber(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" dir="ltr" />
+                <label className="block text-xs font-semibold mb-1 text-gray-700 dark:text-gray-300">رقم القبول</label>
+                <input required type="text" value={newAcceptanceNumber} onChange={e => setNewAcceptanceNumber(e.target.value)} className="w-full px-3 py-2 text-sm border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-2 focus:ring-primary/50 focus:border-primary outline-none transition-all" dir="ltr" />
               </div>
               
-              <div className="flex gap-3 mt-6">
-                <button type="submit" className="flex-1 py-2 bg-primary text-white rounded-lg">إضافة</button>
-                <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg">إلغاء</button>
+              <div className="flex gap-3 mt-6 pt-2">
+                <button type="submit" className="flex-1 py-2 text-sm font-bold bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors shadow-sm">حفظ الحساب</button>
+                <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 py-2 text-sm font-bold bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">إلغاء</button>
               </div>
             </form>
           </div>
