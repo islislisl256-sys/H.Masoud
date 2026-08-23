@@ -30,12 +30,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8 relative">
-      {/* Admin Button */}
-      <Link href="/admin" className="absolute top-4 left-4 p-2 text-gray-500 hover:text-primary transition-colors flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-        <Shield className="h-5 w-5" />
-        <span className="text-sm font-medium hidden sm:block">الإدارة</span>
-      </Link>
-
       <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl">
         <div className="flex flex-col items-center">
           <div className="h-16 w-16 bg-primary/10 text-primary rounded-full flex items-center justify-center mb-4">
