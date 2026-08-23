@@ -60,14 +60,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // If the device HAS a UUID, but they provide wrong credentials OR log into an account that doesn't own this UUID
       if (localDeviceUuid) {
         if (error || !data || data.password !== pass || data.business_type !== businessType || data.acceptance_number !== acceptanceNumber || data.device_uuid !== localDeviceUuid) {
-          return { success: false, message: "??? ???? ??????? ????? ??? ?? ????? ?? ?????? ??????" };
+          return { success: false, message: "أنت تملك تطبيقاً بحساب آخر أو أخطأت في بيانات الدخول" };
         }
       } else {
         // Normal login for a fresh device
-        if (error || !data) return { success: false, message: "?????? ??? ?????" };
-        if (data.password !== pass) return { success: false, message: "???? ?????? ??? ?????" };
-        if (data.business_type !== businessType) return { success: false, message: "??? ??????? ??? ????" };
-        if (data.acceptance_number !== acceptanceNumber) return { success: false, message: "??? ?????? ??? ????" };
+        if (error || !data) return { success: false, message: "الحساب غير موجود" };
+        if (data.password !== pass) return { success: false, message: "كلمة المرور غير صحيحة" };
+        if (data.business_type !== businessType) return { success: false, message: "نمط التجارة غير صحيح" };
+        if (data.acceptance_number !== acceptanceNumber) return { success: false, message: "رقم القبول غير صحيح" };
       }
       
       let deviceUuid = localDeviceUuid;
@@ -101,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push("/");
       return { success: true };
     } catch (e) {
-      return { success: false, message: "??? ??? ????? ??????? ???????" };
+      return { success: false, message: "حدث خطأ أثناء الاتصال بالخادم" };
     }
   };
 
@@ -117,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">???? ???????...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">جاري التحميل...</div>;
   }
 
   return (
