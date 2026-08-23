@@ -22,7 +22,7 @@ export default function LoginPage() {
     
     const result = await login(email, password, businessType, acceptanceNumber);
     if (!result.success) {
-      setError(result.message || "??? ??? ??? ?????");
+      setError(result.message || "حدث خطأ غير معروف");
     }
     
     setIsLoading(false);
@@ -33,7 +33,7 @@ export default function LoginPage() {
       {/* Admin Button */}
       <Link href="/admin" className="absolute top-4 left-4 p-2 text-gray-500 hover:text-primary transition-colors flex items-center gap-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         <Shield className="h-5 w-5" />
-        <span className="text-sm font-medium hidden sm:block">???????</span>
+        <span className="text-sm font-medium hidden sm:block">الإدارة</span>
       </Link>
 
       <div className="max-w-md w-full space-y-8 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl">
@@ -42,17 +42,17 @@ export default function LoginPage() {
             <BookOpen className="h-8 w-8" />
           </div>
           <h2 className="text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            ????? ????? ?????
+            مكتبة الحاج مسعود
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
-            ????? ?????? ??????
+            تسجيل الدخول للنظام
           </p>
         </div>
         
         <form className="mt-8 space-y-4" onSubmit={handleLogin}>
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              ???????
+              الإيميل
             </label>
             <input
               type="email"
@@ -60,14 +60,14 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white dark:bg-gray-700 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-              placeholder="???? ???????"
+              placeholder="أدخل الإيميل"
               dir="ltr"
             />
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              ???? ??????
+              كلمة المرور
             </label>
             <input
               type="password"
@@ -75,14 +75,14 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white dark:bg-gray-700 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-              placeholder="???? ???? ??????"
+              placeholder="أدخل كلمة المرور"
               dir="ltr"
             />
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              ??? ???????
+              نمط التجارة
             </label>
             <input
               type="text"
@@ -90,13 +90,13 @@ export default function LoginPage() {
               value={businessType}
               onChange={(e) => setBusinessType(e.target.value)}
               className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white dark:bg-gray-700 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-              placeholder="???? ??? ???????"
+              placeholder="أدخل نمط التجارة"
             />
           </div>
           
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              ??? ??????
+              رقم القبول
             </label>
             <input
               type="text"
@@ -104,7 +104,7 @@ export default function LoginPage() {
               value={acceptanceNumber}
               onChange={(e) => setAcceptanceNumber(e.target.value)}
               className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white dark:bg-gray-700 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-              placeholder="???? ??? ??????"
+              placeholder="أدخل رقم القبول"
               dir="ltr"
             />
           </div>
@@ -121,7 +121,7 @@ export default function LoginPage() {
               disabled={isLoading}
               className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors disabled:opacity-50"
             >
-              {isLoading ? '???? ??????...' : '????? ?????? ???? ??????'}
+              {isLoading ? 'جاري التحقق...' : 'تسجيل الدخول وربط الجهاز'}
             </button>
           </div>
         </form>

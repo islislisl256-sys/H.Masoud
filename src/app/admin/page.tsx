@@ -25,7 +25,7 @@ export default function AdminPage() {
       setIsAdminLoggedIn(true);
       fetchAccounts();
     } else {
-      alert("??????? ?????? ??? ?????!");
+      alert("معلومات الدخول غير صحيحة!");
     }
   };
 
@@ -47,9 +47,9 @@ export default function AdminPage() {
     ]);
 
     if (error) {
-      alert("??? ??? ????? ???????: " + error.message);
+      alert("حدث خطأ أثناء الإضافة: " + error.message);
     } else {
-      alert("??? ????? ?????? ?????");
+      alert("تمت إضافة الحساب بنجاح");
       setShowAddModal(false);
       setNewName(""); setNewEmail(""); setNewPassword(""); setNewBusinessType(""); setNewAcceptanceNumber("");
       fetchAccounts();
@@ -57,20 +57,20 @@ export default function AdminPage() {
   };
 
   const handleUnlinkDevice = async (id: string) => {
-    if (confirm("?? ??? ????? ?? ?? ?????? ?????? ???? ???????")) {
+    if (confirm("هل أنت متأكد من فك ارتباط الجهاز بهذا الحساب؟")) {
       const { error } = await supabase.from('app_accounts').update({
         device_uuid: null,
         device_info: null
       }).eq('id', id);
       if (!error) {
-        alert("?? ?? ???????? ?????");
+        alert("تم فك الارتباط بنجاح");
         fetchAccounts();
       }
     }
   };
 
   const handleDeleteAccount = async (id: string) => {
-    if (confirm("?? ??? ????? ?? ??? ?????? ????????")) {
+    if (confirm("هل أنت متأكد من حذف الحساب نهائياً؟")) {
       const { error } = await supabase.from('app_accounts').delete().eq('id', id);
       if (!error) fetchAccounts();
     }
@@ -81,24 +81,24 @@ export default function AdminPage() {
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 relative">
         <Link href="/login" className="absolute top-4 right-4 flex items-center gap-2 text-gray-500 hover:text-primary transition-colors">
           <ArrowRight className="h-5 w-5" />
-          <span>?????? ???????</span>
+          <span>العودة للتطبيق</span>
         </Link>
         <form onSubmit={handleAdminLogin} className="max-w-sm w-full space-y-6 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl">
           <div className="flex flex-col items-center">
             <div className="h-16 w-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mb-4">
               <Shield className="h-8 w-8" />
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">???? ???? ???????</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">لوحة تحكم الإدارة</h2>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">??? ???????</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">اسم المسؤول</label>
             <input type="text" value={adminUser} onChange={e => setAdminUser(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" dir="ltr" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">???? ??????</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">كلمة المرور</label>
             <input type="password" value={adminPass} onChange={e => setAdminPass(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" dir="ltr" />
           </div>
-          <button type="submit" className="w-full py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700">????</button>
+          <button type="submit" className="w-full py-2 px-4 bg-red-600 text-white rounded-lg hover:bg-red-700">دخول</button>
         </form>
       </div>
     );
@@ -110,15 +110,15 @@ export default function AdminPage() {
         <div className="flex justify-between items-center bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm">
           <div className="flex items-center gap-4">
             <Shield className="h-8 w-8 text-red-600" />
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">????? ?????? ???????</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">إدارة حسابات التطبيق</h1>
           </div>
           <div className="flex items-center gap-4">
             <Link href="/login" className="px-4 py-2 text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
-              ?????? ???????
+              العودة للتطبيق
             </Link>
             <button onClick={() => setShowAddModal(true)} className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90">
               <Plus className="h-5 w-5" />
-              ????? ???? ????
+              إضافة حساب جديد
             </button>
           </div>
         </div>
@@ -127,11 +127,11 @@ export default function AdminPage() {
           <table className="w-full text-right text-sm text-gray-500 dark:text-gray-400">
             <thead className="bg-gray-50 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300">
               <tr>
-                <th className="px-6 py-4">????? ????????</th>
-                <th className="px-6 py-4">??? ???????</th>
-                <th className="px-6 py-4">??? ??????</th>
-                <th className="px-6 py-4">???? ??????</th>
-                <th className="px-6 py-4 text-left">???????</th>
+                <th className="px-6 py-4">الاسم والإيميل</th>
+                <th className="px-6 py-4">نمط التجارة</th>
+                <th className="px-6 py-4">رقم القبول</th>
+                <th className="px-6 py-4">حالة الجهاز</th>
+                <th className="px-6 py-4 text-left">إجراءات</th>
               </tr>
             </thead>
             <tbody>
@@ -146,20 +146,20 @@ export default function AdminPage() {
                   <td className="px-6 py-4">
                     {acc.device_uuid ? (
                       <div className="flex flex-col gap-1 text-xs text-green-600 dark:text-green-400">
-                        <span className="flex items-center gap-1"><Smartphone className="h-3 w-3"/> ????? ?????</span>
+                        <span className="flex items-center gap-1"><Smartphone className="h-3 w-3"/> مرتبط بجهاز</span>
                         <span className="truncate max-w-[150px]" title={acc.device_info}>{acc.device_info}</span>
                       </div>
                     ) : (
-                      <span className="text-gray-400 text-xs">??? ?????</span>
+                      <span className="text-gray-400 text-xs">غير مرتبط</span>
                     )}
                   </td>
                   <td className="px-6 py-4 flex items-center justify-end gap-2">
                     {acc.device_uuid && (
-                      <button onClick={() => handleUnlinkDevice(acc.id)} className="p-2 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg" title="?? ?????? ??????">
+                      <button onClick={() => handleUnlinkDevice(acc.id)} className="p-2 text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg" title="فك ارتباط الجهاز">
                         <Key className="h-4 w-4" />
                       </button>
                     )}
-                    <button onClick={() => handleDeleteAccount(acc.id)} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg" title="??? ??????">
+                    <button onClick={() => handleDeleteAccount(acc.id)} className="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg" title="حذف الحساب">
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </td>
@@ -167,7 +167,7 @@ export default function AdminPage() {
               ))}
               {accounts.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">?? ???? ?????? ??????</td>
+                  <td colSpan={5} className="px-6 py-8 text-center text-gray-500">لا توجد حسابات حالياً</td>
                 </tr>
               )}
             </tbody>
@@ -178,32 +178,32 @@ export default function AdminPage() {
       {showAddModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6 shadow-xl">
-            <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">????? ???? ????</h3>
+            <h3 className="text-lg font-bold mb-4 text-gray-900 dark:text-white">إضافة حساب جديد</h3>
             <form onSubmit={handleAddAccount} className="space-y-4">
               <div>
-                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">?????</label>
+                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">الاسم</label>
                 <input required type="text" value={newName} onChange={e => setNewName(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">???????</label>
+                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">الإيميل</label>
                 <input required type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" dir="ltr" />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">???? ??????</label>
+                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">كلمة المرور</label>
                 <input required type="text" value={newPassword} onChange={e => setNewPassword(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" dir="ltr" />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">??? ???????</label>
+                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">نمط التجارة</label>
                 <input required type="text" value={newBusinessType} onChange={e => setNewBusinessType(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" />
               </div>
               <div>
-                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">??? ??????</label>
+                <label className="block text-sm mb-1 text-gray-700 dark:text-gray-300">رقم القبول</label>
                 <input required type="text" value={newAcceptanceNumber} onChange={e => setNewAcceptanceNumber(e.target.value)} className="w-full px-3 py-2 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-white" dir="ltr" />
               </div>
               
               <div className="flex gap-3 mt-6">
-                <button type="submit" className="flex-1 py-2 bg-primary text-white rounded-lg">?????</button>
-                <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg">?????</button>
+                <button type="submit" className="flex-1 py-2 bg-primary text-white rounded-lg">إضافة</button>
+                <button type="button" onClick={() => setShowAddModal(false)} className="flex-1 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg">إلغاء</button>
               </div>
             </form>
           </div>

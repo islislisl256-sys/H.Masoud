@@ -38,10 +38,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const { data, error } = await supabase.from("app_accounts").select("*").eq("email", email).single();
       
-      if (error || !data) return { success: false, message: "?????? ??? ?????" };
-      if (data.password !== pass) return { success: false, message: "???? ?????? ??? ?????" };
-      if (data.business_type !== businessType) return { success: false, message: "??? ??????? ??? ????" };
-      if (data.acceptance_number !== acceptanceNumber) return { success: false, message: "??? ?????? ??? ????" };
+      if (error || !data) return { success: false, message: "الحساب غير موجود" };
+      if (data.password !== pass) return { success: false, message: "كلمة المرور غير صحيحة" };
+      if (data.business_type !== businessType) return { success: false, message: "نمط التجارة غير صحيح" };
+      if (data.acceptance_number !== acceptanceNumber) return { success: false, message: "رقم القبول غير صحيح" };
       
       let deviceUuid = localStorage.getItem("device_uuid");
       if (!deviceUuid) {
@@ -56,7 +56,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }).eq("id", data.id);
       } else {
         if (data.device_uuid !== deviceUuid) {
-           return { success: false, message: "??? ?????? ????? ????? ???! (?????? ??????? ?? ???????)" };
+           return { success: false, message: "هذا الحساب مرتبط بجهاز آخر! (الرجاء التواصل مع الإدارة)" };
         }
       }
       
@@ -67,7 +67,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push("/");
       return { success: true };
     } catch (e) {
-      return { success: false, message: "??? ??? ????? ??????? ???????" };
+      return { success: false, message: "حدث خطأ أثناء الاتصال بالخادم" };
     }
   };
 
@@ -82,7 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">???? ???????...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">جاري التحميل...</div>;
   }
 
   return (
