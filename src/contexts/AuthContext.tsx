@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { mainSupabase, initDynamicSupabase } from "@/lib/supabase";
 
 type AuthContextType = {
   isAuthenticated: boolean;
@@ -12,6 +12,21 @@ type AuthContextType = {
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+// Utilities for obfuscating the UUID in localStorage
+const ENCRYPTION_PREFIX = "HMASOUD_SECURE_KEY_";
+function encodeUUID(uuid: string) {
+  return btoa(ENCRYPTION_PREFIX + uuid);
+}
+function decodeUUID(encoded: string) {
+  try {
+    const dec = atob(encoded);
+    if (dec.startsWith(ENCRYPTION_PREFIX)) {
+      return dec.substring(ENCRYPTION_PREFIX.length);
+    }
+  } catch(e) {}
+  return null;
+}
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -36,30 +51,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const login = async (email: string, pass: string, businessType: string, acceptanceNumber: string) => {
     try {
-      const { data, error } = await supabase.from("app_accounts").select("*").eq("email", email).single();
+      // Check if device already has an encrypted UUID (meaning it's an issued app)
+      const storedEncrypted = localStorage.getItem("app_secure_uuid");
+      const localDeviceUuid = storedEncrypted ? decodeUUID(storedEncrypted) : null;
+
+      const { data, error } = await mainSupabase.from("app_accounts").select("*").eq("email", email).single();
       
-      if (error || !data) return { success: false, message: "الحساب غير موجود" };
-      if (data.password !== pass) return { success: false, message: "كلمة المرور غير صحيحة" };
-      if (data.business_type !== businessType) return { success: false, message: "نمط التجارة غير صحيح" };
-      if (data.acceptance_number !== acceptanceNumber) return { success: false, message: "رقم القبول غير صحيح" };
+      // If the device HAS a UUID, but they provide wrong credentials OR log into an account that doesn't own this UUID
+      if (localDeviceUuid) {
+        if (error || !data || data.password !== pass || data.business_type !== businessType || data.acceptance_number !== acceptanceNumber || data.device_uuid !== localDeviceUuid) {
+          return { success: false, message: "??? ???? ??????? ????? ??? ?? ????? ?? ?????? ??????" };
+        }
+      } else {
+        // Normal login for a fresh device
+        if (error || !data) return { success: false, message: "?????? ??? ?????" };
+        if (data.password !== pass) return { success: false, message: "???? ?????? ??? ?????" };
+        if (data.business_type !== businessType) return { success: false, message: "??? ??????? ??? ????" };
+        if (data.acceptance_number !== acceptanceNumber) return { success: false, message: "??? ?????? ??? ????" };
+      }
       
-      let deviceUuid = localStorage.getItem("device_uuid");
+      let deviceUuid = localDeviceUuid;
       if (!deviceUuid) {
         deviceUuid = crypto.randomUUID();
-        localStorage.setItem("device_uuid", deviceUuid);
+        localStorage.setItem("app_secure_uuid", encodeUUID(deviceUuid));
       }
       
       if (!data.device_uuid) {
-        await supabase.from("app_accounts").update({ 
+        await mainSupabase.from("app_accounts").update({ 
           device_uuid: deviceUuid,
           device_info: navigator.userAgent
         }).eq("id", data.id);
-      } else {
-        if (data.device_uuid !== deviceUuid) {
-           return { success: false, message: "هذا الحساب مرتبط بجهاز آخر! (الرجاء التواصل مع الإدارة)" };
-        }
       }
       
+      // Dynamic DB Support
+      if (data.db_url && data.db_key) {
+        localStorage.setItem("custom_db_url", data.db_url);
+        localStorage.setItem("custom_db_key", data.db_key);
+        initDynamicSupabase(data.db_url, data.db_key);
+      } else {
+        localStorage.removeItem("custom_db_url");
+        localStorage.removeItem("custom_db_key");
+        initDynamicSupabase(null, null);
+      }
+
       setIsAuthenticated(true);
       setCurrentUser(data);
       localStorage.setItem("isAuthenticated", "true");
@@ -67,7 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       router.push("/");
       return { success: true };
     } catch (e) {
-      return { success: false, message: "حدث خطأ أثناء الاتصال بالخادم" };
+      return { success: false, message: "??? ??? ????? ??????? ???????" };
     }
   };
 
@@ -77,12 +111,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       localStorage.removeItem("isAuthenticated");
       localStorage.removeItem("currentUser");
+      // Note: We DO NOT remove 'app_secure_uuid' so the device remains tied to the account!
     } catch (e) {}
     router.push("/login");
   };
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">جاري التحميل...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">???? ???????...</div>;
   }
 
   return (
