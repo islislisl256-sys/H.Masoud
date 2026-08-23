@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { mainSupabase as supabase } from "@/lib/supabase";
-import { Shield, Trash2, Smartphone, Key, Plus, ArrowRight, Monitor, Hash, Database, Copy, Check } from "lucide-react";
+import { Shield, Trash2, Smartphone, Key, Plus, ArrowRight, Monitor, Hash, Database, Copy, Check, Users, Clock, AlertTriangle, Activity } from "lucide-react";
 import Link from "next/link";
 
 export default function AdminPage() {
@@ -144,6 +144,21 @@ ALTER TABLE invoices DISABLE ROW LEVEL SECURITY;
     setTimeout(() => setCopied(false), 3000);
   };
 
+  // Statistics Calculations
+  const totalAccounts = accounts.length;
+  const activeAccounts = accounts.filter(acc => acc.device_uuid).length;
+  const inactiveAccounts = totalAccounts - activeAccounts;
+  
+  // Calculate accounts older than 11 months
+  const nearingExpiration = accounts.filter(acc => {
+    if (!acc.created_at) return false;
+    const createdDate = new Date(acc.created_at);
+    const currentDate = new Date();
+    const diffTime = Math.abs(currentDate.getTime() - createdDate.getTime());
+    const diffMonths = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 30)); 
+    return diffMonths >= 11;
+  }).length;
+
   if (!isAdminLoggedIn) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 relative">
@@ -175,10 +190,11 @@ ALTER TABLE invoices DISABLE ROW LEVEL SECURITY;
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4 md:p-8" dir="rtl">
       <div className="max-w-7xl mx-auto space-y-4">
+        {/* Header */}
         <div className="flex flex-wrap justify-between items-center bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm gap-4">
           <div className="flex items-center gap-3">
             <Shield className="h-6 w-6 text-red-600" />
-            <h1 className="text-xl font-bold text-gray-900 dark:text-white">إدارة حسابات التطبيق</h1>
+            <h1 className="text-xl font-bold text-gray-900 dark:text-white">إدارة الحسابات</h1>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login" className="px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors bg-gray-100 dark:bg-gray-700 rounded-lg">
@@ -191,6 +207,39 @@ ALTER TABLE invoices DISABLE ROW LEVEL SECURITY;
           </div>
         </div>
 
+        {/* Statistics Grid */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center text-center">
+            <Users className="h-6 w-6 text-blue-500 mb-2" />
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">{totalAccounts}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">إجمالي الحسابات</span>
+          </div>
+          
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center text-center">
+            <Activity className="h-6 w-6 text-green-500 mb-2" />
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">{activeAccounts}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">حسابات نشطة (مرتبطة بجهاز)</span>
+          </div>
+          
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center text-center">
+            <Clock className="h-6 w-6 text-gray-400 mb-2" />
+            <span className="text-2xl font-bold text-gray-900 dark:text-white">{inactiveAccounts}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">حسابات غير مستخدمة بعد</span>
+          </div>
+          
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col items-center justify-center text-center relative overflow-hidden">
+            {nearingExpiration > 0 && (
+              <div className="absolute top-0 right-0 w-12 h-12 bg-red-500/10 rounded-bl-full flex items-start justify-end p-2">
+                <div className="h-2 w-2 bg-red-500 rounded-full animate-pulse"></div>
+              </div>
+            )}
+            <AlertTriangle className={`h-6 w-6 mb-2 ${nearingExpiration > 0 ? 'text-red-500' : 'text-orange-400'}`} />
+            <span className={`text-2xl font-bold ${nearingExpiration > 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'}`}>{nearingExpiration}</span>
+            <span className="text-xs text-gray-500 dark:text-gray-400 font-medium">مشارف على الانتهاء (+11 شهر)</span>
+          </div>
+        </div>
+
+        {/* Accounts Table */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-x-auto">
           <table className="w-full text-right text-xs md:text-sm text-gray-500 dark:text-gray-400 whitespace-nowrap">
             <thead className="bg-gray-50/80 dark:bg-gray-700/50 text-gray-700 dark:text-gray-300 border-b border-gray-100 dark:border-gray-700">
