@@ -2,10 +2,12 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 
 type AuthContextType = {
   isAuthenticated: boolean;
-  login: (username: string, pass: string) => boolean;
+  currentUser: any;
+  login: (email: string, pass: string, businessType: string, acceptanceNumber: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
 };
 
@@ -13,15 +15,17 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
 
   useEffect(() => {
     try {
-      // Check local storage for auth state on load
       const storedAuth = localStorage.getItem("isAuthenticated");
-      if (storedAuth === "true") {
+      const storedUser = localStorage.getItem("currentUser");
+      if (storedAuth === "true" && storedUser) {
         setIsAuthenticated(true);
+        setCurrentUser(JSON.parse(storedUser));
       }
     } catch (e) {
       console.warn("Local storage not available:", e);
@@ -30,33 +34,59 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const login = (username: string, pass: string) => {
-    // Default credentials as requested
-    if (username === "HERMA" && pass === "123456") {
+  const login = async (email: string, pass: string, businessType: string, acceptanceNumber: string) => {
+    try {
+      const { data, error } = await supabase.from("app_accounts").select("*").eq("email", email).single();
+      
+      if (error || !data) return { success: false, message: "?????? ??? ?????" };
+      if (data.password !== pass) return { success: false, message: "???? ?????? ??? ?????" };
+      if (data.business_type !== businessType) return { success: false, message: "??? ??????? ??? ????" };
+      if (data.acceptance_number !== acceptanceNumber) return { success: false, message: "??? ?????? ??? ????" };
+      
+      let deviceUuid = localStorage.getItem("device_uuid");
+      if (!deviceUuid) {
+        deviceUuid = crypto.randomUUID();
+        localStorage.setItem("device_uuid", deviceUuid);
+      }
+      
+      if (!data.device_uuid) {
+        await supabase.from("app_accounts").update({ 
+          device_uuid: deviceUuid,
+          device_info: navigator.userAgent
+        }).eq("id", data.id);
+      } else {
+        if (data.device_uuid !== deviceUuid) {
+           return { success: false, message: "??? ?????? ????? ????? ???! (?????? ??????? ?? ???????)" };
+        }
+      }
+      
       setIsAuthenticated(true);
-      try {
-        localStorage.setItem("isAuthenticated", "true");
-      } catch (e) {}
+      setCurrentUser(data);
+      localStorage.setItem("isAuthenticated", "true");
+      localStorage.setItem("currentUser", JSON.stringify(data));
       router.push("/");
-      return true;
+      return { success: true };
+    } catch (e) {
+      return { success: false, message: "??? ??? ????? ??????? ???????" };
     }
-    return false;
   };
 
   const logout = () => {
     setIsAuthenticated(false);
+    setCurrentUser(null);
     try {
       localStorage.removeItem("isAuthenticated");
+      localStorage.removeItem("currentUser");
     } catch (e) {}
     router.push("/login");
   };
 
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">جاري التحميل...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white">???? ???????...</div>;
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, currentUser, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
