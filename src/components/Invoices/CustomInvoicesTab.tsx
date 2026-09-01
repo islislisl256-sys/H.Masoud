@@ -64,30 +64,62 @@ export default function CustomInvoicesTab() {
   };
 
   
+  const MAX_COL = 3; // 0=designation, 1=unit, 2=quantity, 3=unit_price
+
+  const focusInput = (row: number, col: number) => {
+    const el = document.getElementById(`input-${row}-${col}`);
+    if (el) {
+      (el as HTMLInputElement).focus();
+      (el as HTMLInputElement).select();
+      return true;
+    }
+    return false;
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent, rowIndex: number, colIndex: number) => {
     let nextRow = rowIndex;
     let nextCol = colIndex;
 
     if (e.key === 'ArrowUp') {
-      nextRow -= 1;
+      nextRow = Math.max(0, rowIndex - 1);
     } else if (e.key === 'ArrowDown') {
-      nextRow += 1;
+      nextRow = Math.min(items.length - 1, rowIndex + 1);
     } else if (e.key === 'ArrowRight') {
-      // In RTL, Right means going to previous column
-      nextCol -= 1;
+      nextCol = Math.max(0, colIndex - 1);
     } else if (e.key === 'ArrowLeft') {
-      // In RTL, Left means going to next column
-      nextCol += 1;
+      nextCol = Math.min(MAX_COL, colIndex + 1);
+    } else if (e.key === 'Tab' && !e.shiftKey) {
+      e.preventDefault();
+      if (colIndex < MAX_COL) {
+        focusInput(rowIndex, colIndex + 1);
+      } else if (rowIndex < items.length - 1) {
+        focusInput(rowIndex + 1, 0);
+      }
+      return;
+    } else if (e.key === 'Tab' && e.shiftKey) {
+      e.preventDefault();
+      if (colIndex > 0) {
+        focusInput(rowIndex, colIndex - 1);
+      } else if (rowIndex > 0) {
+        focusInput(rowIndex - 1, MAX_COL);
+      }
+      return;
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (rowIndex === items.length - 1) {
+        // Last row: add new item then focus it
+        addItem();
+        setTimeout(() => focusInput(rowIndex + 1, 0), 50);
+      } else {
+        focusInput(rowIndex + 1, colIndex);
+      }
+      return;
     } else {
       return;
     }
 
-    const nextInput = document.getElementById(`input-${nextRow}-${nextCol}`);
-    if (nextInput) {
-      e.preventDefault();
-      (nextInput as HTMLInputElement).focus();
-      (nextInput as HTMLInputElement).select();
-    }
+    e.preventDefault();
+    focusInput(nextRow, nextCol);
   };
 
   const addItem = () => {
@@ -157,7 +189,8 @@ export default function CustomInvoicesTab() {
         const html2pdf = html2pdfModule.default || html2pdfModule;
         
         const opt: any = {
-          margin:       0,
+          margin:       0.4,
+          pagebreak:    { mode: ['avoid-all', 'css', 'legacy'], avoid: 'tr' },
           filename:     `Invoice_${payload.client_name}_${payload.invoice_number || Date.now()}.pdf`,
           image:        { type: 'jpeg', quality: 0.98 },
           html2canvas:  { scale: 2, useCORS: true },
@@ -345,6 +378,3 @@ export default function CustomInvoicesTab() {
     </div>
   );
 }
-
-
-

@@ -1,8 +1,9 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { BookOpen, Shield } from "lucide-react";
+import { BookOpen, Shield, Trash2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -14,6 +15,16 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
+  const router = useRouter();
+  
+  const handleClearFingerprint = () => {
+    if (confirm("هل أنت متأكد من مسح البصمة من هذا الجهاز؟ (سيصبح الجهاز جديداً)")) {
+      localStorage.removeItem("app_secure_uuid");
+      localStorage.clear();
+      sessionStorage.clear();
+      alert("تم مسح بصمة الجهاز بنجاح! يمكنك الآن الدخول كجهاز جديد.");
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -21,11 +32,7 @@ export default function LoginPage() {
     setIsLoading(true);
     
     const result = await login(email, password, businessType, acceptanceNumber);
-    if (!result.success) {
-      setError(result.message || "حدث خطأ غير معروف");
-    }
-    
-    setIsLoading(false);
+    if (!result.success) { setError(result.message || "حدث خطأ غير معروف"); setIsLoading(false); } else { router.push("/"); }
   };
 
   return (
@@ -109,13 +116,22 @@ export default function LoginPage() {
             </div>
           )}
 
-          <div className="pt-2">
+          <div className="pt-2 space-y-3">
             <button
               type="submit"
               disabled={isLoading}
               className="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors disabled:opacity-50"
             >
               {isLoading ? 'جاري التحقق...' : 'تسجيل الدخول وربط الجهاز'}
+            </button>
+            
+            <button
+              type="button"
+              onClick={handleClearFingerprint}
+              className="group relative w-full flex justify-center items-center gap-2 py-3 px-4 border-2 border-red-200 text-sm font-bold rounded-lg text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+            >
+              <Trash2 className="h-4 w-4" />
+              مسح البصمة من هذا الجهاز (للتجربة)
             </button>
           </div>
         </form>

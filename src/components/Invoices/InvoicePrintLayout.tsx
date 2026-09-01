@@ -36,17 +36,20 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
   );
 
   const renderReceiptClientAndTitle = () => (
-    <div className="mb-4">
+    <div className="mb-2">
       <div className="text-right mb-4">
-        <div style={{ border: '1px solid #000000', padding: '8px', display: 'inline-block', minWidth: '350px', textAlign: 'right', fontWeight: 'bold' }}>
-          الزبون: {client_name}
+        <div style={{ border: '1px solid #000000', padding: '10px', display: 'inline-block', minWidth: '350px', textAlign: 'right', fontWeight: 'bold' }}>
+          <div className="text-lg mb-1">الزبون: {client_name}</div>
           {store_rc && <div>س.ت: {store_rc}</div>}
           {store_mf && <div>الرقم الجبائي: {store_mf}</div>}
           {store_art && <div>رقم المادة: {store_art}</div>}
         </div>
       </div>
-      <div className="text-center font-bold text-xl">
-        وصل الاستلام: {invoice_number}
+      <div className="text-center font-bold text-lg mb-1">
+        التاريخ: {receipt_date}
+      </div>
+      <div className="text-center font-bold text-2xl">
+        وصل الاستلام رقم {invoice_number}
       </div>
     </div>
   );
@@ -83,14 +86,14 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
             <td style={{ border: '1px solid #000000', padding: '8px' }}>{item.item_unit}</td>
             <td style={{ border: '1px solid #000000', padding: '8px' }}>{String(item.item_quantity).padStart(2, '0')}</td>
             <td style={{ border: '1px solid #000000', padding: '8px' }}>{Number(item.item_unit_price).toFixed(2).replace('.', ',')}</td>
-            <td style={{ border: '1px solid #000000', padding: '8px' }}>0</td>
+            <td style={{ border: '1px solid #000000', padding: '8px' }}>{Number(item.item_total_price).toFixed(2).replace('.', ',')}</td>
           </tr>
         ))}
         {/* Totals row for receipt */}
         <tr>
           <td colSpan={4} style={{ border: '1px solid #ffffff' }}></td>
           <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>المجموع</td>
-          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}></td>
+          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(total_amount_invoice).toFixed(2).replace('.', ',')}</td>
         </tr>
       </tbody>
     </table>
@@ -98,10 +101,10 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
 
   const renderReceiptFooter = () => (
     <div>
-      <div className="text-right font-bold text-lg mt-4 pr-4">
-        التاريخ:
+      <div className="text-right font-bold text-lg mt-4 pr-4 mb-4">
+        التاريخ: {receipt_date}
       </div>
-      <div className="flex justify-between px-20 mt-8 mb-8">
+      <div className="flex justify-between px-10">
         <div className="text-right font-bold text-xl">
           المستلم
         </div>
@@ -116,7 +119,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
   // INVOICE RENDERERS (Image 1 style)
   // ---------------------------------------------------------------------------
   const renderInvoiceHeader = () => (
-    <div className="mb-4">
+    <div className="mb-6">
       {/* Top Box */}
       <div style={{ border: '1px solid #000000', padding: '10px', textAlign: 'center', fontWeight: 'bold', marginBottom: '10px' }}>
         <h2 className="text-2xl mb-2">{store_name}</h2>
@@ -135,18 +138,21 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
   );
 
   const renderInvoiceClientAndTitle = () => (
-    <div className="mb-6 relative">
-      <div style={{ border: '1px solid #000000', padding: '10px', display: 'inline-block', minWidth: '350px', textAlign: 'right', fontWeight: 'bold' }}>
-        <div className="text-xl mb-1">في ذمة {client_name}</div>
-        <div>
-          {store_art && `رقم المادة: ${store_art} `}
-          {store_mf && `الرقم الجبائي: `}
+    <div className="mb-6">
+      <div className="text-right mb-4">
+        <div style={{ border: '1px solid #000000', padding: '10px', display: 'inline-block', minWidth: '350px', textAlign: 'right', fontWeight: 'bold' }}>
+          <div className="text-xl mb-1">في ذمة {client_name}</div>
+          <div>
+            {store_art && `رقم المادة: ${store_art} `}
+            {store_mf && `الرقم الجبائي: `}
+          </div>
+          {store_mf && <div>{store_mf}</div>}
+          {store_rc && <div>س.ت.رقم : {store_rc}</div>}
         </div>
-        {store_mf && <div>{store_mf}</div>}
-        {store_rc && <div>س.ت.رقم : {store_rc}</div>}
       </div>
-      <div className="text-center font-bold text-lg mt-4 mb-1">
-        التاريخ:
+      
+      <div className="text-center font-bold text-lg mb-1">
+        التاريخ: {receipt_date}
       </div>
       <div className="text-center font-bold text-2xl">
         فاتورة رقم {invoice_number}
@@ -217,18 +223,20 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
   );
 
   return (
-    <div ref={ref} style={{ width: '210mm', minHeight: '297mm', padding: '15mm', margin: '0 auto', fontSize: '12pt', direction: 'rtl', backgroundColor: '#ffffff', color: '#000000', fontFamily: 'Arial, sans-serif' }}>
+    <div ref={ref} className="w-full" style={{ fontSize: '12pt', direction: 'rtl', backgroundColor: '#ffffff', color: '#000000', fontFamily: 'Arial, sans-serif' }}>
       
       {/* Page 1: Receipt (Image 2 Style) */}
-      <div className="page-break-after" style={{ pageBreakAfter: 'always', minHeight: '260mm' }}>
+      <div className="w-full pb-8">
         {renderReceiptHeader()}
         {renderReceiptClientAndTitle()}
         {renderReceiptTable()}
         {renderReceiptFooter()}
       </div>
 
+      <div className="html2pdf__page-break"></div>
+
       {/* Page 2: Invoice (Image 1 Style) */}
-      <div style={{ minHeight: '260mm', paddingTop: '10mm' }}>
+      <div className="w-full pt-8">
         {renderInvoiceHeader()}
         {renderInvoiceClientAndTitle()}
         {renderInvoiceTable()}
