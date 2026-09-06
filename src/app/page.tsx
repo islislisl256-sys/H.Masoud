@@ -123,6 +123,7 @@ export default function DashboardPage() {
   const [isLoadingCloud, setIsLoadingCloud] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
     async function fetchCloudStats() {
       if (!currentUser?.cloudinary_api_key || !currentUser?.cloudinary_api_secret) return;
       setIsLoadingCloud(true);
@@ -149,19 +150,23 @@ export default function DashboardPage() {
           data = await res.json();
         }
 
-        if (data.resources) {
-          totalBytes = data.resources.reduce((acc: number, img: any) => acc + (img.bytes || 0), 0);
+        if (data && Array.isArray(data.resources)) {
+          totalBytes = data.resources.reduce((acc: number, img: any) => acc + (Number(img.bytes) || 0), 0);
         }
         
         const maxBytes = 25 * 1024 * 1024 * 1024; // 25 GB free tier limit
-        setCloudSizePercent(Math.min((totalBytes / maxBytes) * 100, 100));
+        if (isMounted) {
+          const percent = Math.min((totalBytes / maxBytes) * 100, 100);
+          setCloudSizePercent(Number.isFinite(percent) ? percent : 0);
+        }
       } catch (err) {
         console.error("Failed to fetch cloud stats", err);
       } finally {
-        setIsLoadingCloud(false);
+        if (isMounted) setIsLoadingCloud(false);
       }
     }
     fetchCloudStats();
+    return () => { isMounted = false; };
   }, [currentUser]);
 
   return (
