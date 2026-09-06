@@ -258,7 +258,7 @@ export default function ProductsPage() {
             if (parts.length >= 2) {
               const path = parts[1];
               const withoutVersion = path.replace(/^v\d+\//, '');
-              const publicId = withoutVersion.replace(/\.[^/.]+$/, '');
+              const publicId = decodeURIComponent(withoutVersion.replace(/\.[^/.]+$/, ''));
               
               await fetch('/api/cloudinary/delete', {
                 method: 'POST',

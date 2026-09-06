@@ -15,12 +15,18 @@ export async function POST(request: Request) {
     const strToSign = `public_id=${public_id}&timestamp=${timestamp}${api_secret}`;
     const signature = crypto.createHash('sha1').update(strToSign).digest('hex');
 
+    const formData = new URLSearchParams();
+    formData.append('public_id', public_id);
+    formData.append('api_key', api_key);
+    formData.append('timestamp', timestamp);
+    formData.append('signature', signature);
+
     const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud_name}/image/destroy`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: `public_id=${public_id}&api_key=${api_key}&timestamp=${timestamp}&signature=${signature}`
+      body: formData.toString()
     });
 
     const result = await res.json();
