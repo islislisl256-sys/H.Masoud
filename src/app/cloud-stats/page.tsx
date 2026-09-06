@@ -28,13 +28,29 @@ export default function CloudStatsPage() {
     setLoadingImages(true);
     setError(null);
     try {
-      const auth = btoa(`${currentUser.cloudinary_api_key}:${currentUser.cloudinary_api_secret}`);
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/resources/image?max_results=500`, {
-        headers: {
-          'Authorization': `Basic ${auth}`
-        }
+      let data;
+      // Try local API route first (works on Vercel)
+      const res = await fetch('/api/cloudinary/list', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cloud_name: currentUser.cloudinary_cloud_name,
+          api_key: currentUser.cloudinary_api_key,
+          api_secret: currentUser.cloudinary_api_secret
+        })
       });
-      const data = await res.json();
+      
+      if (res.status === 404) {
+        // Fallback to direct Admin API for Desktop/Capacitor apps (no CORS in native apps)
+        const auth = btoa(`${currentUser.cloudinary_api_key}:${currentUser.cloudinary_api_secret}`);
+        const directRes = await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/resources/image?max_results=500`, {
+          headers: { 'Authorization': `Basic ${auth}` }
+        });
+        data = await directRes.json();
+      } else {
+        data = await res.json();
+      }
+
       if (data.resources) {
         setImages(data.resources);
       } else if (data.error) {
@@ -51,16 +67,36 @@ export default function CloudStatsPage() {
     if (!confirm("هل أنت متأكد من مسح هذه الصورة نهائياً؟")) return;
     setDeletingId(public_id);
     try {
-      const auth = btoa(`${currentUser.cloudinary_api_key}:${currentUser.cloudinary_api_secret}`);
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/resources/image/upload?public_ids[]=${encodeURIComponent(public_id)}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Basic ${auth}`
-        }
+      let result;
+      // Try local API route first (works on Vercel)
+      const res = await fetch('/api/cloudinary/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          public_id: public_id,
+          cloud_name: currentUser.cloudinary_cloud_name,
+          api_key: currentUser.cloudinary_api_key,
+          api_secret: currentUser.cloudinary_api_secret
+        })
       });
       
-      const result = await res.json();
-      if (result.deleted && result.deleted[public_id] === 'deleted') {
+      if (res.status === 404) {
+        // Fallback to direct Admin API for Desktop/Capacitor apps
+        const auth = btoa(`${currentUser.cloudinary_api_key}:${currentUser.cloudinary_api_secret}`);
+        const directRes = await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/resources/image/upload?public_ids[]=${encodeURIComponent(public_id)}`, {
+          method: 'DELETE',
+          headers: { 'Authorization': `Basic ${auth}` }
+        });
+        result = await directRes.json();
+        // Standardize output for direct API
+        if (result.deleted && result.deleted[public_id] === 'deleted') {
+          result = { result: 'ok' };
+        }
+      } else {
+        result = await res.json();
+      }
+
+      if (result.result === 'ok') {
         setImages(prev => prev.filter(img => img.public_id !== public_id));
         // Decrement storage counter
         const used = currentUser.storage_used || 0;

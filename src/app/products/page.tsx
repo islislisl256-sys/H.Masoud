@@ -259,13 +259,26 @@ export default function ProductsPage() {
               const path = parts[1];
               const withoutVersion = path.replace(/^v\d+\//, '');
               const publicId = decodeURIComponent(withoutVersion.replace(/\.[^/.]+$/, ''));
-              const auth = btoa(`${currentUser.cloudinary_api_key}:${currentUser.cloudinary_api_secret}`);
-              await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/resources/image/upload?public_ids[]=${encodeURIComponent(publicId)}`, {
-                method: 'DELETE',
-                headers: {
-                  'Authorization': `Basic ${auth}`
-                }
+              // Try local API route first (works on Vercel)
+              const res = await fetch('/api/cloudinary/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  public_id: publicId,
+                  cloud_name: currentUser.cloudinary_cloud_name,
+                  api_key: currentUser.cloudinary_api_key,
+                  api_secret: currentUser.cloudinary_api_secret,
+                })
               });
+              
+              if (res.status === 404) {
+                // Fallback to direct Admin API for Desktop/Capacitor apps
+                const auth = btoa(`${currentUser.cloudinary_api_key}:${currentUser.cloudinary_api_secret}`);
+                await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/resources/image/upload?public_ids[]=${encodeURIComponent(publicId)}`, {
+                  method: 'DELETE',
+                  headers: { 'Authorization': `Basic ${auth}` }
+                });
+              }
               
               // Decrement storage used
               const used = currentUser.storage_used || 0;
