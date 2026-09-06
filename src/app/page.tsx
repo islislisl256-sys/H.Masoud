@@ -192,18 +192,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* روابط سريعة للموبايل */}
-        <div className="grid grid-cols-2 md:hidden gap-3">
-          <Link href="/returns" className="bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 p-4 rounded-xl flex flex-col items-center justify-center gap-2 border border-orange-100 dark:border-orange-800 transition-colors active:scale-95">
-            <Undo2 className="w-6 h-6" />
-            <span className="font-bold text-sm">المرتجعات</span>
-          </Link>
-          <Link href="/contact" className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 p-4 rounded-xl flex flex-col items-center justify-center gap-2 border border-emerald-100 dark:border-emerald-800 transition-colors active:scale-95">
-            <Mail className="w-6 h-6" />
-            <span className="font-bold text-sm">اتصل بنا</span>
-          </Link>
-        </div>
-
         {/* مساحة التخزين - رابط لصفحة الإحصائيات */}
         <Link href="/cloud-stats" className="block w-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-5 shadow-sm text-white hover:shadow-md transition-shadow active:scale-[0.99]">
           <div className="flex justify-between items-center">

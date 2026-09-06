@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { Save, Lock, Store, UploadCloud, Loader2 } from "lucide-react";
+import { Save, Lock, Store, UploadCloud, Loader2, Undo2, Mail, Link2 } from "lucide-react";
+import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/contexts/AuthContext";
 import { mainSupabase } from "@/lib/supabase";
@@ -83,7 +84,7 @@ export default function SettingsPage() {
 
   return (
     <ProtectedLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 pb-32 md:pb-12">
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">إعدادات النظام</h1>
           <p className="text-muted-foreground mt-1">تخصيص النظام وإدارة الحساب</p>
@@ -190,6 +191,23 @@ export default function SettingsPage() {
                   <Save className="h-4 w-4" />
                   <span>تحديث الحساب</span>
                 </button>
+              </div>
+            </div>
+            
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
+              <div className="flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 pb-4">
+                <Link2 className="h-6 w-6 text-primary" />
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">روابط سريعة</h2>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <Link href="/returns" className="bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 p-4 rounded-xl flex flex-col items-center justify-center gap-2 border border-orange-100 dark:border-orange-800 transition-colors active:scale-95">
+                  <Undo2 className="w-6 h-6" />
+                  <span className="font-bold text-sm">المرتجعات</span>
+                </Link>
+                <Link href="/contact" className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 p-4 rounded-xl flex flex-col items-center justify-center gap-2 border border-emerald-100 dark:border-emerald-800 transition-colors active:scale-95">
+                  <Mail className="w-6 h-6" />
+                  <span className="font-bold text-sm">اتصل بنا</span>
+                </Link>
               </div>
             </div>
           </div>
