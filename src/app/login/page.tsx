@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -9,8 +9,6 @@ import Link from "next/link";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [businessType, setBusinessType] = useState("");
-  const [acceptanceNumber, setAcceptanceNumber] = useState("");
   
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -31,7 +29,7 @@ export default function LoginPage() {
     setError("");
     setIsLoading(true);
     
-    const result = await login(email, password, businessType, acceptanceNumber);
+    const result = await login(email, password);
     if (!result.success) { setError(result.message || "حدث خطأ غير معروف"); setIsLoading(false); } else { router.push("/"); }
   };
 
@@ -81,35 +79,6 @@ export default function LoginPage() {
             />
           </div>
           
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              نمط التجارة
-            </label>
-            <input
-              type="text"
-              required
-              value={businessType}
-              onChange={(e) => setBusinessType(e.target.value)}
-              className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white dark:bg-gray-700 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-              placeholder="أدخل نمط التجارة"
-            />
-          </div>
-          
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-              رقم القبول
-            </label>
-            <input
-              type="text"
-              required
-              value={acceptanceNumber}
-              onChange={(e) => setAcceptanceNumber(e.target.value)}
-              className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white dark:bg-gray-700 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
-              placeholder="أدخل رقم القبول"
-              dir="ltr"
-            />
-          </div>
-
           {error && (
             <div className="text-red-500 text-sm text-center font-medium bg-red-50 dark:bg-red-900/20 py-2 rounded-lg mt-2">
               {error}

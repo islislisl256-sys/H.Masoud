@@ -14,6 +14,8 @@ type Product = {
   purchase_price: number;
   sale_price: number;
   quantity: number;
+  image_url: string;
+  sale_type: string;
 };
 
 type PendingProduct = {
@@ -22,11 +24,16 @@ type PendingProduct = {
   purchase_price: number | string;
   sale_price: number | string;
   quantity: number | string;
+  image_url: string;
+  sale_type: string;
 };
 
 import { motion } from "framer-motion";
+import CloudinarySetupModal from "@/components/Modals/CloudinarySetupModal";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ProductsPage() {
+  const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,6 +46,9 @@ export default function ProductsPage() {
   const [editField, setEditField] = useState<'name' | 'sale_price' | 'quantity' | null>(null);
   const [editValue, setEditValue] = useState<string>('');
   const [showLowStock, setShowLowStock] = useState(false);
+  
+  const [showCloudinaryModal, setShowCloudinaryModal] = useState(false);
+  const [uploadingImageIndex, setUploadingImageIndex] = useState<number | null>(null);
 
   useEffect(() => {
     fetchProducts();
@@ -60,7 +70,9 @@ export default function ProductsPage() {
       name: '',
       purchase_price: 0,
       sale_price: 0,
-      quantity: 0
+      quantity: 0,
+      image_url: '',
+      sale_type: 'unit'
     }]);
     // Removed setIsScanning(false) so it keeps scanning
   };
@@ -120,6 +132,49 @@ export default function ProductsPage() {
     setSaving(false);
   };
 
+  const handleImageUploadForProduct = async (file: File, index: number) => {
+    if (!currentUser?.cloudinary_cloud_name || !currentUser?.cloudinary_upload_preset) {
+      setUploadingImageIndex(index);
+      setShowCloudinaryModal(true);
+      return;
+    }
+    
+    // Check storage quota limit
+    const used = currentUser.storage_used || 0;
+    if (used >= 100) {
+      alert("لقد استهلكت الحصة المجانية للصور (100 صورة). يرجى مسح بعض الصور القديمة للإضافة.");
+      return;
+    }
+
+    setUploadingImageIndex(index);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", currentUser.cloudinary_upload_preset);
+
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/image/upload`, {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      if (data.secure_url) {
+        updatePending(index, 'image_url', data.secure_url);
+        // Increment storage usage locally and in DB
+        const newUsed = used + 1;
+        await supabase.from("app_accounts").update({ storage_used: newUsed }).eq("id", currentUser.id);
+        const updatedUser = { ...currentUser, storage_used: newUsed };
+        sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
+        window.location.reload(); // Force reload to update context or just update local
+      } else {
+        alert("فشل الرفع السحابي، تحقق من الإعدادات");
+      }
+    } catch (e) {
+      alert("حدث خطأ أثناء الاتصال بالخادم السحابي");
+    } finally {
+      setUploadingImageIndex(null);
+    }
+  };
+
   const handleImageScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
@@ -132,6 +187,11 @@ export default function ProductsPage() {
       }
       setShowScanMenu(false);
     }
+  };
+
+  const handleAddWithoutBarcode = () => {
+    const fakeBarcode = `NOBC-${Date.now()}`;
+    handleScanSuccess(fakeBarcode);
   };
 
   const handleUpdateField = async (id: string, field: 'name' | 'sale_price' | 'quantity') => {
@@ -240,6 +300,15 @@ export default function ProductsPage() {
                 {isScanning ? <X className="h-5 w-5" /> : <QrCode className="h-5 w-5" />}
                 {isScanning ? "إيقاف" : "مسح"}
               </motion.button>
+              
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={handleAddWithoutBarcode}
+                className="flex items-center gap-2 px-4 py-2.5 rounded-lg font-bold text-base bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50 transition-colors"
+              >
+                <Package className="h-5 w-5" />
+                إضافة بدون باركود
+              </motion.button>
 
               {pendingProducts.length > 0 && (
                 <motion.button
@@ -259,7 +328,7 @@ export default function ProductsPage() {
                     <div className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-full text-blue-600 dark:text-blue-400">
                       <ImagePlus className="h-5 w-5" />
                     </div>
-                    <span className="font-medium text-base text-gray-700 dark:text-gray-200">رفع صورة</span>
+                    <span className="font-medium text-base text-gray-700 dark:text-gray-200">مسح من صورة</span>
                     <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
                   </label>
                   <button
@@ -300,13 +369,29 @@ export default function ProductsPage() {
                       </button>
                     </div>
                     <div className="grid grid-cols-2 gap-2 mb-3">
-                      <input
-                        type="text"
-                        placeholder="اسم المنتج *"
-                        className="col-span-2 px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none"
-                        value={p.name}
-                        onChange={e => updatePending(index, 'name', e.target.value)}
-                      />
+                      <div className="col-span-2 flex gap-3 mb-2">
+                        <div className="flex-1">
+                          <input
+                            type="text"
+                            placeholder="اسم المنتج *"
+                            className="w-full px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none"
+                            value={p.name}
+                            onChange={e => updatePending(index, 'name', e.target.value)}
+                          />
+                        </div>
+                        <div className="w-24 shrink-0">
+                          <label className="w-full h-full min-h-[48px] bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 border-dashed rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors overflow-hidden relative">
+                            {p.image_url ? (
+                              <img src={p.image_url} alt="" className="w-full h-full object-cover" />
+                            ) : uploadingImageIndex === index ? (
+                              <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                            ) : (
+                              <ImagePlus className="h-5 w-5 text-gray-400" />
+                            )}
+                            <input type="file" accept="image/*" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleImageUploadForProduct(e.target.files[0], index) }} />
+                          </label>
+                        </div>
+                      </div>
                       <input
                         type="number"
                         placeholder="سعر الشراء"
@@ -323,11 +408,20 @@ export default function ProductsPage() {
                       />
                       <input
                         type="number"
-                        placeholder="الكمية"
-                        className="col-span-2 px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none"
+                        placeholder="الكمية / المخزون"
+                        className="px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none"
                         value={p.quantity === 0 ? '' : p.quantity}
                         onChange={e => updatePending(index, 'quantity', e.target.value)}
                       />
+                      <select
+                        value={p.sale_type}
+                        onChange={e => updatePending(index, 'sale_type', e.target.value)}
+                        className="px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none"
+                      >
+                        <option value="unit">بالقطعة</option>
+                        <option value="weight">بالميزان (كغ)</option>
+                        <option value="volume">باللتر</option>
+                      </select>
                     </div>
                     <div className="flex justify-end">
                       <motion.button
@@ -373,25 +467,41 @@ export default function ProductsPage() {
             {filteredProducts.map(product => (
               <div key={product.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 space-y-3">
                 {/* اسم المنتج + الرقم */}
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 min-w-0">
-                    {editingId === product.id && editField === 'name' ? (
-                      <div className="flex items-center gap-1">
-                        <input autoFocus type="text" className="flex-1 px-3 py-2 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none" value={editValue} onChange={e => setEditValue(e.target.value)} />
-                        <button onClick={() => handleUpdateField(product.id, 'name')} className="p-2 text-green-600 hover:bg-green-50 rounded-lg"><Save className="h-4 w-4" /></button>
-                        <button onClick={() => { setEditingId(null); setEditField(null); }} className="p-2 text-gray-400 hover:bg-gray-100 rounded-lg"><X className="h-4 w-4" /></button>
+                <div className="flex items-start gap-3">
+                  {product.image_url ? (
+                    <img src={product.image_url} alt="" className="w-14 h-14 rounded-lg object-cover bg-gray-100 dark:bg-gray-700 shrink-0 border border-gray-200 dark:border-gray-600" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0 border border-gray-200 dark:border-gray-600">
+                      <Package className="h-6 w-6 text-gray-400" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0 flex justify-between items-start">
+                    <div className="flex-1 min-w-0 pr-2">
+                      {editingId === product.id && editField === 'name' ? (
+                        <div className="flex items-center gap-1 mb-1">
+                          <input autoFocus type="text" className="flex-1 px-3 py-1 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none" value={editValue} onChange={e => setEditValue(e.target.value)} />
+                          <button onClick={() => handleUpdateField(product.id, 'name')} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"><Save className="h-4 w-4" /></button>
+                          <button onClick={() => { setEditingId(null); setEditField(null); }} className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg"><X className="h-4 w-4" /></button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 mb-1">
+                          <p className="font-bold text-lg text-gray-900 dark:text-white truncate">{product.name}</p>
+                          <button onClick={() => startEditField(product.id, 'name', product.name)} className="p-1 text-gray-300 hover:text-primary"><Pencil className="h-4 w-4" /></button>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2 text-sm text-gray-400 font-mono">
+                        <span>{product.product_number.startsWith('NOBC') ? 'بدون باركود' : product.product_number}</span>
+                        {product.sale_type && (
+                          <span className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-full font-sans">
+                            {product.sale_type === 'weight' ? 'بالميزان' : product.sale_type === 'volume' ? 'باللتر' : 'بالقطعة'}
+                          </span>
+                        )}
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <p className="font-bold text-lg text-gray-900 dark:text-white truncate">{product.name}</p>
-                        <button onClick={() => startEditField(product.id, 'name', product.name)} className="p-1 text-gray-300 hover:text-primary"><Pencil className="h-4 w-4" /></button>
-                      </div>
-                    )}
-                    <p className="text-sm text-gray-400 font-mono">{product.product_number}</p>
+                    </div>
+                    <button onClick={() => handleDelete(product.id)} className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                      <Trash2 className="h-5 w-5" />
+                    </button>
                   </div>
-                  <button onClick={() => handleDelete(product.id)} className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                    <Trash2 className="h-5 w-5" />
-                  </button>
                 </div>
 
                 {/* الأسعار والكمية */}
@@ -449,6 +559,12 @@ export default function ProductsPage() {
 
         <div id="hidden-qr-reader" className="hidden"></div>
       </div>
+      
+      <CloudinarySetupModal 
+        isOpen={showCloudinaryModal} 
+        onClose={() => setShowCloudinaryModal(false)} 
+        onSuccess={() => setShowCloudinaryModal(false)} 
+      />
     </ProtectedLayout>
   );
 }

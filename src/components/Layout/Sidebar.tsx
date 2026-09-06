@@ -11,7 +11,9 @@ import {
   BarChart3, 
   Settings,
   BookOpen,
-  FileEdit
+  FileEdit,
+  Undo2,
+  Mail
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -24,8 +26,10 @@ const navigation = [
   { name: "لوحة التحكم", href: "/", icon: LayoutDashboard },
   { name: "المنتجات", href: "/products", icon: Package },
   { name: "نقطة البيع", href: "/pos", icon: ShoppingCart },
+  { name: "المرتجعات", href: "/returns", icon: Undo2 },
   { name: "الفواتير", href: "/invoices", icon: FileText },
   { name: "الإعدادات", href: "/settings", icon: Settings },
+  { name: "اتصل بنا", href: "/contact", icon: Mail },
 ];
 
 export default function Sidebar() {

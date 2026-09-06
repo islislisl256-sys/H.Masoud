@@ -2,19 +2,49 @@
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { Save, Upload, Database, Moon, Sun, Lock, User, Store, Download } from "lucide-react";
+import { Save, Lock, Store } from "lucide-react";
 import { useTheme } from "next-themes";
+import { useAuth } from "@/contexts/AuthContext";
+import { mainSupabase } from "@/lib/supabase";
 
 export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
   const { theme, setTheme } = useTheme();
+  const { currentUser } = useAuth();
+
+  const [storeName, setStoreName] = useState("");
+  const [storeLogo, setStoreLogo] = useState("");
+  const [username, setUsername] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-  }, []);
-  const [libraryName, setLibraryName] = useState("مكتبة الحاج مسعود");
-  const [username, setUsername] = useState("HERMA");
-  
+    if (currentUser) {
+      setStoreName(currentUser.store_name || "مكتبة الحاج مسعود");
+      setStoreLogo(currentUser.store_logo || "");
+      setUsername(currentUser.name || "HERMA");
+    }
+  }, [currentUser]);
+
+  const handleSaveStore = async () => {
+    if (!currentUser) return;
+    setIsSaving(true);
+    try {
+      await mainSupabase
+        .from("app_accounts")
+        .update({ store_name: storeName, store_logo: storeLogo })
+        .eq("id", currentUser.id);
+      
+      const updated = { ...currentUser, store_name: storeName, store_logo: storeLogo };
+      sessionStorage.setItem("currentUser", JSON.stringify(updated));
+      alert("تم الحفظ بنجاح! سيتم تطبيق التغييرات بعد التحديث.");
+    } catch (e) {
+      alert("حدث خطأ أثناء الحفظ");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <ProtectedLayout>
       <div className="space-y-6">
@@ -33,26 +63,30 @@ export default function SettingsPage() {
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">اسم المكتبة</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">اسم المكتبة / المتجر</label>
                 <input
                   type="text"
-                  value={libraryName}
-                  onChange={(e) => setLibraryName(e.target.value)}
+                  value={storeName}
+                  onChange={(e) => setStoreName(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">شعار المكتبة</label>
-                <div className="mt-1 flex items-center gap-4">
-                  <div className="h-16 w-16 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center border border-dashed border-gray-300 dark:border-gray-600">
-                    <Store className="h-8 w-8 text-gray-400" />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رابط الشعار (URL)</label>
+                <input
+                  type="url"
+                  placeholder="https://example.com/logo.png"
+                  dir="ltr"
+                  value={storeLogo}
+                  onChange={(e) => setStoreLogo(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm"
+                />
+                {storeLogo && (
+                  <div className="mt-2 h-16 w-16 rounded border border-gray-200 p-1 flex items-center justify-center bg-white">
+                    <img src={storeLogo} alt="Logo preview" className="max-h-full max-w-full object-contain" />
                   </div>
-                  <button className="flex items-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-sm">
-                    <Upload className="h-4 w-4" />
-                    <span>تغيير الشعار</span>
-                  </button>
-                </div>
+                )}
               </div>
 
               <div className="pt-4 flex items-center justify-between border-t border-gray-100 dark:border-gray-700">
@@ -72,9 +106,9 @@ export default function SettingsPage() {
             </div>
             
             <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
-              <button className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
+              <button disabled={isSaving} onClick={handleSaveStore} className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">
                 <Save className="h-4 w-4" />
-                <span>حفظ التعديلات</span>
+                <span>{isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
               </button>
             </div>
           </div>
@@ -112,25 +146,6 @@ export default function SettingsPage() {
                 <button className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
                   <Save className="h-4 w-4" />
                   <span>تحديث الحساب</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Database & Backup Settings */}
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
-              <div className="flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 pb-4">
-                <Database className="h-6 w-6 text-primary" />
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">قاعدة البيانات والنسخ الاحتياطي</h2>
-              </div>
-              
-              <div className="flex flex-col gap-4">
-                <button className="flex items-center justify-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                  <Download className="h-5 w-5 text-primary" />
-                  <span className="font-medium">إنشاء نسخة احتياطية (Backup)</span>
-                </button>
-                <button className="flex items-center justify-center gap-2 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 px-4 py-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
-                  <Upload className="h-5 w-5 text-primary" />
-                  <span className="font-medium">استعادة نسخة احتياطية (Restore)</span>
                 </button>
               </div>
             </div>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -8,7 +8,7 @@ import { createClient } from "@supabase/supabase-js";
 type AuthContextType = {
   isAuthenticated: boolean;
   currentUser: any;
-  login: (email: string, pass: string, businessType: string, acceptanceNumber: string) => Promise<{ success: boolean; message?: string }>;
+  login: (email: string, pass: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
 };
 
@@ -54,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const login = async (email: string, pass: string, businessType: string, acceptanceNumber: string) => {
+  const login = async (email: string, pass: string) => {
     try {
       const storedEncrypted = localStorage.getItem("app_secure_uuid");
       const localDeviceUuid = storedEncrypted ? decodeUUID(storedEncrypted) : null;
@@ -67,8 +67,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, message: "تم حظر هذا الحساب نهائياً من استخدام التطبيق." };
       }
 
-      if (data.password !== pass || data.business_type !== businessType || data.acceptance_number !== acceptanceNumber) {
-        return { success: false, message: "بيانات الدخول خاطئة (تأكد من كلمة المرور أو نمط التجارة أو رقم القبول)" };
+      if (data.password !== pass) {
+        return { success: false, message: "بيانات الدخول خاطئة (تأكد من كلمة المرور)" };
       }
       
       // تنفيذ العقوبة (Poison Pill)

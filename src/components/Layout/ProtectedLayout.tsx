@@ -9,21 +9,27 @@ import BottomNav from "./BottomNav";
 import { AnimatePresence, motion } from "framer-motion";
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, currentUser } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
-    if (!isAuthenticated && pathname !== "/login") {
+    if (!isAuthenticated && pathname !== "/login" && pathname !== "/setup") {
       router.push("/login");
+    } else if (isAuthenticated && currentUser && !currentUser.setup_completed && pathname !== "/setup") {
+      router.push("/setup");
     }
-  }, [isAuthenticated, pathname, router]);
+  }, [isAuthenticated, currentUser, pathname, router]);
 
   if (!mounted) return null;
 
   if (!isAuthenticated) {
+    return null; // Will redirect in useEffect
+  }
+  
+  if (currentUser && !currentUser.setup_completed) {
     return null; // Will redirect in useEffect
   }
 

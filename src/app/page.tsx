@@ -30,17 +30,24 @@ type InvoiceItem = {
 
 const COLORS = ["#6366f1", "#8b5cf6", "#a78bfa", "#c4b5fd", "#ddd6fe"];
 
+import { useAuth } from "@/contexts/AuthContext";
+
+// ... skipping to DashboardPage component ...
+
 export default function DashboardPage() {
+  const { currentUser } = useAuth();
   const [allInvoices, setAllInvoices] = useState<Invoice[]>([]);
   const [allItems, setAllItems] = useState<InvoiceItem[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // ... (keep state variables) ...
   const defaultFrom = new Date();
   defaultFrom.setDate(defaultFrom.getDate() - 30);
   const [fromDate, setFromDate] = useState(defaultFrom.toISOString().slice(0, 10));
   const [toDate, setToDate] = useState(new Date().toISOString().slice(0, 10));
   const [showAllProducts, setShowAllProducts] = useState(false);
 
+  // ... (keep useEffects) ...
   useEffect(() => {
     async function fetchData() {
       try {
@@ -110,10 +117,43 @@ export default function DashboardPage() {
     );
   }
 
+  const storageUsed = currentUser?.storage_used || 0;
+  const storageLimit = 100;
+  const storagePercent = Math.min((storageUsed / storageLimit) * 100, 100);
+
   return (
     <ProtectedLayout>
       <div className="space-y-6 pb-12">
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">الرئيسية</h1>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
+          <div className="flex items-center gap-4">
+            {currentUser?.store_logo ? (
+              <img src={currentUser.store_logo} alt="Logo" className="w-12 h-12 rounded-lg object-contain bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700" />
+            ) : (
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
+                {currentUser?.store_name?.charAt(0) || "م"}
+              </div>
+            )}
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
+                {currentUser?.store_name || "الرئيسية"}
+              </h1>
+              <p className="text-sm text-gray-500 dark:text-gray-400">لوحة التحكم والمؤشرات</p>
+            </div>
+          </div>
+          
+          <div className="w-full md:w-64 bg-gray-50 dark:bg-gray-900 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">مساحة الصور (Cloudinary)</span>
+              <span className="text-xs font-bold text-gray-900 dark:text-white">{storageUsed} / {storageLimit}</span>
+            </div>
+            <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div 
+                className={`h-full rounded-full ${storagePercent > 90 ? 'bg-red-500' : storagePercent > 70 ? 'bg-yellow-500' : 'bg-primary'}`} 
+                style={{ width: `${storagePercent}%` }} 
+              />
+            </div>
+          </div>
+        </div>
 
         {/* فلتر الفترة */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
