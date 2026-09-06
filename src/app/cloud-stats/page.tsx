@@ -208,18 +208,18 @@ export default function CloudStatsPage() {
             ) : (
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {images.map(img => (
-                  <div key={img.public_id} className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                  <div key={img.public_id} className="relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-sm">
                     <img src={img.secure_url} alt="" className="w-full h-full object-cover" />
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <button 
-                        onClick={() => handleDelete(img.public_id)}
-                        disabled={deletingId === img.public_id}
-                        className="p-3 bg-red-600 hover:bg-red-700 text-white rounded-full transition-colors disabled:opacity-50"
-                        title="مسح نهائي"
-                      >
-                        {deletingId === img.public_id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
-                      </button>
-                    </div>
+                    
+                    <button 
+                      onClick={() => handleDelete(img.public_id)}
+                      disabled={deletingId === img.public_id}
+                      className="absolute top-2 right-2 p-2 bg-red-600 hover:bg-red-700 shadow-md text-white rounded-lg transition-colors disabled:opacity-50 z-10 flex items-center justify-center"
+                      title="مسح الصورة"
+                    >
+                      {deletingId === img.public_id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                    </button>
+
                     <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent text-white text-xs truncate">
                       {img.public_id.split('/').pop()}
                     </div>
