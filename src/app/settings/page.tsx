@@ -187,19 +187,7 @@ export default function SettingsPage() {
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white">إعدادات الصور والتخزين</h2>
               </div>
               <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">جودة ضغط الصور (أقل = حجم أصغر، أعلى = دقة أوضح)</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="range"
-                      min="0.1" max="1.0" step="0.1"
-                      value={compressionQuality}
-                      onChange={(e) => setCompressionQuality(Number(e.target.value))}
-                      className="flex-1 accent-primary"
-                    />
-                    <span className="text-sm font-bold w-12 text-center text-primary bg-primary/10 rounded py-1">{Math.round(compressionQuality * 100)}%</span>
-                  </div>
-                </div>
+
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cloud Name</label>
