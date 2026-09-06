@@ -6,6 +6,7 @@ import { Save, Lock, Store, UploadCloud, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/contexts/AuthContext";
 import { mainSupabase } from "@/lib/supabase";
+import { compressImage } from "@/lib/imageUtils";
 
 export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
@@ -38,9 +39,11 @@ export default function SettingsPage() {
 
     setUploadingLogo(true);
     try {
+      const compressedFile = await compressImage(file, 500, 0.8);
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append("file", compressedFile);
       formData.append("upload_preset", currentUser.cloudinary_upload_preset);
+      formData.append("public_id", `store_logo_${currentUser.id}`);
 
       const res = await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/image/upload`, {
         method: "POST",

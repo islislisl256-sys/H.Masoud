@@ -2,7 +2,8 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { TrendingUp, DollarSign, Loader2, Calendar, Trophy, LineChart as LineChartIcon } from "lucide-react";
+import Link from 'next/link';
+import { TrendingUp, DollarSign, Loader2, Calendar, Trophy, LineChart as LineChartIcon, Cloud, Image as ImageIcon } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import {
   ResponsiveContainer,
@@ -190,6 +191,25 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* مساحة التخزين - رابط لصفحة الإحصائيات */}
+        <Link href="/cloud-stats" className="block w-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-5 shadow-sm text-white hover:shadow-md transition-shadow active:scale-[0.99]">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-4">
+              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                <Cloud className="w-8 h-8" />
+              </div>
+              <div>
+                <h3 className="text-lg font-bold">إحصائيات مساحة الصور</h3>
+                <p className="text-sm text-blue-100 mt-1">اضغط هنا لمعرفة تفاصيل استهلاك المساحة المجانية (Cloudinary)</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <span className="text-3xl font-black">{currentUser?.storage_used || 0}</span>
+              <span className="text-blue-200"> / 100</span>
+            </div>
+          </div>
+        </Link>
 
         {/* بطاقات المبيعات والأرباح - قابلة للنقر */}
         <div className="grid gap-4 grid-cols-2">

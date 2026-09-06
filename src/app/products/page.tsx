@@ -6,6 +6,7 @@ import { Plus, Search, Trash2, Loader2, Save, X, QrCode, Camera, ImagePlus, Chec
 import { supabase } from "@/lib/supabase";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import { Html5Qrcode } from "html5-qrcode";
+import { compressImage } from "@/lib/imageUtils";
 
 type Product = {
   id: string;
@@ -102,8 +103,9 @@ export default function ProductsPage() {
     if (used >= 100) {
       throw new Error("لقد استهلكت الحصة المجانية للصور (100 صورة).");
     }
+    const compressedFile = await compressImage(file, 800, 0.7);
     const formData = new FormData();
-    formData.append("file", file);
+    formData.append("file", compressedFile);
     formData.append("upload_preset", currentUser.cloudinary_upload_preset);
     const res = await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/image/upload`, {
       method: "POST",

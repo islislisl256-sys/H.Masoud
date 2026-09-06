@@ -51,7 +51,7 @@
   "main": "main.js",
   "build": {
     "appId": "com.hmasoud.librarysystem",
-    "productName": "H.Masoud System",
+    "productName": "برنامج المكتبة الرئيسي",
     "directories": {
       "output": "Windows_App_Release",
       "app": "."
