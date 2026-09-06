@@ -8,7 +8,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing API credentials' }, { status: 400 });
     }
 
-    const auth = Buffer.from(`${api_key}:${api_secret}`).toString('base64');
+    const auth = btoa(`${api_key}:${api_secret}`);
 
     const res = await fetch(`https://api.cloudinary.com/v1_1/${cloud_name}/resources/image?max_results=500`, {
       headers: {

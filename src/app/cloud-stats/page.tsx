@@ -28,14 +28,11 @@ export default function CloudStatsPage() {
     setLoadingImages(true);
     setError(null);
     try {
-      const res = await fetch('/api/cloudinary/list', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          cloud_name: currentUser.cloudinary_cloud_name,
-          api_key: currentUser.cloudinary_api_key,
-          api_secret: currentUser.cloudinary_api_secret
-        })
+      const auth = btoa(`${currentUser.cloudinary_api_key}:${currentUser.cloudinary_api_secret}`);
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/resources/image?max_results=500`, {
+        headers: {
+          'Authorization': `Basic ${auth}`
+        }
       });
       const data = await res.json();
       if (data.resources) {
@@ -54,19 +51,16 @@ export default function CloudStatsPage() {
     if (!confirm("هل أنت متأكد من مسح هذه الصورة نهائياً؟")) return;
     setDeletingId(public_id);
     try {
-      const res = await fetch('/api/cloudinary/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          public_id: public_id,
-          cloud_name: currentUser.cloudinary_cloud_name,
-          api_key: currentUser.cloudinary_api_key,
-          api_secret: currentUser.cloudinary_api_secret
-        })
+      const auth = btoa(`${currentUser.cloudinary_api_key}:${currentUser.cloudinary_api_secret}`);
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/resources/image/upload?public_ids[]=${encodeURIComponent(public_id)}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Basic ${auth}`
+        }
       });
       
       const result = await res.json();
-      if (result.result === 'ok') {
+      if (result.deleted && result.deleted[public_id] === 'deleted') {
         setImages(prev => prev.filter(img => img.public_id !== public_id));
         // Decrement storage counter
         const used = currentUser.storage_used || 0;

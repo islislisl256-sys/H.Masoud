@@ -259,16 +259,12 @@ export default function ProductsPage() {
               const path = parts[1];
               const withoutVersion = path.replace(/^v\d+\//, '');
               const publicId = decodeURIComponent(withoutVersion.replace(/\.[^/.]+$/, ''));
-              
-              await fetch('/api/cloudinary/delete', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  public_id: publicId,
-                  cloud_name: currentUser.cloudinary_cloud_name,
-                  api_key: currentUser.cloudinary_api_key,
-                  api_secret: currentUser.cloudinary_api_secret,
-                })
+              const auth = btoa(`${currentUser.cloudinary_api_key}:${currentUser.cloudinary_api_secret}`);
+              await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/resources/image/upload?public_ids[]=${encodeURIComponent(publicId)}`, {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': `Basic ${auth}`
+                }
               });
               
               // Decrement storage used
