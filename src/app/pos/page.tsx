@@ -46,6 +46,15 @@ export default function POSPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [customTotal, setCustomTotal] = useState<string>("");
 
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const lowerQ = searchQuery.toLowerCase();
+    return products.filter(p => 
+      p.name.toLowerCase().includes(lowerQ) || 
+      p.product_number.toLowerCase().includes(lowerQ)
+    ).slice(0, 5);
+  }, [searchQuery, products]);
+
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -273,8 +282,8 @@ export default function POSPage() {
         </div>
 
         {/* بحث سريع */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3">
-          <div className="relative">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 relative">
+          <div className="relative z-10">
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-gray-400" />
             </div>
@@ -287,6 +296,23 @@ export default function POSPage() {
               onKeyDown={handleManualSearch}
             />
           </div>
+          {searchQuery.trim() && searchResults.length > 0 && (
+            <div className="absolute top-full right-0 left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto">
+              {searchResults.map(p => (
+                <button
+                  key={p.id}
+                  onClick={() => { addProduct(p); setSearchQuery(""); }}
+                  className="w-full text-right px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-0 flex justify-between items-center"
+                >
+                  <div>
+                    <p className="font-bold text-gray-900 dark:text-white">{p.name}</p>
+                    <p className="text-xs text-gray-500">{p.product_number}</p>
+                  </div>
+                  <span className="font-bold text-primary">{p.sale_price} د.ج</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* قائمة المنتجات السريعة (منتجات بلا باركود / بصور) */}
@@ -298,19 +324,28 @@ export default function POSPage() {
                 <button
                   key={p.id}
                   onClick={() => addProduct(p)}
-                  className="flex-shrink-0 w-28 flex flex-col items-center gap-2 bg-white dark:bg-gray-800 p-2 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:border-primary transition-colors active:scale-95"
+                  className="relative flex-shrink-0 w-28 h-32 flex flex-col items-center justify-end p-2 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:border-primary transition-colors active:scale-95 overflow-hidden bg-white dark:bg-gray-800"
                 >
                   {p.image_url ? (
-                    <img src={p.image_url} alt={p.name} className="w-full h-20 object-cover rounded-lg bg-gray-100 dark:bg-gray-700" />
+                    <>
+                      <img src={p.image_url} alt={p.name} className="absolute inset-0 w-full h-full object-cover" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                      <div className="relative z-10 w-full text-center">
+                        <p className="font-bold text-white text-sm truncate">{p.name}</p>
+                        <p className="text-xs text-blue-300 font-bold mt-0.5">{p.sale_price} د.ج</p>
+                      </div>
+                    </>
                   ) : (
-                    <div className="w-full h-20 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                      <Package className="h-8 w-8 text-gray-400" />
-                    </div>
+                    <>
+                      <div className="w-full flex-1 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-2">
+                        <Package className="h-8 w-8 text-gray-400" />
+                      </div>
+                      <div className="w-full text-center">
+                        <p className="font-bold text-gray-900 dark:text-white text-sm truncate">{p.name}</p>
+                        <p className="text-xs text-primary font-bold mt-0.5">{p.sale_price} د.ج</p>
+                      </div>
+                    </>
                   )}
-                  <div className="w-full text-center">
-                    <p className="font-bold text-gray-900 dark:text-white text-sm truncate">{p.name}</p>
-                    <p className="text-xs text-primary font-bold mt-0.5">{p.sale_price} د.ج</p>
-                  </div>
                 </button>
               ))}
             </div>
