@@ -116,9 +116,17 @@ export default function CloudStatsPage() {
 
   if (!mounted || !currentUser) return null;
 
-  const maxImages = 100;
-  const currentImages = currentUser.storage_used || 0;
-  const percentage = Math.min((currentImages / maxImages) * 100, 100);
+  const formatBytes = (bytes: number) => {
+    if (bytes === 0) return '0 MB';
+    const mb = bytes / (1024 * 1024);
+    if (mb < 1000) return mb.toFixed(2) + ' MB';
+    return (mb / 1024).toFixed(2) + ' GB';
+  };
+
+  const totalBytes = images.reduce((acc, img) => acc + (img.bytes || 0), 0);
+  const maxBytes = 25 * 1024 * 1024 * 1024; // 25 GB free tier limit
+  const percentage = Math.min((totalBytes / maxBytes) * 100, 100);
+  
   const isNearLimit = percentage >= 80;
   const isLimitReached = percentage >= 100;
 
@@ -145,23 +153,23 @@ export default function CloudStatsPage() {
           <div className="relative z-10">
             <div className="flex justify-between items-end mb-6">
               <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">استهلاك الباقة</h2>
-                <p className="text-gray-500 dark:text-gray-400">تحكم بالصور لتقليل الاستهلاك</p>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">استهلاك الباقة المجانية</h2>
+                <p className="text-gray-500 dark:text-gray-400">تحكم بالصور لتقليل مساحة التخزين</p>
               </div>
               <div className="text-right">
-                <span className="text-4xl font-black text-primary">{currentImages}</span>
-                <span className="text-xl text-gray-400"> / {maxImages}</span>
-                <p className="text-sm font-bold text-gray-500 mt-1">صورة مستخدمة</p>
+                <span className="text-4xl font-black text-primary" dir="ltr">{formatBytes(totalBytes)}</span>
+                <span className="text-xl text-gray-400" dir="ltr"> / 25 GB</span>
+                <p className="text-sm font-bold text-gray-500 mt-1">مساحة مستخدمة</p>
               </div>
             </div>
 
             <div className="space-y-2">
               <div className="flex justify-between text-sm font-bold">
                 <span className={isLimitReached ? "text-red-500" : isNearLimit ? "text-amber-500" : "text-green-500"}>
-                  المستهلك: {percentage.toFixed(1)}%
+                  المستهلك: {percentage.toFixed(4)}%
                 </span>
-                <span className="text-gray-500">
-                  المتبقي: {Math.max(maxImages - currentImages, 0)} صورة
+                <span className="text-gray-500" dir="ltr">
+                  المتبقي: {formatBytes(Math.max(maxBytes - totalBytes, 0))}
                 </span>
               </div>
               <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
