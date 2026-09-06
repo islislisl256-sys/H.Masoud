@@ -25,6 +25,8 @@ type PendingProduct = {
   sale_price: number | string;
   quantity: number | string;
   image_url: string;
+  image_file?: File;
+  image_preview?: string;
   sale_type: string;
 };
 
@@ -85,94 +87,130 @@ export default function ProductsPage() {
     setPendingProducts(prev => prev.filter((_, i) => i !== index));
   };
 
+  const handleImageSelectForProduct = (file: File, index: number) => {
+    // فقط عرض الصورة محليا وتخزين الملف
+    const previewUrl = URL.createObjectURL(file);
+    updatePending(index, 'image_file', file as any);
+    updatePending(index, 'image_preview', previewUrl);
+  };
+
+  const uploadToCloudinary = async (file: File) => {
+    if (!currentUser?.cloudinary_cloud_name || !currentUser?.cloudinary_upload_preset) {
+      throw new Error("لم يتم إعداد Cloudinary");
+    }
+    const used = currentUser.storage_used || 0;
+    if (used >= 100) {
+      throw new Error("لقد استهلكت الحصة المجانية للصور (100 صورة).");
+    }
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", currentUser.cloudinary_upload_preset);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/image/upload`, {
+      method: "POST",
+      body: formData
+    });
+    const data = await res.json();
+    if (data.secure_url) {
+      const newUsed = used + 1;
+      await supabase.from("app_accounts").update({ storage_used: newUsed }).eq("id", currentUser.id);
+      const updatedUser = { ...currentUser, storage_used: newUsed };
+      sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
+      return data.secure_url;
+    }
+    throw new Error("فشل الرفع السحابي");
+  };
+
   const saveSingle = async (index: number) => {
     const rawP = pendingProducts[index];
     if (!rawP.product_number || !rawP.name) {
       alert("أدخل رقم واسم المنتج");
       return;
     }
-    const p = {
-      ...rawP,
-      purchase_price: Number(rawP.purchase_price) || 0,
-      sale_price: Number(rawP.sale_price) || 0,
-      quantity: Number(rawP.quantity) || 0,
-    };
+    
     setSaving(true);
-    const { data, error } = await supabase.from('products').insert([p]).select().single();
-    if (error) {
-      alert("خطأ: تأكد أن الرقم غير مكرر.");
-    } else {
-      setProducts(prev => [data, ...prev]);
-      removePending(index);
+    let finalImageUrl = rawP.image_url;
+    
+    try {
+      if (rawP.image_file) {
+        finalImageUrl = await uploadToCloudinary(rawP.image_file);
+      }
+      
+      const p = {
+        product_number: rawP.product_number,
+        name: rawP.name,
+        purchase_price: Number(rawP.purchase_price) || 0,
+        sale_price: Number(rawP.sale_price) || 0,
+        quantity: Number(rawP.quantity) || 0,
+        image_url: finalImageUrl,
+        sale_type: rawP.sale_type
+      };
+      
+      const { data, error } = await supabase.from('products').insert([p]).select().single();
+      if (error) {
+        alert("خطأ: تأكد أن الرقم غير مكرر.");
+      } else {
+        setProducts(prev => [data, ...prev]);
+        removePending(index);
+      }
+    } catch (e: any) {
+      alert(e.message || "حدث خطأ أثناء حفظ المنتج");
+      if (e.message === "لم يتم إعداد Cloudinary") setShowCloudinaryModal(true);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const saveAll = async () => {
-    const valid = pendingProducts
-      .filter(p => p.product_number && p.name)
-      .map(p => ({
-        ...p,
-        purchase_price: Number(p.purchase_price) || 0,
-        sale_price: Number(p.sale_price) || 0,
-        quantity: Number(p.quantity) || 0,
-      }));
-    if (valid.length === 0) {
+    const validRaw = pendingProducts.filter(p => p.product_number && p.name);
+    if (validRaw.length === 0) {
       alert("تأكد من إدخال اسم كل منتج");
       return;
     }
+    
     setSaving(true);
-    const { data, error } = await supabase.from('products').insert(valid).select();
-    if (error) {
-      alert("خطأ أثناء الحفظ");
-    } else if (data) {
-      setProducts(prev => [...data, ...prev]);
-      setPendingProducts([]);
-    }
-    setSaving(false);
-  };
-
-  const handleImageUploadForProduct = async (file: File, index: number) => {
-    if (!currentUser?.cloudinary_cloud_name || !currentUser?.cloudinary_upload_preset) {
-      setUploadingImageIndex(index);
-      setShowCloudinaryModal(true);
-      return;
+    let successCount = 0;
+    
+    for (let i = 0; i < pendingProducts.length; i++) {
+      const rawP = pendingProducts[i];
+      if (!rawP.product_number || !rawP.name) continue;
+      
+      try {
+        let finalImageUrl = rawP.image_url;
+        if (rawP.image_file) {
+          finalImageUrl = await uploadToCloudinary(rawP.image_file);
+        }
+        
+        const p = {
+          product_number: rawP.product_number,
+          name: rawP.name,
+          purchase_price: Number(rawP.purchase_price) || 0,
+          sale_price: Number(rawP.sale_price) || 0,
+          quantity: Number(rawP.quantity) || 0,
+          image_url: finalImageUrl,
+          sale_type: rawP.sale_type
+        };
+        
+        const { error } = await supabase.from('products').insert([p]);
+        if (!error) {
+          successCount++;
+          // We don't remove one by one to avoid index shifting issues during loop,
+          // We will just clear the array or refetch at the end
+        }
+      } catch (e: any) {
+        console.error("Error saving product:", rawP.name, e);
+        if (e.message === "لم يتم إعداد Cloudinary") {
+           setShowCloudinaryModal(true);
+           break; // Stop saving others if Cloudinary is not setup
+        }
+      }
     }
     
-    // Check storage quota limit
-    const used = currentUser.storage_used || 0;
-    if (used >= 100) {
-      alert("لقد استهلكت الحصة المجانية للصور (100 صورة). يرجى مسح بعض الصور القديمة للإضافة.");
-      return;
+    if (successCount > 0) {
+      alert(`تم حفظ ${successCount} منتج بنجاح`);
+      setPendingProducts([]);
+      fetchProducts();
     }
-
-    setUploadingImageIndex(index);
-    try {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("upload_preset", currentUser.cloudinary_upload_preset);
-
-      const res = await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/image/upload`, {
-        method: "POST",
-        body: formData
-      });
-      const data = await res.json();
-      if (data.secure_url) {
-        updatePending(index, 'image_url', data.secure_url);
-        // Increment storage usage locally and in DB
-        const newUsed = used + 1;
-        await supabase.from("app_accounts").update({ storage_used: newUsed }).eq("id", currentUser.id);
-        const updatedUser = { ...currentUser, storage_used: newUsed };
-        sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
-        window.location.reload(); // Force reload to update context or just update local
-      } else {
-        alert("فشل الرفع السحابي، تحقق من الإعدادات");
-      }
-    } catch (e) {
-      alert("حدث خطأ أثناء الاتصال بالخادم السحابي");
-    } finally {
-      setUploadingImageIndex(null);
-    }
+    setSaving(false);
   };
 
   const handleImageScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -381,14 +419,14 @@ export default function ProductsPage() {
                         </div>
                         <div className="w-24 shrink-0">
                           <label className="w-full h-full min-h-[48px] bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 border-dashed rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors overflow-hidden relative">
-                            {p.image_url ? (
-                              <img src={p.image_url} alt="" className="w-full h-full object-cover" />
+                            {p.image_preview || p.image_url ? (
+                              <img src={p.image_preview || p.image_url} alt="" className="w-full h-full object-cover" />
                             ) : uploadingImageIndex === index ? (
                               <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
                             ) : (
                               <ImagePlus className="h-5 w-5 text-gray-400" />
                             )}
-                            <input type="file" accept="image/*" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleImageUploadForProduct(e.target.files[0], index) }} />
+                            <input type="file" accept="image/*" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleImageSelectForProduct(e.target.files[0], index) }} />
                           </label>
                         </div>
                       </div>

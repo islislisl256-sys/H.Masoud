@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { useAuth } from "@/contexts/AuthContext";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -35,14 +36,19 @@ const navigation = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { currentUser } = useAuth();
 
   return (
     <div className={cn("hidden md:flex flex-col bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 h-full shadow-sm transition-all duration-300 relative", isCollapsed ? "w-20" : "w-64")}>
       <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200 dark:border-gray-700 overflow-hidden">
         <button onClick={() => setIsCollapsed(!isCollapsed)} className="focus:outline-none p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0">
-          <BookOpen className={cn("h-6 w-6 text-primary transition-all duration-300", !isCollapsed && "ml-2")} />
+          {currentUser?.store_logo ? (
+            <img src={currentUser.store_logo} alt="Logo" className={cn("h-8 w-8 rounded-lg object-contain bg-white transition-all duration-300", !isCollapsed && "ml-2")} />
+          ) : (
+            <BookOpen className={cn("h-6 w-6 text-primary transition-all duration-300", !isCollapsed && "ml-2")} />
+          )}
         </button>
-        {!isCollapsed && <span className="text-lg font-bold text-gray-900 dark:text-white whitespace-nowrap animate-in fade-in duration-300">مكتبة الحاج مسعود</span>}
+        {!isCollapsed && <span className="text-lg font-bold text-gray-900 dark:text-white whitespace-nowrap animate-in fade-in duration-300 truncate pr-2 max-w-[150px]">{currentUser?.store_name || "مكتبة الحاج مسعود"}</span>}
       </div>
       <div className="flex-1 overflow-y-auto py-4">
         <nav className="px-2 space-y-1">
