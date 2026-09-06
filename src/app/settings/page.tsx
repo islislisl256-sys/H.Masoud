@@ -200,14 +200,20 @@ export default function SettingsPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4 pt-2">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Key</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Key (مطلوب للمسح)</label>
                     <input type="text" dir="ltr" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="اختياري (لمسح الصور)" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-1 focus:ring-primary" />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Secret</label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Secret (مطلوب للمسح)</label>
                     <input type="password" dir="ltr" value={apiSecret} onChange={(e) => setApiSecret(e.target.value)} placeholder="اختياري (لمسح الصور)" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-1 focus:ring-primary" />
                   </div>
                 </div>
+              </div>
+              <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+                <button disabled={isSaving} onClick={handleSaveStore} className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">
+                  <Save className="h-4 w-4" />
+                  <span>{isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
+                </button>
               </div>
             </div>
 
