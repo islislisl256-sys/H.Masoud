@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { Save, Lock, Store } from "lucide-react";
+import { Save, Lock, Store, UploadCloud, Loader2 } from "lucide-react";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/contexts/AuthContext";
 import { mainSupabase } from "@/lib/supabase";
@@ -16,6 +16,7 @@ export default function SettingsPage() {
   const [storeLogo, setStoreLogo] = useState("");
   const [username, setUsername] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   useEffect(() => {
     setMounted(true);
@@ -25,6 +26,38 @@ export default function SettingsPage() {
       setUsername(currentUser.name || "HERMA");
     }
   }, [currentUser]);
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    const file = e.target.files[0];
+    
+    if (!currentUser?.cloudinary_cloud_name || !currentUser?.cloudinary_upload_preset) {
+      alert("لم يتم إعداد Cloudinary. يمكنك إعداده عند محاولة رفع صورة لمنتج أولاً.");
+      return;
+    }
+
+    setUploadingLogo(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", currentUser.cloudinary_upload_preset);
+
+      const res = await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/image/upload`, {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      if (data.secure_url) {
+        setStoreLogo(data.secure_url);
+      } else {
+        alert("فشل الرفع، تحقق من الإعدادات");
+      }
+    } catch (err) {
+      alert("حدث خطأ أثناء الاتصال بالخادم");
+    } finally {
+      setUploadingLogo(false);
+    }
+  };
 
   const handleSaveStore = async () => {
     if (!currentUser) return;
@@ -73,15 +106,22 @@ export default function SettingsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رابط الشعار (URL)</label>
-                <input
-                  type="url"
-                  placeholder="https://example.com/logo.png"
-                  dir="ltr"
-                  value={storeLogo}
-                  onChange={(e) => setStoreLogo(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm"
-                />
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رابط الشعار (URL) أو رفع صورة</label>
+                <div className="flex gap-2">
+                  <input
+                    type="url"
+                    placeholder="https://example.com/logo.png"
+                    dir="ltr"
+                    value={storeLogo}
+                    onChange={(e) => setStoreLogo(e.target.value)}
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm"
+                  />
+                  <label className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer transition-colors text-sm font-medium shrink-0">
+                    {uploadingLogo ? <Loader2 className="h-4 w-4 animate-spin text-gray-500" /> : <UploadCloud className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
+                    <span className="hidden sm:inline text-gray-700 dark:text-gray-300">رفع صورة</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={uploadingLogo} />
+                  </label>
+                </div>
                 {storeLogo && (
                   <div className="mt-2 h-16 w-16 rounded border border-gray-200 p-1 flex items-center justify-center bg-white">
                     <img src={storeLogo} alt="Logo preview" className="max-h-full max-w-full object-contain" />
