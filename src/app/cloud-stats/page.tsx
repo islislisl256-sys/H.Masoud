@@ -51,7 +51,7 @@ export default function CloudStatsPage() {
   };
 
   const handleDelete = async (public_id: string) => {
-    if (!confirm("�l أنت متاكُ من مسج هذه الصورة نهائياٗ?")) return;
+    if (!confirm("هل أنت متأكد من مسح هذه الصورة نهائياً؟")) return;
     setDeletingId(public_id);
     try {
       const res = await fetch('/api/cloudinary/delete', {
@@ -75,10 +75,10 @@ export default function CloudStatsPage() {
         const updatedUser = { ...currentUser, storage_used: newUsed };
         sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
       } else {
-        alert("�صل مد الصورة: " + JSON.stringify(result));
+        alert("فشل مسح الصورة: " + JSON.stringify(result));
       }
     } catch (err: any) {
-      alert("حدث خطإ: " + err.message);
+      alert("حدث خطأ: " + err.message);
     } finally {
       setDeletingId(null);
     }
@@ -102,8 +102,8 @@ export default function CloudStatsPage() {
             <ArrowRight className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">إمدارة مساحة التخزين</h1>
-            <p className="text-muted-foreground mt-1">التحصم في الصور المدفوعة (Cloudinary)</p>
+            <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">إدارة مساحة التخزين</h1>
+            <p className="text-muted-foreground mt-1">التحكم في الصور المرفوعة (Cloudinary)</p>
           </div>
         </div>
 
@@ -115,28 +115,91 @@ export default function CloudStatsPage() {
           <div className="relative z-10">
             <div className="flex justify-between items-end mb-6">
               <div>
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">استهلب: الباقة</h2>
-                <p className="text-gray-500 dark:text-gray-400">ةحكم بالصور لتقليل الاستهلب</p>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">استهلاك الباقة</h2>
+                <p className="text-gray-500 dark:text-gray-400">تحكم بالصور لتقليل الاستهلاك</p>
               </div>
               <div className="text-right">
                 <span className="text-4xl font-black text-primary">{currentImages}</span>
                 <span className="text-xl text-gray-400"> / {maxImages}</span>
-                <p className="text-sm font-bold text-gray-500 mt-1">صورة مستخدمً</p>
+                <p className="text-sm font-bold text-gray-500 mt-1">صورة مستخدمة</p>
               </div>
             </div>
 
             <div className="space-y-2">
               <div className="flex justify-between text-sm font-bold">
                 <span className={isLimitReached ? "text-red-500" : isNearLimit ? "text-amber-500" : "text-green-500"}>
-                  المستهلق: {percentage.toFixed(1)}%
+                  المستهلك: {percentage.toFixed(1)}%
                 </span>
                 <span className="text-gray-500">
-                  المببق؊: {Math.max(maxImages - currentImages, 0)} صور
+                  المتبقي: {Math.max(maxImages - currentImages, 0)} صورة
                 </span>
               </div>
               <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                <motion.div
+                <motion.div 
                   initial={{ width: 0 }}
                   animate={{ width: `${percentage}%` }}
                   transition={{ duration: 1, ease: "easeOut" }}
-                  className={`hR�gV��&�V�FVB�gV��G��4Ɩ֗E&V6�VB�v&r�&VB�Sr��4�V$Ɩ֗B�v&r��&W"�Sr�v&r�&��'�w�Т����F�c���F�c���F�c���F�cࠒ��4��W�2�����F�b6�74��S�&&r��&W"�SF&��&r��&W"ӓ�#&�&FW"&�&FW"��&W"�#F&��&�&FW"��&W"Ӄ&�V�FVB׆��bFW�B�6V�FW"76Rג�B#ࠒ�F�b6�74��S�&ׂ�WF�r�"��"&r��&W"�F&��&r��&W"ӓ�C&�V�FVB�gV��f�W��FV�2�6V�FW"�W7F�g��6V�FW"FW�B��&W"�cF&��FW�B��&W"�C#ࠒ��W'EG&��v�R6�74��S�'r�b��b"�ࠒ��F�cࠒ�F�cࠒƃ26�74��S�&f��B�&��BFW�B�w&�ӓF&��FW�B�v��FRFW�B��r#�M�R�����R�݋����}���]��}����������3ࠒ�6�74��S�'FW�B�w&��cF&��FW�B�w&��C�B�"#�M����b�}�M�]������]�=�ݘ}�r�]���}�M����]�b�}�m�}�����͊��݊���}�B��W����6V7&WB����]��݊��}�M�]�����}���}�����ࠒ��F�cࠒ�Ɩ��&Vc�"�6WGF��w2"6�74��S�&��Ɩ�R�&��6�&r��&W"�c��fW#�&r��&W"�sFW�B�v��FRf��B�&��B��"��b&�V�FVB��rG&�6�F����6���'2#ࠒ�}�M��}�}���M�M�]�����}���}������Ɩ�ࠒ��F�c������F�b6�74��S�&&r�v��FRF&��&r�w&�Ӄ&�V�FVB׆�6�F�r�6�&�&FW"&�&FW"�w&��#F&��&�&FW"�w&��s�b#��F�b6�74��S�&f�W��W7F�g��&WGvVV��FV�2�6V�FW"�"�b#�ƃ"6�74��S�'FW�B׆�f��B�&��BFW�B�w&�ӓF&��FW�B�v��FR#�]����b�}�M�]����}�M�=�݊}�������#��'WGF����6Ɩ6�׶fWF6���vW7�F�6&�VC׶��F��t��vW7�6�74��S�&f�W��FV�2�6V�FW"v�"��B��"&r�w&����fW#�&r�w&��#F&��&r�w&��sF&����fW#�&r�w&��c&�V�FVB��rFW�B�6�f��B�&��BG&�6�F����6���'2F�6&�VC��6�G��S#��&Vg&W6�7r6�74��S׶r�B��BG���F��t��vW2�v��FR�7��r�rw�������݊��������'WGF�����F�c� ����F��t��vW2����F�b6�74��S�'��"f�W��W7F�g��6V�FW"#����FW#"6�74��S�'rӂ�ӂ��FR�7��FW�B�&��'�"����F�c���W'&�"����F�b6�74��S�'�ӂFW�B�6V�FW"FW�B�&VB�Sf��B�&��B#�W'&�'���F�c�����vW2��V�wF��������F�b6�74��S�'��"FW�B�6V�FW"FW�B�w&��S#�M�r�����͊��]�������]�=�}�݊��2�}�M�=�݊}���������F�c������F�b6�74��S�&w&�Bw&�B�6��2�"�BӦw&�B�6��2�Bv�B#����vW2�����r�����F�b�W�׶��r�V&Ɩ5��G�6�74��S�&w&�W&V�F�fR7V7B�7V&R&�V�FVB׆��fW&f��rֆ�FFV�&r�w&��F&��&r�w&�ӓ&�&FW"&�&FW"�w&��#F&��&�&FW"�w&��s#�Ɩ�r7&3׶��r�6V7W&U�W&���C�""6�74��S�'r�gV����gV���&�V7B�6�fW""���F�b6�74��S�&'6��WFR��6WB�&r�&�6��c�6�G��w&�Wֆ�fW#��6�G��G&�6�F�����6�G�f�W��FV�2�6V�FW"�W7F�g��6V�FW"v�"#��'WGF�� ���6Ɩ6�ײ������F�TFV�WFR���r�V&Ɩ5��B�ТF�6&�VC׶FV�WF��t�B�����r�V&Ɩ5��GТ6�74��S�'�2&r�&VB�c��fW#�&r�&VB�sFW�B�v��FR&�V�FVB�gV��G&�6�F����6���'2F�6&�VC��6�G��S �F�F�S�-�]�=���m�}�}�m�� ���FV�WF��t�B�����r�V&Ɩ5��B����FW#"6�74��S�'r�R��R��FR�7��"����G&6�"6�74��S�'r�R��R"��Т��'WGF�����F�c��F�b6�74��S�&'6��WFR&�GF����VgB�&�v�B��"&r�w&F�V�B�F��Bg&���&�6��F��G&�7&V�BFW�B�v��FRFW�Bׇ2G'V�6FR#����r�V&Ɩ5��B�7ƗB�r�r�����Т��F�c���F�c���Т��F�c��Т��F�c��Т��F�c���&�FV7FVD���WC����Р
+                  className={`h-full rounded-full ${isLimitReached ? 'bg-red-500' : isNearLimit ? 'bg-amber-500' : 'bg-primary'}`}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {!hasApiKeys ? (
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-6 text-center space-y-4">
+            <div className="mx-auto w-12 h-12 bg-amber-100 dark:bg-amber-900/40 rounded-full flex items-center justify-center text-amber-600 dark:text-amber-400">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900 dark:text-white text-lg">لم يتم إعداد مفاتيح API</h3>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">لعرض الصور ومسحها مباشرة من هنا، يجب إدخال API Key و API Secret في صفحة الإعدادات.</p>
+            </div>
+            <Link href="/settings" className="inline-block bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
+              الذهاب للإعدادات
+            </Link>
+          </div>
+        ) : (
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">معرض الصور السحابي</h2>
+              <button onClick={fetchImages} disabled={loadingImages} className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg text-sm font-bold transition-colors disabled:opacity-50">
+                <RefreshCw className={`w-4 h-4 ${loadingImages ? 'animate-spin' : ''}`} />
+                تحديث
+              </button>
+            </div>
+            
+            {loadingImages ? (
+              <div className="py-12 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+            ) : error ? (
+              <div className="py-8 text-center text-red-500 font-bold">{error}</div>
+            ) : images.length === 0 ? (
+              <div className="py-12 text-center text-gray-500">لا توجد صور في مساحتك السحابية.</div>
+            ) : (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {images.map(img => (
+                  <div key={img.public_id} className="group relative aspect-square rounded-xl overflow-hidden bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-700">
+                    <img src={img.secure_url} alt="" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <button 
+                        onClick={() => handleDelete(img.public_id)}
+                        disabled={deletingId === img.public_id}
+                        className="p-3 bg-red-600 hover:bg-red-700 text-white rounded-full transition-colors disabled:opacity-50"
+                        title="مسح نهائي"
+                      >
+                        {deletingId === img.public_id ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+                      </button>
+                    </div>
+                    <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/80 to-transparent text-white text-xs truncate">
+                      {img.public_id.split('/').pop()}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </ProtectedLayout>
+  );
+}
