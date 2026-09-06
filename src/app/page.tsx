@@ -119,8 +119,50 @@ export default function DashboardPage() {
   }
 
   const storageUsed = currentUser?.storage_used || 0;
-  const storageLimit = 100;
-  const storagePercent = Math.min((storageUsed / storageLimit) * 100, 100);
+  const [cloudSizePercent, setCloudSizePercent] = useState<number>(0);
+  const [isLoadingCloud, setIsLoadingCloud] = useState(false);
+
+  useEffect(() => {
+    async function fetchCloudStats() {
+      if (!currentUser?.cloudinary_api_key || !currentUser?.cloudinary_api_secret) return;
+      setIsLoadingCloud(true);
+      try {
+        let totalBytes = 0;
+        const res = await fetch('/api/cloudinary/list', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            cloud_name: currentUser.cloudinary_cloud_name,
+            api_key: currentUser.cloudinary_api_key,
+            api_secret: currentUser.cloudinary_api_secret
+          })
+        });
+        
+        let data;
+        if (res.status === 404) {
+          const auth = btoa(`${currentUser.cloudinary_api_key}:${currentUser.cloudinary_api_secret}`);
+          const directRes = await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/resources/image?max_results=500`, {
+            headers: { 'Authorization': `Basic ${auth}` }
+          });
+          data = await directRes.json();
+        } else {
+          data = await res.json();
+        }
+
+        if (data.resources) {
+          totalBytes = data.resources.reduce((acc: number, img: any) => acc + (img.bytes || 0), 0);
+        }
+        
+        const maxBytes = 25 * 1024 * 1024 * 1024; // 25 GB free tier limit
+        setCloudSizePercent(Math.min((totalBytes / maxBytes) * 100, 100));
+      } catch (err) {
+        console.error("Failed to fetch cloud stats", err);
+      } finally {
+        setIsLoadingCloud(false);
+      }
+    }
+    fetchCloudStats();
+  }, [currentUser]);
 
   return (
     <ProtectedLayout>
@@ -144,13 +186,19 @@ export default function DashboardPage() {
           
           <div className="w-full md:w-64 bg-gray-50 dark:bg-gray-900 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
             <div className="flex justify-between items-center mb-1">
-              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">مساحة الصور (Cloudinary)</span>
-              <span className="text-xs font-bold text-gray-900 dark:text-white">{storageUsed} / {storageLimit}</span>
+              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">الصور المرفوعة</span>
+              <span className="text-xs font-bold text-gray-900 dark:text-white">{storageUsed} صورة</span>
+            </div>
+            <div className="flex justify-between items-center mb-1 mt-2">
+              <span className="text-xs font-medium text-gray-500 dark:text-gray-400">المساحة المستهلكة</span>
+              <span className="text-xs font-bold text-gray-700 dark:text-gray-300" dir="ltr">
+                {isLoadingCloud ? "..." : `${cloudSizePercent.toFixed(4)}%`}
+              </span>
             </div>
             <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
               <div 
-                className={`h-full rounded-full ${storagePercent > 90 ? 'bg-red-500' : storagePercent > 70 ? 'bg-yellow-500' : 'bg-primary'}`} 
-                style={{ width: `${storagePercent}%` }} 
+                className={`h-full rounded-full transition-all duration-1000 ${cloudSizePercent > 90 ? 'bg-red-500' : cloudSizePercent > 70 ? 'bg-yellow-500' : 'bg-primary'}`} 
+                style={{ width: `${cloudSizePercent}%` }} 
               />
             </div>
           </div>
@@ -205,8 +253,11 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="text-right">
-              <span className="text-3xl font-black">{currentUser?.storage_used || 0}</span>
-              <span className="text-blue-200"> / 100</span>
+              <span className="text-3xl font-black">{storageUsed}</span>
+              <span className="text-blue-200 mr-2 text-sm">صورة مستخدمة</span>
+              <div className="mt-1 text-sm font-bold text-blue-100 bg-white/10 px-3 py-1 rounded-full" dir="ltr">
+                {isLoadingCloud ? "جاري الحساب..." : `${cloudSizePercent.toFixed(4)}% استهلاك`}
+              </div>
             </div>
           </div>
         </Link>
