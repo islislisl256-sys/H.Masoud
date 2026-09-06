@@ -17,6 +17,13 @@ export default function SettingsPage() {
   const [storeName, setStoreName] = useState("");
   const [storeLogo, setStoreLogo] = useState("");
   const [username, setUsername] = useState("");
+  
+  const [cloudName, setCloudName] = useState("");
+  const [uploadPreset, setUploadPreset] = useState("");
+  const [apiKey, setApiKey] = useState("");
+  const [apiSecret, setApiSecret] = useState("");
+  const [compressionQuality, setCompressionQuality] = useState(0.7);
+
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
 
@@ -26,6 +33,13 @@ export default function SettingsPage() {
       setStoreName(currentUser.store_name || "مكتبة الحاج مسعود");
       setStoreLogo(currentUser.store_logo || "");
       setUsername(currentUser.name || "HERMA");
+      setCloudName(currentUser.cloudinary_cloud_name || "");
+      setUploadPreset(currentUser.cloudinary_upload_preset || "");
+      setApiKey(currentUser.cloudinary_api_key || "");
+      setApiSecret(currentUser.cloudinary_api_secret || "");
+      if (currentUser.compression_quality !== undefined && currentUser.compression_quality !== null) {
+        setCompressionQuality(Number(currentUser.compression_quality));
+      }
     }
   }, [currentUser]);
 
@@ -40,7 +54,7 @@ export default function SettingsPage() {
 
     setUploadingLogo(true);
     try {
-      const compressedFile = await compressImage(file, 500, 0.8);
+      const compressedFile = await compressImage(file, 500, compressionQuality);
       const formData = new FormData();
       formData.append("file", compressedFile);
       formData.append("upload_preset", currentUser.cloudinary_upload_preset);
@@ -67,14 +81,23 @@ export default function SettingsPage() {
     if (!currentUser) return;
     setIsSaving(true);
     try {
+      const updates = { 
+        store_name: storeName, 
+        store_logo: storeLogo,
+        cloudinary_cloud_name: cloudName,
+        cloudinary_upload_preset: uploadPreset,
+        cloudinary_api_key: apiKey,
+        cloudinary_api_secret: apiSecret,
+        compression_quality: compressionQuality
+      };
       await mainSupabase
         .from("app_accounts")
-        .update({ store_name: storeName, store_logo: storeLogo })
+        .update(updates)
         .eq("id", currentUser.id);
       
-      const updated = { ...currentUser, store_name: storeName, store_logo: storeLogo };
+      const updated = { ...currentUser, ...updates };
       sessionStorage.setItem("currentUser", JSON.stringify(updated));
-      alert("تم الحفظ بنجاح! سيتم تطبيق التغييرات بعد التحديث.");
+      alert("تم الحفظ بنجاح! سيتم تطبيق التغييرات فوراً.");
     } catch (e) {
       alert("حدث خطأ أثناء الحفظ");
     } finally {
@@ -158,6 +181,48 @@ export default function SettingsPage() {
           </div>
 
           <div className="space-y-6">
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
+              <div className="flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 pb-4">
+                <UploadCloud className="h-6 w-6 text-primary" />
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">إعدادات الصور والتخزين</h2>
+              </div>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">جودة ضغط الصور (أقل = حجم أصغر، أعلى = دقة أوضح)</label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="range"
+                      min="0.1" max="1.0" step="0.1"
+                      value={compressionQuality}
+                      onChange={(e) => setCompressionQuality(Number(e.target.value))}
+                      className="flex-1 accent-primary"
+                    />
+                    <span className="text-sm font-bold w-12 text-center text-primary bg-primary/10 rounded py-1">{Math.round(compressionQuality * 100)}%</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Cloud Name</label>
+                    <input type="text" dir="ltr" value={cloudName} onChange={(e) => setCloudName(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-1 focus:ring-primary" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Upload Preset</label>
+                    <input type="text" dir="ltr" value={uploadPreset} onChange={(e) => setUploadPreset(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-1 focus:ring-primary" />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 pt-2">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Key</label>
+                    <input type="text" dir="ltr" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="اختياري (لمسح الصور)" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-1 focus:ring-primary" />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Secret</label>
+                    <input type="password" dir="ltr" value={apiSecret} onChange={(e) => setApiSecret(e.target.value)} placeholder="اختياري (لمسح الصور)" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-1 focus:ring-primary" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Account Settings */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
               <div className="flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 pb-4">

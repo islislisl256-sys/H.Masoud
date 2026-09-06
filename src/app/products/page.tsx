@@ -103,7 +103,8 @@ export default function ProductsPage() {
     if (used >= 100) {
       throw new Error("لقد استهلكت الحصة المجانية للصور (100 صورة).");
     }
-    const compressedFile = await compressImage(file, 800, 0.7);
+    const quality = currentUser.compression_quality !== undefined ? Number(currentUser.compression_quality) : 0.7;
+    const compressedFile = await compressImage(file, 800, quality);
     const formData = new FormData();
     formData.append("file", compressedFile);
     formData.append("upload_preset", currentUser.cloudinary_upload_preset);
@@ -246,8 +247,44 @@ export default function ProductsPage() {
 
   const handleDelete = async (id: string) => {
     if (confirm("حذف هذا المنتج؟")) {
+      const product = products.find(p => p.id === id);
       const { error } = await supabase.from('products').delete().eq('id', id);
-      if (!error) fetchProducts();
+      
+      if (!error) {
+        // Delete image from Cloudinary if it exists and API keys are set
+        if (product?.image_url && currentUser?.cloudinary_api_key && currentUser?.cloudinary_api_secret) {
+          try {
+            const parts = product.image_url.split('/upload/');
+            if (parts.length >= 2) {
+              const path = parts[1];
+              const withoutVersion = path.replace(/^v\d+\//, '');
+              const publicId = withoutVersion.replace(/\.[^/.]+$/, '');
+              
+              await fetch('/api/cloudinary/delete', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  public_id: publicId,
+                  cloud_name: currentUser.cloudinary_cloud_name,
+                  api_key: currentUser.cloudinary_api_key,
+                  api_secret: currentUser.cloudinary_api_secret,
+                })
+              });
+              
+              // Decrement storage used
+              const used = currentUser.storage_used || 0;
+              const newUsed = Math.max(0, used - 1);
+              await supabase.from("app_accounts").update({ storage_used: newUsed }).eq("id", currentUser.id);
+              
+              const updatedUser = { ...currentUser, storage_used: newUsed };
+              sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
+            }
+          } catch (err) {
+            console.error("Failed to delete image from Cloudinary", err);
+          }
+        }
+        fetchProducts();
+      }
     }
   };
 
