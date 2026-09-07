@@ -40,9 +40,9 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
       <div className="text-right mb-4">
         <div style={{ border: '1px solid #000000', padding: '10px', display: 'inline-block', minWidth: '350px', textAlign: 'right', fontWeight: 'bold' }}>
           <div className="text-lg mb-1">الزبون: {client_name}</div>
-          {store_rc && <div>س.ت: {store_rc}</div>}
-          {store_mf && <div>الرقم الجبائي: {store_mf}</div>}
-          {store_art && <div>رقم المادة: {store_art}</div>}
+          {client_rc && <div>س.ت: {client_rc}</div>}
+          {client_mf && <div>الرقم الجبائي: {client_mf}</div>}
+          {client_art && <div>رقم المادة: {client_art}</div>}
         </div>
       </div>
       <div className="text-center font-bold text-lg mb-1">
@@ -86,14 +86,14 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
             <td style={{ border: '1px solid #000000', padding: '8px' }}>{item.item_unit}</td>
             <td style={{ border: '1px solid #000000', padding: '8px' }}>{String(item.item_quantity).padStart(2, '0')}</td>
             <td style={{ border: '1px solid #000000', padding: '8px' }}>{Number(item.item_unit_price).toFixed(2).replace('.', ',')}</td>
-            <td style={{ border: '1px solid #000000', padding: '8px' }}>{Number(item.item_total_price).toFixed(2).replace('.', ',')}</td>
+            <td style={{ border: '1px solid #000000', padding: '8px' }}>0,00</td>
           </tr>
         ))}
         {/* Totals row for receipt */}
         <tr>
           <td colSpan={4} style={{ border: '1px solid #ffffff' }}></td>
           <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>المجموع</td>
-          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>{Number(total_amount_invoice).toFixed(2).replace('.', ',')}</td>
+          <td style={{ border: '1px solid #000000', padding: '8px', fontWeight: 'bold' }}>0,00</td>
         </tr>
       </tbody>
     </table>
@@ -142,12 +142,9 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
       <div className="text-right mb-4">
         <div style={{ border: '1px solid #000000', padding: '10px', display: 'inline-block', minWidth: '350px', textAlign: 'right', fontWeight: 'bold' }}>
           <div className="text-xl mb-1">في ذمة {client_name}</div>
-          <div>
-            {store_art && `رقم المادة: ${store_art} `}
-            {store_mf && `الرقم الجبائي: `}
-          </div>
-          {store_mf && <div>{store_mf}</div>}
-          {store_rc && <div>س.ت.رقم : {store_rc}</div>}
+          {client_art && <div>رقم المادة: {client_art}</div>}
+          {client_mf && <div>الرقم الجبائي: {client_mf}</div>}
+          {client_rc && <div>س.ت.رقم: {client_rc}</div>}
         </div>
       </div>
       
