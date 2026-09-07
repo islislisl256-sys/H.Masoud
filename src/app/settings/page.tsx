@@ -23,7 +23,7 @@ export default function SettingsPage() {
   const [apiKey, setApiKey] = useState("");
   const [apiSecret, setApiSecret] = useState("");
   const [compressionQuality, setCompressionQuality] = useState(0.7);
-const [maxImages, setMaxImages] = useState<number>(currentUser?.cloudinary_max_images ?? 100);
+  const [maxImages, setMaxImages] = useState(currentUser?.cloudinary_max_images ?? 100);
 
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -278,7 +278,7 @@ const [maxImages, setMaxImages] = useState<number>(currentUser?.cloudinary_max_i
             </div>
           </div>
         </div>
-      </div>
+
     </ProtectedLayout>
   );
 }
