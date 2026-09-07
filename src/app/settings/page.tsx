@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { Save, Lock, Store, UploadCloud, Loader2, Undo2, Mail, Link2 } from "lucide-react";
+import { Save, Lock, Store, UploadCloud, Loader2, Undo2, Mail, Link2, Cloud } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/contexts/AuthContext";
@@ -276,6 +276,31 @@ export default function SettingsPage() {
                 </Link>
               </div>
             </div>
+
+            {/* مساحة التخزين السحابية */}
+            <Link href="/cloud-stats" className="block w-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-5 shadow-sm text-white hover:shadow-md transition-shadow active:scale-[0.99]">
+              <div className="flex items-center gap-4 mb-3">
+                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                  <Cloud className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold">مساحة التخزين السحابية</h3>
+                  <p className="text-sm text-blue-100 mt-1">نسبة استهلاك الصور من الباقة المجانية</p>
+                </div>
+                <div className="mr-auto text-left">
+                  <span className="text-3xl font-black">{Math.min(((currentUser?.storage_used || 0) / (currentUser?.cloudinary_max_images ?? 100)) * 100, 100).toFixed(1)}%</span>
+                </div>
+              </div>
+              <div className="w-full h-3 bg-white/20 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all duration-700 ${
+                    ((currentUser?.storage_used || 0) / (currentUser?.cloudinary_max_images ?? 100)) * 100 >= 100 ? 'bg-red-400' :
+                    ((currentUser?.storage_used || 0) / (currentUser?.cloudinary_max_images ?? 100)) * 100 >= 80 ? 'bg-amber-400' : 'bg-white/80'
+                  }`}
+                  style={{ width: `${Math.min(((currentUser?.storage_used || 0) / (currentUser?.cloudinary_max_images ?? 100)) * 100, 100)}%` }}
+                />
+              </div>
+            </Link>
           </div>
         </div>
 

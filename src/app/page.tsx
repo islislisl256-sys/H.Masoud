@@ -118,9 +118,6 @@ export default function DashboardPage() {
     );
   }
 
-  const storageUsed = currentUser?.storage_used || 0;
-  const storageLimit = 100;
-  const storagePercent = Math.min((storageUsed / storageLimit) * 100, 100);
 
   return (
     <ProtectedLayout>
@@ -139,19 +136,6 @@ export default function DashboardPage() {
                 {currentUser?.store_name || "الرئيسية"}
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">لوحة التحكم والمؤشرات</p>
-            </div>
-          </div>
-          
-          <div className="w-full md:w-64 bg-gray-50 dark:bg-gray-900 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
-            <div className="flex justify-between items-center mb-1">
-              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">مساحة الصور (Cloudinary)</span>
-              <span className="text-xs font-bold text-gray-900 dark:text-white">{storageUsed} / {storageLimit}</span>
-            </div>
-            <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-              <div 
-                className={`h-full rounded-full ${storagePercent > 90 ? 'bg-red-500' : storagePercent > 70 ? 'bg-yellow-500' : 'bg-primary'}`} 
-                style={{ width: `${storagePercent}%` }} 
-              />
             </div>
           </div>
         </div>
@@ -192,26 +176,6 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* مساحة التخزين - رابط لصفحة الإحصائيات */}
-        <Link href="/cloud-stats" className="block w-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-5 shadow-sm text-white hover:shadow-md transition-shadow active:scale-[0.99]">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                <Cloud className="w-8 h-8" />
-              </div>
-              <div>
-                <h3 className="text-lg font-bold">إحصائيات مساحة الصور</h3>
-                <p className="text-sm text-blue-100 mt-1">اضغط هنا لمعرفة تفاصيل استهلاك المساحة المجانية (Cloudinary)</p>
-              </div>
-            </div>
-            <div className="text-right">
-              <span className="text-3xl font-black">{currentUser?.storage_used || 0}</span>
-              <span className="text-blue-200"> / 100</span>
-            </div>
-          </div>
-        </Link>
-
-        {/* بطاقات المبيعات والأرباح - قابلة للنقر */}
         <div className="grid gap-4 grid-cols-2">
           <button onClick={scrollToChart} className="text-right bg-white dark:bg-gray-800 rounded-xl p-5 shadow-sm border border-gray-200 dark:border-gray-700 hover:border-primary/50 transition-colors active:scale-[0.98]">
             <div className="flex justify-between items-start">
