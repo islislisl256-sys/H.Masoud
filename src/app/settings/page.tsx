@@ -23,6 +23,7 @@ export default function SettingsPage() {
   const [apiKey, setApiKey] = useState("");
   const [apiSecret, setApiSecret] = useState("");
   const [compressionQuality, setCompressionQuality] = useState(0.7);
+const [maxImages, setMaxImages] = useState<number>(currentUser?.cloudinary_max_images ?? 100);
 
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -88,7 +89,8 @@ export default function SettingsPage() {
         cloudinary_upload_preset: uploadPreset,
         cloudinary_api_key: apiKey,
         cloudinary_api_secret: apiSecret,
-        compression_quality: compressionQuality
+        compression_quality: compressionQuality,
+        cloudinary_max_images: maxImages,
       };
       await mainSupabase
         .from("app_accounts")
@@ -198,7 +200,12 @@ export default function SettingsPage() {
                     <input type="text" dir="ltr" value={uploadPreset} onChange={(e) => setUploadPreset(e.target.value)} className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-1 focus:ring-primary" />
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4 pt-2">
+                                  <div className="grid grid-cols-2 gap-4 pt-2">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">عدد الصور المسموح به (100‑1500)</label>
+                      <input type="number" dir="ltr" min="100" max="1500" value={maxImages} onChange={(e) => setMaxImages(Number(e.target.value))} className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-1 focus:ring-primary" />
+                    </div>
+                  </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Key (مطلوب للمسح)</label>
                     <input type="text" dir="ltr" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="اختياري (لمسح الصور)" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-1 focus:ring-primary" />

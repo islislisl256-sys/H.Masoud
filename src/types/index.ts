@@ -29,11 +29,13 @@ export type InvoiceItem = {
   profit: number;
 };
 
-export type Settings = {
+export type User = {
   id: string;
-  library_name: string;
-  username: string;
-  password_hash: string;
-  dark_mode: boolean;
-  logo: string | null;
+  name: string;
+  email: string;
+  cloudinary_max_images?: number;
+  // other fields may exist
 };
+
+// Extend existing exported types if needed
+
