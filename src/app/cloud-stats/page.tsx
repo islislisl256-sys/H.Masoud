@@ -146,32 +146,20 @@ export default function CloudStatsPage() {
             <div className="flex justify-between items-end mb-6">
               <div>
                 <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">استهلاك الباقة المجانية</h2>
-                <p className="text-gray-500 dark:text-gray-400">تحكم بالصور لتقليل مساحة التخزين</p>
+                <p className="text-gray-500 dark:text-gray-400">نسبة الاستهلاك من العرض المجاني</p>
               </div>
               <div className="text-right">
-                <span className="text-4xl font-black text-primary" dir="ltr">{currentImages}</span>
-                <span className="text-xl text-gray-400" dir="ltr"> / {maxImages}</span>
-                <p className="text-sm font-bold text-gray-500 mt-1">عدد الصور</p>
+                <span className={`text-4xl font-black ${isLimitReached ? 'text-red-500' : isNearLimit ? 'text-amber-500' : 'text-primary'}`} dir="ltr">{percentage.toFixed(2)}%</span>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-between text-sm font-bold">
-                <span className={isLimitReached ? "text-red-500" : isNearLimit ? "text-amber-500" : "text-green-500"}>
-                  المستهلك: {percentage.toFixed(4)}%
-                </span>
-                <span className="text-gray-500" dir="ltr">
-                  المتبقي: {maxImages - currentImages}
-                </span>
-              </div>
-              <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                <motion.div 
-                  initial={{ width: 0 }}
-                  animate={{ width: `${percentage}%` }}
-                  transition={{ duration: 1, ease: "easeOut" }}
-                  className={`h-full rounded-full ${isLimitReached ? 'bg-red-500' : isNearLimit ? 'bg-amber-500' : 'bg-primary'}`}
-                />
-              </div>
+            <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${percentage}%` }}
+                transition={{ duration: 1, ease: "easeOut" }}
+                className={`h-full rounded-full ${isLimitReached ? 'bg-red-500' : isNearLimit ? 'bg-amber-500' : 'bg-primary'}`}
+              />
             </div>
           </div>
         </div>
