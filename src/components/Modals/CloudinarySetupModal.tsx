@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Cloud, X, ExternalLink, LogIn, CheckCircle2, Loader2, Sparkles, ChevronDown, ChevronUp, AlertOctagon, RefreshCw, Lock } from "lucide-react";
+import { Cloud, X, ExternalLink, LogIn, CheckCircle2, Loader2, Sparkles, ChevronDown, ChevronUp, AlertOctagon, RefreshCw, Lock, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { mainSupabase } from "@/lib/supabase";
 import { DEFAULT_CLOUDINARY_CONFIG } from "@/lib/cloudinaryConfig";
@@ -20,7 +20,7 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
   const [showManual, setShowManual] = useState(false);
 
   useEffect(() => {
-    if (currentUser) {
+    if (currentUser && isOpen) {
       setCloudName(currentUser.cloudinary_cloud_name || "");
       setUploadPreset(currentUser.cloudinary_upload_preset || "");
       setApiKey(currentUser.cloudinary_api_key || "");
@@ -37,14 +37,12 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
     setProgressPercent(15);
     setStepMessage("جاري التحقق من تسجيل الدخول واستدعاء الحساب...");
 
-    // Open Cloudinary Login portal in a pop-up tab if initiating login
     try {
-      // Step 1: Simulated Auth Window Call
       await new Promise(resolve => setTimeout(resolve, 800));
       setProgressPercent(45);
-      setStepMessage("جاري تهيئة واختبار كود الرفع واستدعاء المفاتيح...");
+      setStepMessage("جاري تهيئة واختبار كود الرفع والمفاتيح السحابية...");
 
-      // Step 2: Perform Real Verification Ping Test
+      // Perform Real Verification Ping Test
       const testRes = await fetch('/api/cloudinary/list', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -58,14 +56,13 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
       const testData = await testRes.json().catch(() => ({}));
 
       if (testRes.status !== 200 && testData.error && !testData.resources) {
-        // Verification Failed
-        throw new Error(typeof testData.error === 'string' ? testData.error : testData.error?.message || "فشل الاتصال بالسحابة المحدد. يرجى التأكد من البيانات.");
+        throw new Error(typeof testData.error === 'string' ? testData.error : testData.error?.message || "فشل الاتصال بالسحابة المحدد. يرجى التأكد من بيانات الحساب.");
       }
 
       setProgressPercent(85);
-      setStepMessage("جاري تأكيد جاهزية الاتصال وحفظ البيانات في الخلفية...");
+      setStepMessage("جاري تأكيد جاهزية الاتصال وحفظ الحساب الجديد...");
 
-      // Step 3: Save verified credentials to Supabase app_accounts
+      // Save verified credentials to Supabase app_accounts
       const updates = {
         cloudinary_cloud_name: targetCloud,
         cloudinary_upload_preset: targetPreset,
@@ -99,12 +96,37 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
 
   const handleOAuthConnect = () => {
     window.open("https://cloudinary.com/users/login", "_blank");
-    const targetCloud = cloudName.trim() || currentUser?.cloudinary_cloud_name || DEFAULT_CLOUDINARY_CONFIG.cloudName;
-    const targetPreset = uploadPreset.trim() || currentUser?.cloudinary_upload_preset || DEFAULT_CLOUDINARY_CONFIG.uploadPreset;
-    const targetKey = apiKey.trim() || currentUser?.cloudinary_api_key || DEFAULT_CLOUDINARY_CONFIG.apiKey;
-    const targetSecret = apiSecret.trim() || currentUser?.cloudinary_api_secret || DEFAULT_CLOUDINARY_CONFIG.apiSecret;
+    
+    // When changing accounts, prefer entered new values, otherwise use defaults
+    const targetCloud = cloudName.trim() || DEFAULT_CLOUDINARY_CONFIG.cloudName;
+    const targetPreset = uploadPreset.trim() || DEFAULT_CLOUDINARY_CONFIG.uploadPreset;
+    const targetKey = apiKey.trim() || DEFAULT_CLOUDINARY_CONFIG.apiKey;
+    const targetSecret = apiSecret.trim() || DEFAULT_CLOUDINARY_CONFIG.apiSecret;
 
     runVerificationAndLink(targetCloud, targetPreset, targetKey, targetSecret);
+  };
+
+  const handleDisconnect = async () => {
+    if (!confirm("هل أنت متأكد من فك ربط حساب السحابة الحالي؟")) return;
+    try {
+      const updates = {
+        cloudinary_cloud_name: null,
+        cloudinary_upload_preset: null,
+        cloudinary_api_key: null,
+        cloudinary_api_secret: null,
+      };
+      await mainSupabase.from("app_accounts").update(updates).eq("id", currentUser.id);
+      const updatedUser = { ...currentUser, ...updates };
+      sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
+      setCloudName("");
+      setUploadPreset("");
+      setApiKey("");
+      setApiSecret("");
+      alert("تم فك ربط الحساب بنجاح.");
+      onSuccess();
+    } catch (e) {
+      alert("حدث خطأ أثناء فك الربط");
+    }
   };
 
   const handleManualSave = () => {
@@ -191,7 +213,7 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white">تسجيل الدخول وإقران حساب الصور</h2>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">الربط التلقائي واختبار الجاهزية (Cloudinary)</p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">الربط التلقائي وتغيير الحساب (Cloudinary)</p>
                 </div>
               </div>
 
@@ -207,7 +229,7 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
               )}
 
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed bg-blue-50/50 dark:bg-blue-900/10 p-3.5 rounded-xl border border-blue-100 dark:border-blue-800/40">
-                قم بتسجيل الدخول إلى حساب السحابة الخاص بك، وسيتولى التطبيق تلقائياً استدعاء المساحة وإجراء اختبار الاتصال والربط في الخلفية.
+                قم بتسجيل الدخول إلى حساب السحابة الجديد الخاص بك، وسيتولى التطبيق تلقائياً استدعاء المساحة وإجراء اختبار الاتصال والربط في الخلفية.
               </p>
 
               <div className="space-y-3">
@@ -231,6 +253,16 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
                   <span>إنشاء حساب جديد مجاني على Cloudinary</span>
                   <ExternalLink className="h-3.5 w-3.5 ml-auto text-gray-400" />
                 </a>
+
+                {currentUser?.cloudinary_cloud_name && (
+                  <button
+                    onClick={handleDisconnect}
+                    className="w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 py-2.5 px-4 rounded-xl font-bold transition-colors text-xs border border-red-200 dark:border-red-800/40"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    <span>فك ربط الحساب الحالي ({currentUser.cloudinary_cloud_name})</span>
+                  </button>
+                )}
               </div>
 
               {/* Optional Advanced Keys Manual Toggle */}
@@ -240,7 +272,7 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
                   onClick={() => setShowManual(!showManual)}
                   className="flex items-center justify-between w-full text-xs font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                 >
-                  <span>إدخال البيانات والمفاتيح يدوياً وإجراء اختبار الربط (متقدم)</span>
+                  <span>إدخال أو تعديل البيانات يدوياً وإجراء اختبار الربط (متقدم)</span>
                   {showManual ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                 </button>
 
