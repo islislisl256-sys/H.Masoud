@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { Save, Lock, Store, UploadCloud, Loader2, Undo2, Mail, Link2, Cloud } from "lucide-react";
+import { Save, Lock, Store, UploadCloud, Loader2, Undo2, Mail, Link2, Cloud, LogIn, CheckCircle2 } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/contexts/AuthContext";
 import { mainSupabase } from "@/lib/supabase";
 import { compressImage } from "@/lib/imageUtils";
 import { getCloudinaryCloudName, getCloudinaryUploadPreset, getCloudinaryApiKey, getCloudinaryApiSecret, getCloudinaryMaxImages } from "@/lib/cloudinaryConfig";
+import CloudinarySetupModal from "@/components/Modals/CloudinarySetupModal";
 
 export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
@@ -26,6 +27,7 @@ export default function SettingsPage() {
   const [compressionQuality, setCompressionQuality] = useState(0.7);
   const [maxImages, setMaxImages] = useState(currentUser?.cloudinary_max_images ?? 100);
   const [showAdvancedCloud, setShowAdvancedCloud] = useState(false);
+  const [showCloudModal, setShowCloudModal] = useState(false);
 
   const [isSaving, setIsSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
@@ -188,55 +190,36 @@ export default function SettingsPage() {
                   <UploadCloud className="h-6 w-6 text-primary" />
                   <h2 className="text-xl font-bold text-gray-900 dark:text-white">إعدادات التخزين السحابي</h2>
                 </div>
-                <span className="text-xs font-bold px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full flex items-center gap-1">
-                  ● الربط التلقائي مفعل
-                </span>
+                {currentUser?.cloudinary_cloud_name ? (
+                  <span className="text-xs font-bold px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full flex items-center gap-1">
+                    ● مرتبط ({currentUser.cloudinary_cloud_name})
+                  </span>
+                ) : (
+                  <span className="text-xs font-bold px-3 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full flex items-center gap-1">
+                    ● لم يتم الربط بعد
+                  </span>
+                )}
               </div>
               
               <div className="space-y-4">
                 <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                  يتم رفع وتخزين صور المنتجات والشعار تلقائياً في الخلفية بدون الحاجة إلى إعدادات يدوية.
+                  يمكنك تسجيل الدخول لحساب مساحة الصور الخاص بك أو تغييره في أي وقت من هنا.
                 </p>
 
-                <div>
+                {/* Dedicated Cloud Account Login / Connection Button */}
+                <button
+                  type="button"
+                  onClick={() => setShowCloudModal(true)}
+                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-all active:scale-[0.99]"
+                >
+                  <LogIn className="w-5 h-5" />
+                  <span>{currentUser?.cloudinary_cloud_name ? "تغيير حساب الصور / تسجيل دخول جديد" : "تسجيل الدخول / ربط حساب الصور"}</span>
+                </button>
+
+                <div className="pt-2">
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الحد الأقصى للصور المسموح بها في الباقة (100‑1500)</label>
                   <input type="number" dir="ltr" min="100" max="1500" value={maxImages} onChange={(e) => setMaxImages(Number(e.target.value))} className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-1 focus:ring-primary" />
                 </div>
-
-                <div className="pt-2">
-                  <button 
-                    type="button" 
-                    onClick={() => setShowAdvancedCloud(!showAdvancedCloud)}
-                    className="text-xs text-primary hover:underline font-bold"
-                  >
-                    {showAdvancedCloud ? "▲ إخفاء الإعدادات المتقدمة" : "▼ إعدادات سحابية مخصصة (متقدم)"}
-                  </button>
-                </div>
-
-                {showAdvancedCloud && (
-                  <div className="space-y-4 pt-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40 p-4 rounded-xl">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Cloud Name مخصص</label>
-                        <input type="text" dir="ltr" value={cloudName} onChange={(e) => setCloudName(e.target.value)} placeholder="اختياري" className="w-full px-3 py-2 border rounded-lg text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-1 focus:ring-primary" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Upload Preset مخصص</label>
-                        <input type="text" dir="ltr" value={uploadPreset} onChange={(e) => setUploadPreset(e.target.value)} placeholder="اختياري" className="w-full px-3 py-2 border rounded-lg text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-1 focus:ring-primary" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">API Key مخصص</label>
-                        <input type="text" dir="ltr" value={apiKey} onChange={(e) => setApiKey(e.target.value)} placeholder="اختياري" className="w-full px-3 py-2 border rounded-lg text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-1 focus:ring-primary" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">API Secret مخصص</label>
-                        <input type="password" dir="ltr" value={apiSecret} onChange={(e) => setApiSecret(e.target.value)} placeholder="اختياري" className="w-full px-3 py-2 border rounded-lg text-xs dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-1 focus:ring-primary" />
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
               <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
                 <button disabled={isSaving} onClick={handleSaveStore} className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 text-sm font-bold">
@@ -326,6 +309,15 @@ export default function SettingsPage() {
           </div>
         </div>
       </div>
+
+      <CloudinarySetupModal
+        isOpen={showCloudModal}
+        onClose={() => setShowCloudModal(false)}
+        onSuccess={() => {
+          setShowCloudModal(false);
+          window.location.reload();
+        }}
+      />
     </ProtectedLayout>
   );
 }
