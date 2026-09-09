@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { Cloud, X, ExternalLink, LogIn, CheckCircle2, Loader2, Sparkles, ChevronDown, ChevronUp, AlertOctagon, RefreshCw, Lock, Trash2 } from "lucide-react";
+import { Cloud, X, ExternalLink, CheckCircle2, Loader2, Sparkles, AlertOctagon, RefreshCw, Lock, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { mainSupabase } from "@/lib/supabase";
-import { DEFAULT_CLOUDINARY_CONFIG } from "@/lib/cloudinaryConfig";
 
 export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose: () => void; onSuccess: () => void }) {
   const { currentUser } = useAuth();
@@ -17,7 +16,6 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
   
   const [isSuccess, setIsSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [showManual, setShowManual] = useState(false);
 
   useEffect(() => {
     if (currentUser && isOpen) {
@@ -94,16 +92,12 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
     }
   };
 
-  const handleOAuthConnect = () => {
-    window.open("https://cloudinary.com/users/login", "_blank");
-    
-    // When changing accounts, prefer entered new values, otherwise use defaults
-    const targetCloud = cloudName.trim() || DEFAULT_CLOUDINARY_CONFIG.cloudName;
-    const targetPreset = uploadPreset.trim() || DEFAULT_CLOUDINARY_CONFIG.uploadPreset;
-    const targetKey = apiKey.trim() || DEFAULT_CLOUDINARY_CONFIG.apiKey;
-    const targetSecret = apiSecret.trim() || DEFAULT_CLOUDINARY_CONFIG.apiSecret;
-
-    runVerificationAndLink(targetCloud, targetPreset, targetKey, targetSecret);
+  const handleConnect = () => {
+    if (!cloudName.trim() || !uploadPreset.trim() || !apiKey.trim() || !apiSecret.trim()) {
+      setErrorMessage("يرجى إدخال جميع بيانات الربط (Cloud Name, Upload Preset, API Key, API Secret) لإتمام الربط بشكل حقيقي.");
+      return;
+    }
+    runVerificationAndLink(cloudName.trim(), uploadPreset.trim(), apiKey.trim(), apiSecret.trim());
   };
 
   const handleDisconnect = async () => {
@@ -127,17 +121,6 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
     } catch (e) {
       alert("حدث خطأ أثناء فك الربط");
     }
-  };
-
-  const handleManualSave = () => {
-    if (!cloudName || !uploadPreset) {
-      alert("يرجى إدخال اسم السحابة (Cloud Name) وكود الرفع (Upload Preset)");
-      return;
-    }
-    const targetKey = apiKey.trim() || DEFAULT_CLOUDINARY_CONFIG.apiKey;
-    const targetSecret = apiSecret.trim() || DEFAULT_CLOUDINARY_CONFIG.apiSecret;
-
-    runVerificationAndLink(cloudName.trim(), uploadPreset.trim(), targetKey, targetSecret);
   };
 
   return (
@@ -212,8 +195,8 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
                   <Cloud className="h-7 w-7" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">تسجيل الدخول وإقران حساب الصور</h2>
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">الربط التلقائي وتغيير الحساب (Cloudinary)</p>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">ربط حساب Cloudinary الخاص بك</h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">أدخل بيانات حسابك الحقيقية لربط التطبيق بالسحابة</p>
                 </div>
               </div>
 
@@ -222,119 +205,98 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
                 <div className="mb-5 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4 rounded-2xl flex items-start gap-3 text-red-600 dark:text-red-400 text-xs leading-relaxed">
                   <AlertOctagon className="w-5 h-5 flex-shrink-0 text-red-500 mt-0.5" />
                   <div>
-                    <span className="font-bold block text-sm mb-1">فشلت عملية الربط والتأكد:</span>
+                    <span className="font-bold block text-sm mb-1">تنبيه:</span>
                     <span>{errorMessage}</span>
                   </div>
                 </div>
               )}
 
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed bg-blue-50/50 dark:bg-blue-900/10 p-3.5 rounded-xl border border-blue-100 dark:border-blue-800/40">
-                قم بتسجيل الدخول إلى حساب السحابة الجديد الخاص بك، وسيتولى التطبيق تلقائياً استدعاء المساحة وإجراء اختبار الاتصال والربط في الخلفية.
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed">
+                لضمان ربط حقيقي بمساحتك الخاصة، يرجى استخراج البيانات التالية من لوحة تحكم Cloudinary الخاصة بك وإدخالها هنا.
               </p>
 
-              <div className="space-y-3">
-                {/* 1-Click Login & Auto Connect Button */}
-                <button
-                  onClick={handleOAuthConnect}
-                  disabled={isLinking}
-                  className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3.5 px-4 rounded-xl font-bold shadow-md transition-all active:scale-[0.99] text-base disabled:opacity-50"
-                >
-                  <LogIn className="h-5 w-5" />
-                  <span>🔑 تسجيل الدخول إلى Cloudinary والربط التلقائي</span>
-                </button>
-
-                <a
-                  href="https://cloudinary.com/users/register/free"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 py-3 px-4 rounded-xl font-bold transition-colors text-sm"
-                >
-                  <Sparkles className="h-4 w-4 text-amber-500" />
-                  <span>إنشاء حساب جديد مجاني على Cloudinary</span>
-                  <ExternalLink className="h-3.5 w-3.5 ml-auto text-gray-400" />
-                </a>
-
-                {currentUser?.cloudinary_cloud_name && (
-                  <button
-                    onClick={handleDisconnect}
-                    className="w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 py-2.5 px-4 rounded-xl font-bold transition-colors text-xs border border-red-200 dark:border-red-800/40"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                    <span>فك ربط الحساب الحالي ({currentUser.cloudinary_cloud_name})</span>
-                  </button>
-                )}
-              </div>
-
-              {/* Optional Advanced Keys Manual Toggle */}
-              <div className="mt-6 pt-4 border-t border-gray-100 dark:border-gray-700">
-                <button
-                  type="button"
-                  onClick={() => setShowManual(!showManual)}
-                  className="flex items-center justify-between w-full text-xs font-bold text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
-                >
-                  <span>إدخال أو تعديل البيانات يدوياً وإجراء اختبار الربط (متقدم)</span>
-                  {showManual ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </button>
-
-                {showManual && (
-                  <div className="space-y-3 mt-3 p-4 bg-gray-50 dark:bg-gray-900/40 rounded-xl border border-gray-200 dark:border-gray-700">
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Cloud Name *</label>
-                        <input
-                          type="text"
-                          value={cloudName}
-                          onChange={(e) => setCloudName(e.target.value)}
-                          placeholder="dz8n..."
-                          dir="ltr"
-                          className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-xs"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Upload Preset *</label>
-                        <input
-                          type="text"
-                          value={uploadPreset}
-                          onChange={(e) => setUploadPreset(e.target.value)}
-                          placeholder="preset_name"
-                          dir="ltr"
-                          className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-xs"
-                        />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">API Key</label>
-                        <input
-                          type="text"
-                          value={apiKey}
-                          onChange={(e) => setApiKey(e.target.value)}
-                          placeholder="API Key"
-                          dir="ltr"
-                          className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-xs"
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">API Secret</label>
-                        <input
-                          type="password"
-                          value={apiSecret}
-                          onChange={(e) => setApiSecret(e.target.value)}
-                          placeholder="API Secret"
-                          dir="ltr"
-                          className="w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-xs"
-                        />
-                      </div>
-                    </div>
-                    <button
-                      onClick={handleManualSave}
-                      className="w-full mt-2 bg-primary text-white py-2.5 rounded-lg text-xs font-bold hover:bg-primary/90 flex items-center justify-center gap-2"
-                    >
-                      <RefreshCw className="w-3.5 h-3.5" />
-                      <span>اختبار الاتصال وحفظ الربط اليدوي</span>
-                    </button>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Cloud Name *</label>
+                    <input
+                      type="text"
+                      value={cloudName}
+                      onChange={(e) => setCloudName(e.target.value)}
+                      placeholder="مثال: dz8n..."
+                      dir="ltr"
+                      className="w-full px-4 py-2.5 border rounded-xl bg-gray-50 dark:bg-gray-700/50 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
                   </div>
-                )}
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">Upload Preset *</label>
+                    <input
+                      type="text"
+                      value={uploadPreset}
+                      onChange={(e) => setUploadPreset(e.target.value)}
+                      placeholder="مثال: preset_name"
+                      dir="ltr"
+                      className="w-full px-4 py-2.5 border rounded-xl bg-gray-50 dark:bg-gray-700/50 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">API Key *</label>
+                    <input
+                      type="text"
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                      placeholder="مفتاح الواجهة"
+                      dir="ltr"
+                      className="w-full px-4 py-2.5 border rounded-xl bg-gray-50 dark:bg-gray-700/50 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-1.5">API Secret *</label>
+                    <input
+                      type="password"
+                      value={apiSecret}
+                      onChange={(e) => setApiSecret(e.target.value)}
+                      placeholder="الرمز السري"
+                      dir="ltr"
+                      className="w-full px-4 py-2.5 border rounded-xl bg-gray-50 dark:bg-gray-700/50 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-gray-100 dark:border-gray-700 space-y-3">
+                  <button
+                    onClick={handleConnect}
+                    disabled={isLinking}
+                    className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3.5 px-4 rounded-xl font-bold shadow-md transition-all active:scale-[0.99] text-base disabled:opacity-50"
+                  >
+                    <RefreshCw className="h-5 w-5" />
+                    <span>اختبار الاتصال وحفظ الربط الحقيقي</span>
+                  </button>
+
+                  <a
+                    href="https://cloudinary.com/users/register/free"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 py-3 px-4 rounded-xl font-bold transition-colors text-sm"
+                  >
+                    <Sparkles className="h-4 w-4 text-amber-500" />
+                    <span>إنشاء حساب جديد على Cloudinary إذا لم تكن تملك واحداً</span>
+                    <ExternalLink className="h-3.5 w-3.5 ml-auto text-gray-400" />
+                  </a>
+
+                  {currentUser?.cloudinary_cloud_name && (
+                    <button
+                      onClick={handleDisconnect}
+                      className="w-full flex items-center justify-center gap-2 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 py-2.5 px-4 rounded-xl font-bold transition-colors text-sm border border-red-200 dark:border-red-800/40 mt-2"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                      <span>فك ربط الحساب الحالي ({currentUser.cloudinary_cloud_name})</span>
+                    </button>
+                  )}
+                </div>
               </div>
             </>
           )}
