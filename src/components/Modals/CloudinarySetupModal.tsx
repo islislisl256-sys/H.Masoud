@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Cloud, X, ExternalLink, LogIn, CheckCircle2, Loader2, Sparkles, ChevronDown, ChevronUp } from "lucide-react";
+import { Cloud, X, ExternalLink, LogIn, CheckCircle2, Loader2, Sparkles, ChevronDown, ChevronUp, Lock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { mainSupabase } from "@/lib/supabase";
 
@@ -13,6 +13,7 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [showManual, setShowManual] = useState(false);
+  const [loadingStep, setLoadingStep] = useState("جاري الاتصال بالسحابة...");
 
   useEffect(() => {
     if (currentUser) {
@@ -28,9 +29,14 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
   const handleCloudinaryOAuthConnect = async () => {
     setIsLoading(true);
     setIsSuccess(false);
+    setLoadingStep("جاري فتح شاشة تسجيل الدخول وبوابة السحابة...");
 
-    // Open Cloudinary Login portal for user authentication
+    // Open Cloudinary Login portal in separate window
     window.open("https://cloudinary.com/users/login", "_blank");
+
+    setTimeout(() => {
+      setLoadingStep("جاري التحقق من الحساب واستدعاء المساحة السحابية...");
+    }, 1200);
 
     // Automatically bind / auto-provision the cloud connection in the background
     try {
@@ -50,12 +56,15 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
       sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
 
       setTimeout(() => {
-        setIsLoading(false);
-        setIsSuccess(true);
+        setLoadingStep("تم تأكيد الاستجابة وجاري إنهاء الربط...");
         setTimeout(() => {
-          onSuccess();
-        }, 1500);
-      }, 1800);
+          setIsLoading(false);
+          setIsSuccess(true);
+          setTimeout(() => {
+            onSuccess();
+          }, 1800);
+        }, 1000);
+      }, 2000);
     } catch (e) {
       setIsLoading(false);
       alert("حدث خطأ أثناء إجراء الربط التلقائي في الخلفية");
@@ -69,6 +78,7 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
     }
     
     setIsLoading(true);
+    setLoadingStep("جاري حفظ التغييرات والربط يدوياً...");
     try {
       const updates = {
         cloudinary_cloud_name: cloudName.trim(),
@@ -82,11 +92,13 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
       const updatedUser = { ...currentUser, ...updates };
       sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
       
-      setIsLoading(false);
-      setIsSuccess(true);
       setTimeout(() => {
-        onSuccess();
-      }, 1500);
+        setIsLoading(false);
+        setIsSuccess(true);
+        setTimeout(() => {
+          onSuccess();
+        }, 1500);
+      }, 1000);
     } catch (e) {
       setIsLoading(false);
       alert("حدث خطأ أثناء حفظ التغييرات");
@@ -94,33 +106,72 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden relative border border-gray-100 dark:border-gray-700">
-        <div className="p-6">
-          <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
-            <X className="h-6 w-6" />
-          </button>
-          
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-2xl shadow-md">
-              <Cloud className="h-7 w-7" />
-            </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">تسجيل الدخول وإقران حساب الصور</h2>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">الربط التلقائي بمساحة التخزين السحابية (Cloudinary)</p>
-            </div>
-          </div>
+    <div 
+      className={`fixed inset-0 z-[100] flex items-center justify-center p-4 transition-all duration-300 ${
+        isLoading ? "bg-black/80 backdrop-blur-md pointer-events-auto cursor-wait" : "bg-black/50 backdrop-blur-sm"
+      }`}
+      onClick={(e) => {
+        // Prevent closing modal by background click during loading
+        if (isLoading) {
+          e.stopPropagation();
+        }
+      }}
+    >
+      <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden relative border border-gray-100 dark:border-gray-700">
+        <div className="p-8">
+          {/* Close button - hidden during loading to prevent canceling */}
+          {!isLoading && !isSuccess && (
+            <button 
+              onClick={onClose} 
+              className="absolute top-5 right-5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            >
+              <X className="h-6 w-6" />
+            </button>
+          )}
 
-          {isSuccess ? (
-            <div className="py-8 text-center space-y-3">
-              <div className="w-16 h-16 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto shadow-inner animate-bounce">
-                <CheckCircle2 className="w-10 h-10" />
+          {/* 1. Full-Screen Blocking Loading State */}
+          {isLoading ? (
+            <div className="py-10 text-center space-y-6 select-none">
+              <div className="relative w-24 h-24 mx-auto flex items-center justify-center">
+                <div className="absolute inset-0 border-4 border-blue-200 dark:border-blue-900 rounded-full animate-ping opacity-30" />
+                <div className="absolute inset-0 border-4 border-t-blue-600 border-r-indigo-600 border-b-transparent border-l-transparent rounded-full animate-spin" />
+                <Cloud className="w-10 h-10 text-blue-600 dark:text-blue-400 animate-pulse" />
               </div>
-              <h3 className="text-xl font-bold text-gray-900 dark:text-white">تم تسجيل الدخول وربط الحساب السحابي بنجاح! 🎉</h3>
-              <p className="text-sm text-gray-500 dark:text-gray-400">التطبيق جاهز الآن لرفع وتخزين الصور أوتوماتيكياً في الخلفية.</p>
+
+              <div className="space-y-2">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white">جاري الربط والتحقق التلقائي...</h3>
+                <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold">{loadingStep}</p>
+              </div>
+
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 p-4 rounded-2xl text-xs text-amber-700 dark:text-amber-300 font-medium leading-relaxed max-w-sm mx-auto flex items-center gap-2 text-right">
+                <Lock className="w-5 h-5 flex-shrink-0 text-amber-500" />
+                <span>الرجاء الانتظار، يمنع التراجع أو التصفح حتى يتم إكمال عملية الربط التلقائي وإعلامك بتم النجاح.</span>
+              </div>
+            </div>
+          ) : isSuccess ? (
+            /* 2. Success State Notification */
+            <div className="py-8 text-center space-y-4 select-none">
+              <div className="w-20 h-20 bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto shadow-inner animate-bounce">
+                <CheckCircle2 className="w-12 h-12" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="text-2xl font-black text-gray-900 dark:text-white">تم تسجيل الدخول وربط الحساب السحابي بنجاح! 🎉</h3>
+                <p className="text-sm text-gray-500 dark:text-gray-400">التطبيق جاهز الآن ومزود بمساحة الصور السحابية للتخزين والرفع التلقائي.</p>
+              </div>
             </div>
           ) : (
+            /* 3. Normal State Form */
             <>
+              <div className="flex items-center gap-3 mb-4">
+                <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-2xl shadow-md">
+                  <Cloud className="h-7 w-7" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">تسجيل الدخول وإقران حساب الصور</h2>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">الربط التلقائي بمساحة التخزين السحابية (Cloudinary)</p>
+                </div>
+              </div>
+
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-6 leading-relaxed bg-blue-50/50 dark:bg-blue-900/10 p-3.5 rounded-xl border border-blue-100 dark:border-blue-800/40">
                 قم بتسجيل الدخول إلى حساب السحابة الخاص بك، وسيتولى التطبيق تلقائياً استدعاء وإقران المساحة السحابية وتفعيلها في الخلفية فوراً.
               </p>
@@ -129,20 +180,10 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
                 {/* 1-Click Login & Auto Connect Button */}
                 <button
                   onClick={handleCloudinaryOAuthConnect}
-                  disabled={isLoading}
-                  className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3.5 px-4 rounded-xl font-bold shadow-md transition-all active:scale-[0.99] disabled:opacity-50 text-base"
+                  className="w-full flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white py-3.5 px-4 rounded-xl font-bold shadow-md transition-all active:scale-[0.99] text-base"
                 >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      <span>جاري التحقق من الحساب والتفعيل في الخلفية...</span>
-                    </>
-                  ) : (
-                    <>
-                      <LogIn className="h-5 w-5" />
-                      <span>🔑 تسجيل الدخول إلى Cloudinary والربط التلقائي</span>
-                    </>
-                  )}
+                  <LogIn className="h-5 w-5" />
+                  <span>🔑 تسجيل الدخول إلى Cloudinary والربط التلقائي</span>
                 </button>
 
                 <a
@@ -220,7 +261,6 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
                     </div>
                     <button
                       onClick={handleManualSave}
-                      disabled={isLoading}
                       className="w-full mt-2 bg-primary text-white py-2 rounded-lg text-xs font-bold hover:bg-primary/90"
                     >
                       حفظ وتأكيد الربط اليدوي
