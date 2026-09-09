@@ -1,12 +1,17 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
+import { DEFAULT_CLOUDINARY_CONFIG } from '@/lib/cloudinaryConfig';
 
 export async function POST(request: Request) {
   try {
-    const { public_id, cloud_name, api_key, api_secret } = await request.json();
+    const body = await request.json().catch(() => ({}));
+    const { public_id } = body;
+    const cloud_name = body.cloud_name || DEFAULT_CLOUDINARY_CONFIG.cloudName;
+    const api_key = body.api_key || DEFAULT_CLOUDINARY_CONFIG.apiKey;
+    const api_secret = body.api_secret || DEFAULT_CLOUDINARY_CONFIG.apiSecret;
 
-    if (!public_id || !cloud_name || !api_key || !api_secret) {
-      return NextResponse.json({ error: 'Missing required parameters' }, { status: 400 });
+    if (!public_id) {
+      return NextResponse.json({ error: 'Missing public_id parameter' }, { status: 400 });
     }
 
     const timestamp = Math.floor(Date.now() / 1000).toString();

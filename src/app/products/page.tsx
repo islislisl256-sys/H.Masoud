@@ -7,6 +7,7 @@ import { supabase } from "@/lib/supabase";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import { Html5Qrcode } from "html5-qrcode";
 import { compressImage } from "@/lib/imageUtils";
+import { getCloudinaryCloudName, getCloudinaryUploadPreset, getCloudinaryApiKey, getCloudinaryApiSecret, getCloudinaryMaxImages } from "@/lib/cloudinaryConfig";
 
 type Product = {
   id: string;
@@ -96,19 +97,20 @@ export default function ProductsPage() {
   };
 
   const uploadToCloudinary = async (file: File) => {
-    if (!currentUser?.cloudinary_cloud_name || !currentUser?.cloudinary_upload_preset) {
-      throw new Error("لم يتم إعداد Cloudinary");
-    }
+    const cloudName = getCloudinaryCloudName(currentUser);
+    const uploadPreset = getCloudinaryUploadPreset(currentUser);
+    const maxImages = getCloudinaryMaxImages(currentUser);
+
     const used = currentUser.storage_used || 0;
-    if (used >= 100) {
-      throw new Error("لقد استهلكت الحصة المجانية للصور (100 صورة).");
+    if (used >= maxImages) {
+      throw new Error(`لقد استهلكت الحصة المجانية للصور (${maxImages} صورة).`);
     }
     const quality = currentUser.compression_quality !== undefined ? Number(currentUser.compression_quality) : 0.7;
     const compressedFile = await compressImage(file, 800, quality);
     const formData = new FormData();
     formData.append("file", compressedFile);
-    formData.append("upload_preset", currentUser.cloudinary_upload_preset);
-    const res = await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/image/upload`, {
+    formData.append("upload_preset", uploadPreset);
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
       method: "POST",
       body: formData
     });
@@ -120,7 +122,7 @@ export default function ProductsPage() {
       sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
       return data.secure_url;
     }
-    throw new Error("فشل الرفع السحابي");
+    throw new Error("فشل الرفع السحابي: " + (data.error?.message || "أدوات غير متصلة"));
   };
 
   const saveSingle = async (index: number) => {
@@ -252,29 +254,33 @@ export default function ProductsPage() {
       
       if (!error) {
         // Delete image from Cloudinary if it exists and API keys are set
-        if (product?.image_url && currentUser?.cloudinary_api_key && currentUser?.cloudinary_api_secret) {
+        if (product?.image_url) {
           try {
             const parts = product.image_url.split('/upload/');
             if (parts.length >= 2) {
               const path = parts[1];
               const withoutVersion = path.replace(/^v\d+\//, '');
               const publicId = decodeURIComponent(withoutVersion.replace(/\.[^/.]+$/, ''));
+              const cloudName = getCloudinaryCloudName(currentUser);
+              const apiKey = getCloudinaryApiKey(currentUser);
+              const apiSecret = getCloudinaryApiSecret(currentUser);
+
               // Try local API route first (works on Vercel)
               const res = await fetch('/api/cloudinary/delete', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                   public_id: publicId,
-                  cloud_name: currentUser.cloudinary_cloud_name,
-                  api_key: currentUser.cloudinary_api_key,
-                  api_secret: currentUser.cloudinary_api_secret,
+                  cloud_name: cloudName,
+                  api_key: apiKey,
+                  api_secret: apiSecret,
                 })
               });
               
               if (res.status === 404) {
                 // Fallback to direct Admin API for Desktop/Capacitor apps
-                const auth = btoa(`${currentUser.cloudinary_api_key}:${currentUser.cloudinary_api_secret}`);
-                await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/resources/image/upload?public_ids[]=${encodeURIComponent(publicId)}`, {
+                const auth = btoa(`${apiKey}:${apiSecret}`);
+                await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/resources/image/upload?public_ids[]=${encodeURIComponent(publicId)}`, {
                   method: 'DELETE',
                   headers: { 'Authorization': `Basic ${auth}` }
                 });

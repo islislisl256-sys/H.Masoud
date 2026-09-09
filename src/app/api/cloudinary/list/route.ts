@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
+import { DEFAULT_CLOUDINARY_CONFIG } from '@/lib/cloudinaryConfig';
 
 export async function POST(request: Request) {
   try {
-    const { cloud_name, api_key, api_secret } = await request.json();
-
-    if (!cloud_name || !api_key || !api_secret) {
-      return NextResponse.json({ error: 'Missing API credentials' }, { status: 400 });
-    }
+    const body = await request.json().catch(() => ({}));
+    const cloud_name = body.cloud_name || DEFAULT_CLOUDINARY_CONFIG.cloudName;
+    const api_key = body.api_key || DEFAULT_CLOUDINARY_CONFIG.apiKey;
+    const api_secret = body.api_secret || DEFAULT_CLOUDINARY_CONFIG.apiSecret;
 
     const auth = Buffer.from(`${api_key}:${api_secret}`).toString('base64');
 

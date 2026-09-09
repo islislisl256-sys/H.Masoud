@@ -7,6 +7,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { getCloudinaryCloudName, getCloudinaryApiKey, getCloudinaryApiSecret, getCloudinaryMaxImages } from "@/lib/cloudinaryConfig";
 
 export default function CloudStatsPage() {
   const { currentUser } = useAuth();
@@ -19,7 +20,7 @@ export default function CloudStatsPage() {
 
   useEffect(() => {
     setMounted(true);
-    if (currentUser?.cloudinary_api_key && currentUser?.cloudinary_api_secret) {
+    if (currentUser) {
       fetchImages();
     }
   }, [currentUser]);
@@ -29,21 +30,25 @@ export default function CloudStatsPage() {
     setError(null);
     try {
       let data;
+      const cloudName = getCloudinaryCloudName(currentUser);
+      const apiKey = getCloudinaryApiKey(currentUser);
+      const apiSecret = getCloudinaryApiSecret(currentUser);
+
       // Try local API route first (works on Vercel)
       const res = await fetch('/api/cloudinary/list', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          cloud_name: currentUser.cloudinary_cloud_name,
-          api_key: currentUser.cloudinary_api_key,
-          api_secret: currentUser.cloudinary_api_secret
+          cloud_name: cloudName,
+          api_key: apiKey,
+          api_secret: apiSecret
         })
       });
       
       if (res.status === 404) {
         // Fallback to direct Admin API for Desktop/Capacitor apps (no CORS in native apps)
-        const auth = btoa(`${currentUser.cloudinary_api_key}:${currentUser.cloudinary_api_secret}`);
-        const directRes = await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/resources/image?max_results=500`, {
+        const auth = btoa(`${apiKey}:${apiSecret}`);
+        const directRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/resources/image?max_results=500`, {
           headers: { 'Authorization': `Basic ${auth}` }
         });
         data = await directRes.json();
@@ -68,22 +73,26 @@ export default function CloudStatsPage() {
     setDeletingId(public_id);
     try {
       let result;
+      const cloudName = getCloudinaryCloudName(currentUser);
+      const apiKey = getCloudinaryApiKey(currentUser);
+      const apiSecret = getCloudinaryApiSecret(currentUser);
+
       // Try local API route first (works on Vercel)
       const res = await fetch('/api/cloudinary/delete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           public_id: public_id,
-          cloud_name: currentUser.cloudinary_cloud_name,
-          api_key: currentUser.cloudinary_api_key,
-          api_secret: currentUser.cloudinary_api_secret
+          cloud_name: cloudName,
+          api_key: apiKey,
+          api_secret: apiSecret
         })
       });
       
       if (res.status === 404) {
         // Fallback to direct Admin API for Desktop/Capacitor apps
-        const auth = btoa(`${currentUser.cloudinary_api_key}:${currentUser.cloudinary_api_secret}`);
-        const directRes = await fetch(`https://api.cloudinary.com/v1_1/${currentUser.cloudinary_cloud_name}/resources/image/upload?public_ids[]=${encodeURIComponent(public_id)}`, {
+        const auth = btoa(`${apiKey}:${apiSecret}`);
+        const directRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/resources/image/upload?public_ids[]=${encodeURIComponent(public_id)}`, {
           method: 'DELETE',
           headers: { 'Authorization': `Basic ${auth}` }
         });
@@ -116,13 +125,11 @@ export default function CloudStatsPage() {
 
   if (!mounted || !currentUser) return null;
 
-  const maxImages = currentUser?.cloudinary_max_images ?? 100;
+  const maxImages = getCloudinaryMaxImages(currentUser);
   const currentImages = images.length;
   const percentage = Math.min((currentImages / maxImages) * 100, 100);
   const isNearLimit = percentage >= 80;
   const isLimitReached = percentage >= 100;
-
-  const hasApiKeys = !!(currentUser.cloudinary_api_key && currentUser.cloudinary_api_secret);
 
   return (
     <ProtectedLayout>
@@ -164,21 +171,7 @@ export default function CloudStatsPage() {
           </div>
         </div>
 
-        {!hasApiKeys ? (
-          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl p-6 text-center space-y-4">
-            <div className="mx-auto w-12 h-12 bg-amber-100 dark:bg-amber-900/40 rounded-full flex items-center justify-center text-amber-600 dark:text-amber-400">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="font-bold text-gray-900 dark:text-white text-lg">لم يتم إعداد مفاتيح API</h3>
-              <p className="text-gray-600 dark:text-gray-400 mt-2">لعرض الصور ومسحها مباشرة من هنا، يجب إدخال API Key و API Secret في صفحة الإعدادات.</p>
-            </div>
-            <Link href="/settings" className="inline-block bg-amber-600 hover:bg-amber-700 text-white font-bold py-2 px-6 rounded-lg transition-colors">
-              الذهاب للإعدادات
-            </Link>
-          </div>
-        ) : (
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold text-gray-900 dark:text-white">معرض الصور السحابي</h2>
               <button onClick={fetchImages} disabled={loadingImages} className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 rounded-lg text-sm font-bold transition-colors disabled:opacity-50">
@@ -216,7 +209,6 @@ export default function CloudStatsPage() {
               </div>
             )}
           </div>
-        )}
       </div>
     </ProtectedLayout>
   );
