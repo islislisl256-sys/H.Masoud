@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Cloud, X, ExternalLink, LogIn, CheckCircle2, Loader2, Sparkles, ChevronDown, ChevronUp, Lock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { mainSupabase } from "@/lib/supabase";
+import { DEFAULT_CLOUDINARY_CONFIG } from "@/lib/cloudinaryConfig";
 
 export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { isOpen: boolean; onClose: () => void; onSuccess: () => void }) {
   const { currentUser } = useAuth();
@@ -35,19 +36,21 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
     window.open("https://cloudinary.com/users/login", "_blank");
 
     setTimeout(() => {
-      setLoadingStep("جاري التحقق من الحساب واستدعاء المساحة السحابية...");
+      setLoadingStep("جاري التحقق من الحساب واستدعاء المساحة السحابية وتعيين المفاتيح...");
     }, 1200);
 
     // Automatically bind / auto-provision the cloud connection in the background
     try {
-      const activeCloudName = cloudName.trim() || `cloud_${currentUser.id.substring(0, 8)}`;
-      const activePreset = uploadPreset.trim() || "library_default_preset";
+      const activeCloudName = cloudName.trim() || currentUser?.cloudinary_cloud_name || DEFAULT_CLOUDINARY_CONFIG.cloudName;
+      const activePreset = uploadPreset.trim() || currentUser?.cloudinary_upload_preset || DEFAULT_CLOUDINARY_CONFIG.uploadPreset;
+      const activeApiKey = apiKey.trim() || currentUser?.cloudinary_api_key || DEFAULT_CLOUDINARY_CONFIG.apiKey;
+      const activeApiSecret = apiSecret.trim() || currentUser?.cloudinary_api_secret || DEFAULT_CLOUDINARY_CONFIG.apiSecret;
 
       const updates = {
         cloudinary_cloud_name: activeCloudName,
         cloudinary_upload_preset: activePreset,
-        cloudinary_api_key: apiKey.trim() || undefined,
-        cloudinary_api_secret: apiSecret.trim() || undefined,
+        cloudinary_api_key: activeApiKey,
+        cloudinary_api_secret: activeApiSecret,
       };
 
       await mainSupabase.from("app_accounts").update(updates).eq("id", currentUser.id);
