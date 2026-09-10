@@ -94,7 +94,7 @@ export default function SettingsPage() {
         cloudinary_max_images: maxImages,
       };
       await mainSupabase
-        .from("app_accounts")
+        .from("fortress_users")
         .update(updates)
         .eq("id", currentUser.id);
       

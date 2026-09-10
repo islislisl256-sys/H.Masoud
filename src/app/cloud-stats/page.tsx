@@ -110,7 +110,7 @@ export default function CloudStatsPage() {
         // Decrement storage counter
         const used = currentUser.storage_used || 0;
         const newUsed = Math.max(0, used - 1);
-        await supabase.from("app_accounts").update({ storage_used: newUsed }).eq("id", currentUser.id);
+        await supabase.from("fortress_users").update({ storage_used: newUsed }).eq("id", currentUser.id);
         const updatedUser = { ...currentUser, storage_used: newUsed };
         sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
       } else {

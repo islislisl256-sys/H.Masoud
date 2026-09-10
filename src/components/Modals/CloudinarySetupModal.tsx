@@ -60,7 +60,7 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
       setProgressPercent(85);
       setStepMessage("جاري تأكيد جاهزية الاتصال وحفظ الحساب الجديد...");
 
-      // Save verified credentials to Supabase app_accounts
+      // Save verified credentials to Supabase fortress_users
       const updates = {
         cloudinary_cloud_name: targetCloud,
         cloudinary_upload_preset: targetPreset,
@@ -68,7 +68,7 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
         cloudinary_api_secret: targetSecret,
       };
 
-      const { error: dbError } = await mainSupabase.from("app_accounts").update(updates).eq("id", currentUser.id);
+      const { error: dbError } = await mainSupabase.from("fortress_users").update(updates).eq("id", currentUser.id);
       if (dbError) throw new Error("فشل حفظ إعدادات السحابة في قاعدة البيانات: " + dbError.message);
 
       const updatedUser = { ...currentUser, ...updates };
@@ -109,7 +109,7 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
         cloudinary_api_key: null,
         cloudinary_api_secret: null,
       };
-      await mainSupabase.from("app_accounts").update(updates).eq("id", currentUser.id);
+      await mainSupabase.from("fortress_users").update(updates).eq("id", currentUser.id);
       const updatedUser = { ...currentUser, ...updates };
       sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
       setCloudName("");
