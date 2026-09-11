@@ -3,41 +3,36 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { mainSupabase, initDynamicSupabase } from "@/lib/supabase";
+import { createClient } from "@supabase/supabase-js";
 
 type AuthContextType = {
   isAuthenticated: boolean;
   currentUser: any;
-  login: (email: string, pass: string) => Promise<{ success: boolean; message?: string; needsOnboarding?: boolean }>;
+  login: (email: string, pass: string) => Promise<{ success: boolean; message?: string }>;
   logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// RAM-Only State for Session (No LocalStorage)
-let inMemorySession: any = null;
-
-// Secure Password Hashing (SHA-256 via WebCrypto)
-async function hashPassword(password: string): Promise<string> {
-  const msgUint8 = new TextEncoder().encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+const ENCRYPTION_PREFIX = "HMASOUD_SECURE_KEY_";
+function encodeUUID(uuid: string) {
+  return btoa(ENCRYPTION_PREFIX + uuid);
+}
+function decodeUUID(encoded: string) {
+  try {
+    const dec = atob(encoded);
+    if (dec.startsWith(ENCRYPTION_PREFIX)) {
+      return dec.substring(ENCRYPTION_PREFIX.length);
+    }
+  } catch(e) {}
+  return null;
 }
 
-// Extract Hardware Fingerprint safely
-async function getHardwareFingerprint(): Promise<string> {
-  try {
-    if (typeof window !== 'undefined' && (window as any).require) {
-      const machineId = (window as any).require('node-machine-id');
-      return machineId.machineIdSync(true); // true = original raw ID
-    }
-  } catch (e) {
-    console.warn("Could not load node-machine-id, falling back to Web fingerprint", e);
-  }
-  
-  // Fallback for purely web environments
-  const navStr = navigator.userAgent + navigator.language + screen.colorDepth + screen.width + screen.height;
-  return await hashPassword("WEB_FALLBACK_" + navStr);
+function generateSafeUUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+  });
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -47,81 +42,85 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   useEffect(() => {
-    // Silent Handshake Check:
-    // Because we use RAM-only, if the app is hard-refreshed, they are logged out.
-    // Real implementation of silent handshake requires HTTPOnly cookies or Secure Enclave.
-    // For now, if inMemorySession is null, they must log in again.
-    if (inMemorySession) {
-      setIsAuthenticated(true);
-      setCurrentUser(inMemorySession);
+    try {
+      const storedAuth = sessionStorage.getItem("isAuthenticated");
+      const storedUser = sessionStorage.getItem("currentUser");
+      if (storedAuth === "true" && storedUser) {
+        setIsAuthenticated(true);
+        setCurrentUser(JSON.parse(storedUser));
+      }
+    } catch (e) {} finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   const login = async (email: string, pass: string) => {
     try {
-      const hashedPassword = await hashPassword(pass);
-      const hwFingerprint = await getHardwareFingerprint();
+      const storedEncrypted = localStorage.getItem("app_secure_uuid");
+      const localDeviceUuid = storedEncrypted ? decodeUUID(storedEncrypted) : null;
 
-      // Calling the secure RPC function instead of querying the table directly
-      const { data, error } = await mainSupabase.rpc('verify_account_login', {
-        p_email: email,
-        p_hashed_password: hashedPassword,
-        p_hardware_fingerprint: hwFingerprint
-      });
+      const { data, error } = await mainSupabase.from("app_accounts").select("*").eq("email", email).single();
       
-      if (error) {
-        console.error("RPC Error:", error);
-        return { success: false, message: "فشل الاتصال بخادم المصادقة الآمن." };
-      }
-
-      if (!data.success) {
-        return { success: false, message: data.message };
-      }
-
-      if (data.requires_device_registration) {
-        // Here we would automatically register the device using WebCrypto PKI
-        // For simplicity in this demo step, we'll insert the device directly.
-        // Generate a fast fake PKI pub key for now
-        const mockPubKey = "PUB_KEY_" + Date.now().toString(16);
-        
-        await mainSupabase.from('devices').insert({
-          user_id: data.user_id,
-          device_type: 'windows',
-          hardware_fingerprint: hwFingerprint,
-          public_key: mockPubKey
-        });
-        
-        // Retry login after registering device
-        return await login(email, pass);
-      }
-
-      const userPayload = data.user;
+      if (error || !data) return { success: false, message: "الحساب غير موجود" };
       
-      // Initialize Multi-tenant DB
-      if (userPayload.db_url && userPayload.db_key) {
-        initDynamicSupabase(userPayload.db_url, userPayload.db_key);
+      if (data.is_banned) {
+        return { success: false, message: "تم حظر هذا الحساب نهائياً من استخدام التطبيق." };
       }
 
-      // Memory Only Session
-      inMemorySession = userPayload;
+      if (data.password !== pass) {
+        return { success: false, message: "بيانات الدخول خاطئة (تأكد من كلمة المرور)" };
+      }
+      
+      // إلغاء مسح البيانات التلقائي لضمان سلامة الحساب
+      if (data.pending_wipe || data.pending_unlink) {
+        await mainSupabase.from("app_accounts").update({
+          pending_wipe: false,
+          pending_unlink: false
+        }).eq("id", data.id);
+      }
+
+      let deviceUuid = localDeviceUuid;
+
+      // حساب جديد أو تجهيز التوكن ونوعية التضغيط الأنسب (0.7)
+      const tokenGenerated = data.account_token || `TOKEN_${generateSafeUUID().substring(0, 12)}`;
+      const optimalQuality = data.compression_quality !== undefined && data.compression_quality !== null ? data.compression_quality : 0.7;
+
+      const profileUpdates: any = {
+        account_token: tokenGenerated,
+        compression_quality: optimalQuality,
+      };
+
+      if (!data.device_uuid) {
+        deviceUuid = generateSafeUUID();
+        profileUpdates.device_uuid = deviceUuid;
+        profileUpdates.device_info = typeof navigator !== 'undefined' ? navigator.userAgent : 'Desktop/App';
+        localStorage.setItem("app_secure_uuid", encodeUUID(deviceUuid));
+      } else {
+        if (data.device_uuid !== localDeviceUuid) {
+          return { success: false, message: "هذا الحساب مرتبط بجهاز آخر، أو أن هذا الجهاز مرتبط بحساب مختلف." };
+        }
+      }
+
+      // حفظ تحديثات الحساب والتوكن ونوعية التضغيط الأنسب في قاعدة البيانات
+      await mainSupabase.from("app_accounts").update(profileUpdates).eq("id", data.id);
+
+      initDynamicSupabase(data.db_url, data.db_key);
+      const userPayload = { ...data, ...profileUpdates };
+      sessionStorage.setItem("isAuthenticated", "true");
+      sessionStorage.setItem("currentUser", JSON.stringify(userPayload));
+      
       setIsAuthenticated(true);
       setCurrentUser(userPayload);
-
-      // Check if onboarding is needed
-      if (!userPayload.onboarding_completed) {
-        return { success: true, needsOnboarding: true };
-      }
-
       return { success: true };
     } catch (err: any) {
       console.error(err);
-      return { success: false, message: err.message || "حدث خطأ غير متوقع" };
+      return { success: false, message: err.message || "حدث خطأ في الاتصال بالخادم" };
     }
   };
 
   const logout = () => {
-    inMemorySession = null;
+    sessionStorage.removeItem("isAuthenticated");
+    sessionStorage.removeItem("currentUser");
     setIsAuthenticated(false);
     setCurrentUser(null);
     router.push("/login");

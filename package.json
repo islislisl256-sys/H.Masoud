@@ -54,7 +54,7 @@
   "main": "main.js",
   "build": {
     "appId": "com.hmasoud.librarysystem",
-    "productName": "برنامج لوحة التحكم (تحديث)",
+    "productName": "LibrarySystem",
     "directories": {
       "output": "Windows_App_Release",
       "app": "."

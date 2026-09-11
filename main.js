@@ -19,12 +19,7 @@ function createWindow() {
     autoHideMenuBar: true,
   });
 
-  // Load the admin page specifically for the control panel program
-  loadURL(mainWindow).then(() => {
-    mainWindow.loadURL('app://-/admin.html');
-  }).catch(() => {
-    mainWindow.loadURL('app://-/admin');
-  });
+  loadURL(mainWindow);
 }
 
 app.whenReady().then(() => {

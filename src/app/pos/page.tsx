@@ -2,9 +2,10 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { QrCode, Search, Trash2, Plus, Minus, Save, ShoppingCart, Loader2, X, ImagePlus, Camera, Package, Weight } from "lucide-react";
+import { QrCode, Search, Trash2, Plus, Minus, Save, ShoppingCart, Loader2, X, ImagePlus, Camera, Package, Weight, Printer, ScanLine, ArrowLeftRight, Settings } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
+import ReceiptTemplate from "@/components/POS/ReceiptTemplate";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 
@@ -46,6 +47,12 @@ export default function POSPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [customTotal, setCustomTotal] = useState<string>("");
 
+  // Hardware Scanner & Printer Settings
+  const [hardwareScannerActive, setHardwareScannerActive] = useState(true);
+  const [printerSize, setPrinterSize] = useState<'58mm' | '80mm'>('80mm');
+  const [returnMode, setReturnMode] = useState(false);
+  const [lastSavedInvoice, setLastSavedInvoice] = useState<{ number: string, items: any[], total: number, date: Date } | null>(null);
+
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const lowerQ = searchQuery.toLowerCase();
@@ -75,6 +82,37 @@ export default function POSPage() {
       alert("المنتج غير موجود!");
     }
   };
+
+  // Hardware Scanner Keyboard Hook
+  useEffect(() => {
+    if (!hardwareScannerActive) return;
+
+    let barcodeBuffer = "";
+    let lastKeyTime = Date.now();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isInput = (e.target as HTMLElement).tagName === 'INPUT';
+      const currentTime = Date.now();
+      
+      if (currentTime - lastKeyTime > 50) {
+        barcodeBuffer = "";
+      }
+      
+      if (e.key === 'Enter') {
+        if (barcodeBuffer.length >= 3 && (!isInput || currentTime - lastKeyTime <= 50)) {
+          e.preventDefault();
+          handleScanSuccess(barcodeBuffer);
+          barcodeBuffer = "";
+        }
+      } else if (e.key.length === 1) { 
+        barcodeBuffer += e.key;
+      }
+      lastKeyTime = currentTime;
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [hardwareScannerActive, products, activeCartId, carts]); // Added dependencies to ensure it has latest state
 
   const handleImageScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -174,21 +212,26 @@ export default function POSPage() {
   const activeCart = carts.find(c => c.id === activeCartId) || carts[0];
   const invoiceItems = activeCart.items;
 
-  // الحسابات
+  // Calculations
   const calculatedTotal = invoiceItems.reduce((sum, item) => sum + (item.sale_price * item.quantity), 0);
   const activeTotal = customTotal !== "" ? Number(customTotal) : calculatedTotal;
   const calculatedProfit = invoiceItems.reduce((sum, item) => sum + ((item.sale_price - item.purchase_price) * item.quantity), 0);
   const activeProfit = customTotal !== "" ? calculatedProfit - (calculatedTotal - Number(customTotal)) : calculatedProfit;
 
-  const saveInvoice = async () => {
+  const saveInvoice = async (printReceipt: boolean) => {
     if (invoiceItems.length === 0) return;
     setSaving(true);
     
     try {
       const invoiceNumber = `INV-${Date.now()}`;
+      
+      // If return mode, multiply total and profit by -1
+      const finalTotal = returnMode ? -Math.abs(activeTotal) : activeTotal;
+      const finalProfit = returnMode ? -Math.abs(activeProfit) : activeProfit;
+
       const { data: invoice, error: invoiceError } = await supabase
         .from('invoices')
-        .insert([{ invoice_number: invoiceNumber, total: activeTotal, profit: activeProfit }])
+        .insert([{ invoice_number: invoiceNumber, total: finalTotal, profit: finalProfit }])
         .select()
         .single();
         
@@ -197,29 +240,54 @@ export default function POSPage() {
       const itemsToInsert = invoiceItems.map(item => ({
         invoice_id: invoice.id,
         product_id: item.id,
-        quantity: item.quantity,
+        quantity: returnMode ? -Math.abs(item.quantity) : item.quantity,
         unit_price: item.sale_price,
-        total_price: (item.sale_price * item.quantity),
-        profit: ((item.sale_price - item.purchase_price) * item.quantity),
+        total_price: returnMode ? -Math.abs(item.sale_price * item.quantity) : (item.sale_price * item.quantity),
+        profit: returnMode ? -Math.abs((item.sale_price - item.purchase_price) * item.quantity) : ((item.sale_price - item.purchase_price) * item.quantity),
       }));
 
       const { error: itemsError } = await supabase.from('invoice_items').insert(itemsToInsert);
       if (itemsError) throw itemsError;
 
+      // Update Inventory
       for (const item of invoiceItems) {
          const product = products.find(p => p.id === item.id);
          if (product) {
-           await supabase.from('products').update({ quantity: product.quantity - item.quantity }).eq('id', item.id);
+           const newQuantity = returnMode 
+             ? product.quantity + item.quantity 
+             : product.quantity - item.quantity;
+           await supabase.from('products').update({ quantity: newQuantity }).eq('id', item.id);
          }
       }
 
-      alert("تم حفظ البيعة!");
-      closeCart(activeCartId); // Close it after success
-      fetchProducts();
+      if (printReceipt) {
+        setLastSavedInvoice({
+          number: invoiceNumber,
+          items: invoiceItems,
+          total: activeTotal, // Print positive total on receipt always
+          date: new Date()
+        });
+        
+        // Wait for state to update and render the hidden receipt, then trigger print
+        setTimeout(() => {
+          window.print();
+          setLastSavedInvoice(null);
+          closeCart(activeCartId);
+          fetchProducts();
+          setSaving(false);
+          setReturnMode(false);
+        }, 500);
+      } else {
+        alert(returnMode ? "تم تسجيل الإرجاع بنجاح!" : "تم حفظ البيعة بنجاح!");
+        closeCart(activeCartId);
+        fetchProducts();
+        setSaving(false);
+        setReturnMode(false);
+      }
+
     } catch (error) {
       console.error(error);
       alert("حدث خطأ أثناء الحفظ");
-    } finally {
       setSaving(false);
     }
   };
@@ -234,15 +302,45 @@ export default function POSPage() {
     );
   }
 
-  // فرز المنتجات السريعة
   const quickProducts = products.filter(p => p.image_url || p.product_number.startsWith('NOBC'));
-  // المنتجات التي تباع بالوزن
   const weightProducts = products.filter(p => p.sale_type === 'weight' || p.sale_type === 'volume');
 
   return (
     <ProtectedLayout>
-      <div className="space-y-4 pb-24">
+      <div className={`space-y-4 pb-24 transition-colors duration-500 ${returnMode ? 'bg-red-50/30 dark:bg-red-900/10' : ''}`}>
         
+        {/* Header Controls: Return Mode & Printer Settings */}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+          <button
+            onClick={() => setReturnMode(!returnMode)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${
+              returnMode 
+                ? 'bg-red-500 text-white shadow-lg animate-pulse' 
+                : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
+            }`}
+          >
+            <ArrowLeftRight className="h-5 w-5" />
+            {returnMode ? "وضع الإرجاع مفعل (استرجاع للمخزن)" : "تفعيل وضع الإرجاع"}
+          </button>
+
+          <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900/50 p-1.5 rounded-lg border border-gray-200 dark:border-gray-700">
+            <Settings className="h-4 w-4 text-gray-500 ml-1" />
+            <span className="text-xs font-bold text-gray-600 dark:text-gray-400">حجم الطابعة:</span>
+            <button
+              onClick={() => setPrinterSize('58mm')}
+              className={`px-3 py-1 text-xs font-bold rounded-md ${printerSize === '58mm' ? 'bg-primary text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800'}`}
+            >
+              58mm
+            </button>
+            <button
+              onClick={() => setPrinterSize('80mm')}
+              className={`px-3 py-1 text-xs font-bold rounded-md ${printerSize === '80mm' ? 'bg-primary text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800'}`}
+            >
+              80mm
+            </button>
+          </div>
+        </div>
+
         {/* تعدد الفواتير */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {carts.map(cart => (
@@ -251,7 +349,7 @@ export default function POSPage() {
               onClick={() => setActiveCartId(cart.id)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold whitespace-nowrap transition-colors ${
                 activeCartId === cart.id 
-                  ? 'bg-primary text-white shadow-md' 
+                  ? returnMode ? 'bg-red-600 text-white shadow-md' : 'bg-primary text-white shadow-md' 
                   : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
@@ -291,7 +389,7 @@ export default function POSPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="بحث سريع بالباركود أو الاسم..."
+              placeholder="بحث سريع بالاسم أو الباركود يدوياً..."
               className="w-full pl-3 pr-10 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white"
               onKeyDown={handleManualSearch}
             />
@@ -377,7 +475,8 @@ export default function POSPage() {
         )}
 
         {/* تفاصيل البيعة */}
-        <div className="w-full flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden mt-4">
+        <div className={`w-full flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-sm border overflow-hidden mt-4 ${returnMode ? 'border-red-400' : 'border-gray-200 dark:border-gray-700'}`}>
+          
           {isScanning && (
             <div className="w-full border-b border-gray-200 dark:border-gray-700 bg-black/5 dark:bg-white/5 py-4 px-4">
               <BarcodeScanner
@@ -396,18 +495,19 @@ export default function POSPage() {
               </div>
             ) : (
               invoiceItems.map(item => (
-                <div key={item.id} className="flex flex-col gap-2 p-4 border border-gray-100 dark:border-gray-700 rounded-lg bg-gray-50/50 dark:bg-gray-700/20">
+                <div key={item.id} className={`flex flex-col gap-2 p-4 border rounded-lg ${returnMode ? 'border-red-200 bg-red-50/50 dark:bg-red-900/20' : 'border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/20'}`}>
                   <div className="flex justify-between items-start">
                     <div>
                       <span className="font-bold text-gray-900 dark:text-white text-lg">{item.name}</span>
                       {item.sale_type === 'weight' || item.sale_type === 'volume' ? (
                         <span className="inline-block mx-2 text-xs bg-amber-100 text-amber-700 px-2 rounded-full">ميزان</span>
                       ) : null}
+                      {returnMode && <span className="inline-block mx-2 text-xs bg-red-100 text-red-700 px-2 rounded-full font-bold">استرجاع</span>}
                     </div>
                     <button onClick={() => removeItem(item.id)} className="text-gray-400 hover:text-red-500 p-1"><Trash2 className="h-5 w-5" /></button>
                   </div>
                   <div className="flex justify-between items-center mt-1">
-                    <span className="text-primary font-bold text-xl">{item.sale_price} د.ج</span>
+                    <span className={`${returnMode ? 'text-red-500' : 'text-primary'} font-bold text-xl`}>{returnMode && '-'}{item.sale_price} د.ج</span>
                     <div className="flex items-center gap-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-2">
                       <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"><Minus className="h-5 w-5" /></button>
                       <input 
@@ -421,43 +521,58 @@ export default function POSPage() {
                     </div>
                   </div>
                   <div className="text-sm text-gray-500 dark:text-gray-400 text-left mt-1 border-t border-dashed border-gray-200 dark:border-gray-600 pt-2">
-                    المجموع: <span className="font-bold text-gray-900 dark:text-white">{(item.sale_price * item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} د.ج</span>
+                    المجموع: <span className="font-bold text-gray-900 dark:text-white">{returnMode && '-'}{(item.sale_price * item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} د.ج</span>
                   </div>
                 </div>
               ))
             )}
           </div>
 
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 space-y-3">
-            {/* الإجمالي - قابل للتعديل */}
+          <div className={`p-4 border-t ${returnMode ? 'border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/10' : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50'} space-y-4`}>
             <div className="flex justify-between items-center text-xl font-bold text-gray-900 dark:text-white">
-              <span>الإجمالي:</span>
+              <span>{returnMode ? "إجمالي الإرجاع:" : "الإجمالي:"}</span>
               <div className="flex items-center gap-2">
+                {returnMode && <span className="text-red-500">-</span>}
                 <input
                   type="number"
                   value={customTotal !== "" ? customTotal : calculatedTotal}
                   onChange={(e) => setCustomTotal(e.target.value)}
-                  className="w-32 text-left text-xl font-bold text-primary bg-transparent border-b-2 border-primary/30 focus:border-primary outline-none px-1 py-0.5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className={`w-32 text-left text-xl font-bold bg-transparent border-b-2 outline-none px-1 py-0.5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${returnMode ? 'text-red-500 border-red-500/30 focus:border-red-500' : 'text-primary border-primary/30 focus:border-primary'}`}
                 />
-                <span className="text-primary text-base">د.ج</span>
+                <span className={returnMode ? 'text-red-500 text-base' : 'text-primary text-base'}>د.ج</span>
               </div>
             </div>
             
-            {/* الربح - للقراءة فقط */}
             <div className="flex justify-between items-center text-lg font-bold border-b border-dashed border-gray-300 dark:border-gray-600 pb-3">
-              <span className="text-green-600 dark:text-green-400">الربح:</span>
-              <span className="text-green-600 dark:text-green-400">{activeProfit.toLocaleString(undefined, { maximumFractionDigits: 2 })} د.ج</span>
+              <span className={returnMode ? 'text-red-500' : 'text-green-600 dark:text-green-400'}>{returnMode ? "الخسارة/المخصوم:" : "الربح:"}</span>
+              <span className={returnMode ? 'text-red-500' : 'text-green-600 dark:text-green-400'}>{returnMode && '-'}{activeProfit.toLocaleString(undefined, { maximumFractionDigits: 2 })} د.ج</span>
             </div>
             
-            <motion.button 
-              whileTap={{ scale: 0.95 }}
-              onClick={saveInvoice}
-              disabled={invoiceItems.length === 0 || saving}
-              className={`w-full flex items-center justify-center gap-2 text-white py-4 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-lg mt-2 bg-primary hover:bg-primary/90`}
-            >
-              {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-              {saving ? "جاري الحفظ..." : "تأكيد البيعة"}
-            </motion.button>
+            <div className="grid grid-cols-2 gap-3 mt-4">
+              <motion.button 
+                whileTap={{ scale: 0.95 }}
+                onClick={() => saveInvoice(true)}
+                disabled={invoiceItems.length === 0 || saving}
+                className={`w-full flex items-center justify-center gap-2 text-white py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-lg shadow-md ${
+                  returnMode ? 'bg-red-600 hover:bg-red-700' : 'bg-primary hover:bg-primary-hover'
+                }`}
+              >
+                {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Printer className="h-5 w-5" />}
+                {saving ? "جاري..." : (returnMode ? "إرجاع وطباعة وصل" : "بيع وطباعة فاتورة")}
+              </motion.button>
+
+              <motion.button 
+                whileTap={{ scale: 0.95 }}
+                onClick={() => saveInvoice(false)}
+                disabled={invoiceItems.length === 0 || saving}
+                className={`w-full flex items-center justify-center gap-2 text-white py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-base shadow-md ${
+                  returnMode ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600'
+                }`}
+              >
+                {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
+                {saving ? "جاري..." : (returnMode ? "تسجيل الإرجاع فقط" : "تسجيل بيع من غير طباعة")}
+              </motion.button>
+            </div>
           </div>
         </div>
 
@@ -467,17 +582,27 @@ export default function POSPage() {
         </div>
       </div>
 
-      {/* زر المسح العائم */}
+      {/* زر المسح العائم (Floating Actions) */}
       <div className="fixed bottom-20 md:bottom-6 right-6 z-50 flex flex-col items-center">
         {showScanMenu && !isScanning && (
           <div className="mb-4 flex flex-col gap-3 origin-bottom animate-in fade-in slide-in-from-bottom-4 items-center">
-            <label className="flex items-center justify-center w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg cursor-pointer transition-transform hover:scale-110" title="رفع صورة">
+            
+            <button 
+              onClick={() => { setHardwareScannerActive(!hardwareScannerActive); setShowScanMenu(false); }}
+              className={`flex items-center justify-center w-12 h-12 rounded-full shadow-lg transition-transform hover:scale-110 ${hardwareScannerActive ? 'bg-primary text-white' : 'bg-gray-500 text-white'}`}
+              title={hardwareScannerActive ? "إيقاف استشعار الماسح اليدوي (USB)" : "تفعيل استشعار الماسح اليدوي (USB)"}
+            >
+               <ScanLine className="h-5 w-5" />
+            </button>
+
+            <label className="flex items-center justify-center w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg cursor-pointer transition-transform hover:scale-110" title="رفع صورة فيها باركود">
                <ImagePlus className="h-5 w-5" />
                <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
             </label>
+            
             <button 
               onClick={() => { setIsScanning(true); setShowScanMenu(false); }}
-              className="flex items-center justify-center w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg transition-transform hover:scale-110" title="كاميرا المسح"
+              className="flex items-center justify-center w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg transition-transform hover:scale-110" title="تشغيل الكاميرا للمسح"
             >
                <Camera className="h-5 w-5" />
             </button>
@@ -501,6 +626,18 @@ export default function POSPage() {
       </div>
 
       <div id="hidden-qr-reader-pos" className="hidden"></div>
+
+      {/* Hidden Receipt Component to Print */}
+      {lastSavedInvoice && (
+        <ReceiptTemplate 
+          invoiceNumber={lastSavedInvoice.number}
+          items={lastSavedInvoice.items}
+          total={lastSavedInvoice.total}
+          date={lastSavedInvoice.date}
+          size={printerSize}
+        />
+      )}
+
     </ProtectedLayout>
   );
 }
