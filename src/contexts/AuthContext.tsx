@@ -41,35 +41,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [licenseWarning, setLicenseWarning] = useState<string | null>(null);
   const router = useRouter();
 
-  // دالة تجديد الرخصة: تتصل بقاعدة البيانات وتجلب رخصة جديدة لمدة 24 ساعة
+  // === دالة تجديد الرخصة اليومية ===
+  // تتصل بالسيرفر → تفحص مدة الشحن → إذا سارية تمنح رخصة 24 ساعة محلية
   const renewLicense = async (): Promise<{ success: boolean; message: string }> => {
     const storedUser = sessionStorage.getItem("currentUser");
     if (!storedUser) return { success: false, message: "لا يوجد مستخدم مسجّل." };
 
     const user = JSON.parse(storedUser);
     try {
-      // تجديد الرخصة في قاعدة البيانات
-      const newEnd = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-      const { error } = await mainSupabase
+      // جلب بيانات الاشتراك الحقيقية من السيرفر
+      const { data, error } = await mainSupabase
         .from("app_accounts")
-        .update({ subscription_end_date: newEnd })
-        .eq("id", user.id);
+        .select("subscription_end_date, is_banned")
+        .eq("id", user.id)
+        .single();
 
-      if (error) throw error;
+      if (error || !data) throw new Error("فشل الاتصال");
 
-      // تحديث النسخة المحلية
-      user.subscription_end_date = newEnd;
+      if (data.is_banned) {
+        sessionStorage.clear();
+        setIsAuthenticated(false);
+        setCurrentUser(null);
+        return { success: false, message: "🚫 تم حظر هذا الحساب نهائياً." };
+      }
+
+      // فحص مدة الشحن (الاشتراك الرئيسي)
+      if (!data.subscription_end_date || new Date() > new Date(data.subscription_end_date)) {
+        return { success: false, message: "🚫 انتهت مدة اشتراكك. يرجى التواصل مع الإدارة لتجديد الشحن." };
+      }
+
+      // مدة الشحن سارية → منح رخصة يومية 24 ساعة محلياً
+      const dailyEnd = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      localStorage.setItem("daily_license", JSON.stringify({ end: dailyEnd, updated: new Date().toISOString() }));
+      
+      // تحديث بيانات الاشتراك محلياً
+      user.subscription_end_date = data.subscription_end_date;
       sessionStorage.setItem("currentUser", JSON.stringify(user));
-      localStorage.setItem("license_cache", JSON.stringify({ end: newEnd, updated: new Date().toISOString() }));
       setCurrentUser(user);
       setLicenseWarning(null);
-      return { success: true, message: "تم تجديد الرخصة بنجاح لمدة 24 ساعة." };
+      return { success: true, message: "✅ تم تجديد الرخصة بنجاح لمدة 24 ساعة." };
     } catch (err) {
       return { success: false, message: "⚠️ لا يوجد اتصال بالإنترنت. يرجى الاتصال بالشبكة لتجديد الرخصة." };
     }
   };
 
-  // عند فتح التطبيق: فحص الرخصة المحلية ومحاولة التجديد من السيرفر
+  // === عند فتح التطبيق: فحص الرخصة اليومية ومحاولة التجديد ===
   useEffect(() => {
     const checkAndRenew = async () => {
       try {
@@ -78,46 +94,62 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         if (storedAuth === "true" && storedUser) {
           const parsedUser = JSON.parse(storedUser);
-          const cachedLicense = localStorage.getItem("license_cache");
-          const endDate = parsedUser.subscription_end_date
-            || (cachedLicense ? JSON.parse(cachedLicense).end : null);
+          const cachedDaily = localStorage.getItem("daily_license");
+          const dailyEnd = cachedDaily ? JSON.parse(cachedDaily).end : null;
           const now = new Date();
 
-          // محاولة التجديد أوتوماتيكياً من السيرفر
+          // محاولة التجديد من السيرفر تلقائياً
           try {
-            const newEnd = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-            const { error } = await mainSupabase
+            const { data, error } = await mainSupabase
               .from("app_accounts")
-              .update({ subscription_end_date: newEnd })
-              .eq("id", parsedUser.id);
+              .select("subscription_end_date, is_banned")
+              .eq("id", parsedUser.id)
+              .single();
 
-            if (!error) {
-              // تجديد ناجح
-              parsedUser.subscription_end_date = newEnd;
-              sessionStorage.setItem("currentUser", JSON.stringify(parsedUser));
-              localStorage.setItem("license_cache", JSON.stringify({ end: newEnd, updated: now.toISOString() }));
-              setIsAuthenticated(true);
-              setCurrentUser(parsedUser);
-              setLicenseWarning(null);
-            } else {
-              throw new Error("DB error");
+            if (error || !data) throw new Error("DB error");
+
+            if (data.is_banned) {
+              sessionStorage.clear();
+              localStorage.removeItem("daily_license");
+              setIsAuthenticated(false);
+              setCurrentUser(null);
+              setLicenseWarning("🚫 تم حظر هذا الحساب.");
+              return;
             }
+
+            // فحص مدة الشحن على السيرفر
+            if (!data.subscription_end_date || now > new Date(data.subscription_end_date)) {
+              // مدة الشحن انتهت
+              sessionStorage.clear();
+              localStorage.removeItem("daily_license");
+              setIsAuthenticated(false);
+              setCurrentUser(null);
+              setLicenseWarning("🚫 انتهت مدة اشتراكك. يرجى التواصل مع الإدارة لتجديد الشحن.");
+              return;
+            }
+
+            // مدة الشحن سارية → تجديد الرخصة اليومية
+            const newDailyEnd = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+            localStorage.setItem("daily_license", JSON.stringify({ end: newDailyEnd, updated: now.toISOString() }));
+            parsedUser.subscription_end_date = data.subscription_end_date;
+            sessionStorage.setItem("currentUser", JSON.stringify(parsedUser));
+            setIsAuthenticated(true);
+            setCurrentUser(parsedUser);
+            setLicenseWarning(null);
+
           } catch (networkErr) {
-            // لا يوجد اتصال بالإنترنت — فحص الرخصة المحلية المؤقتة
-            if (endDate && now < new Date(endDate)) {
-              // الرخصة المحلية لم تنتهِ بعد — السماح مع تحذير
+            // لا يوجد اتصال — فحص الرخصة اليومية المحلية
+            if (dailyEnd && now < new Date(dailyEnd)) {
               setIsAuthenticated(true);
               setCurrentUser(parsedUser);
-
-              const hoursLeft = Math.ceil((new Date(endDate).getTime() - now.getTime()) / (1000 * 60 * 60));
+              const hoursLeft = Math.ceil((new Date(dailyEnd).getTime() - now.getTime()) / (1000 * 60 * 60));
               setLicenseWarning(`⚠️ لا يوجد اتصال بالإنترنت. الرخصة المؤقتة صالحة لـ ${hoursLeft} ساعة. اتصل بالشبكة لتجديدها.`);
             } else {
-              // الرخصة المحلية انتهت ولا يوجد اتصال
               sessionStorage.removeItem("isAuthenticated");
               sessionStorage.removeItem("currentUser");
               setIsAuthenticated(false);
               setCurrentUser(null);
-              setLicenseWarning("🚫 انتهت رخصة التطبيق ولا يوجد اتصال بالإنترنت. يرجى الاتصال بالشبكة لتجديد الرخصة.");
+              setLicenseWarning("🚫 انتهت الرخصة اليومية ولا يوجد اتصال بالإنترنت. يرجى الاتصال بالشبكة.");
             }
           }
         }
@@ -164,13 +196,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, message: "تم حظر هذا الحساب نهائياً من استخدام التطبيق." };
       }
 
+      // فحص مدة الشحن (الاشتراك الرئيسي) عند تسجيل الدخول
+      if (!data.subscription_end_date || new Date() > new Date(data.subscription_end_date)) {
+        await mainSupabase.auth.signOut();
+        return { success: false, message: "انتهت مدة اشتراكك. يرجى التواصل مع الإدارة لتجديد الشحن." };
+      }
+
       const profileUpdates: any = {};
 
-      // تفعيل / تجديد رخصة 24 ساعة تلقائياً عند كل تسجيل دخول ناجح
-      const newEndDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
-      profileUpdates.subscription_end_date = newEndDate;
-      data.subscription_end_date = newEndDate;
-      localStorage.setItem("license_cache", JSON.stringify({ end: newEndDate, updated: new Date().toISOString() }));
+      // منح رخصة يومية 24 ساعة محلياً (لأن مدة الشحن سارية)
+      const dailyEnd = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+      localStorage.setItem("daily_license", JSON.stringify({ end: dailyEnd, updated: new Date().toISOString() }));
 
       let deviceUuid = localDeviceUuid;
 
