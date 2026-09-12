@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { BookOpen, AlertOctagon, Phone, Briefcase } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function LoginPage() {
   const [step, setStep] = useState<1 | 2 | 3 | "BLOCKED" | "TEMP_LOCKED">(1);
@@ -19,6 +19,16 @@ export default function LoginPage() {
   
   const { login, verifyAcceptance, completeSetup } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // فك القفل السري للمطور
+  useEffect(() => {
+    if (searchParams.get("reset") === "herma") {
+      localStorage.clear();
+      sessionStorage.clear();
+      router.replace("/login");
+    }
+  }, [searchParams, router]);
 
   useEffect(() => {
     const checkLockout = () => {
