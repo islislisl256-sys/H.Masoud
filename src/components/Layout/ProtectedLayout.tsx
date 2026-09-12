@@ -9,7 +9,7 @@ import BottomNav from "./BottomNav";
 import { AnimatePresence, motion } from "framer-motion";
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated, currentUser } = useAuth();
+  const { isAuthenticated, currentUser, licenseWarning, renewLicense } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
@@ -38,6 +38,24 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
       <Sidebar />
       <div className="flex flex-col flex-1 overflow-hidden relative">
         <Header />
+        {licenseWarning && (
+          <div className="bg-amber-500 text-white px-4 py-3 flex items-center justify-between gap-3 text-sm font-bold shadow-md z-50">
+            <span>{licenseWarning}</span>
+            <button
+              onClick={async () => {
+                const res = await renewLicense();
+                if (res.success) {
+                  alert("✅ " + res.message);
+                } else {
+                  alert(res.message);
+                }
+              }}
+              className="shrink-0 bg-white text-amber-600 px-4 py-1.5 rounded-lg font-bold hover:bg-amber-50 transition-colors"
+            >
+              تجديد الآن
+            </button>
+          </div>
+        )}
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 lg:p-8 pb-20 md:pb-8">
           <AnimatePresence mode="wait">
             <motion.div
