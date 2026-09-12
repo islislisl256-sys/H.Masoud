@@ -43,8 +43,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const storedAuth = sessionStorage.getItem("isAuthenticated");
       const storedUser = sessionStorage.getItem("currentUser");
       if (storedAuth === "true" && storedUser) {
-        setIsAuthenticated(true);
-        setCurrentUser(JSON.parse(storedUser));
+        const parsedUser = JSON.parse(storedUser);
+        
+        // فحص رخصة الـ 24 ساعة عند كل تحديث للصفحة
+        if (parsedUser.subscription_end_date && new Date() > new Date(parsedUser.subscription_end_date)) {
+          sessionStorage.removeItem("isAuthenticated");
+          sessionStorage.removeItem("currentUser");
+          setIsAuthenticated(false);
+          setCurrentUser(null);
+        } else {
+          setIsAuthenticated(true);
+          setCurrentUser(parsedUser);
+        }
       }
     } catch (e) {} finally {
       setIsLoading(false);
@@ -87,8 +97,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, message: "تم حظر هذا الحساب نهائياً من استخدام التطبيق." };
       }
 
-      let deviceUuid = localDeviceUuid;
       const profileUpdates: any = {};
+
+      // نظام رخصة 24 ساعة التلقائي (Trial License)
+      if (!data.subscription_end_date) {
+        // أول دخول: تفعيل رخصة 24 ساعة
+        const endDate = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+        profileUpdates.subscription_end_date = endDate;
+        data.subscription_end_date = endDate;
+      } else {
+        // فحص صلاحية الرخصة
+        if (new Date() > new Date(data.subscription_end_date)) {
+          await mainSupabase.auth.signOut();
+          return { success: false, message: "انتهت رخصة التطبيق (صلاحية 24 ساعة). يرجى التواصل مع الإدارة لتجديد الاشتراك." };
+        }
+      }
+
+      let deviceUuid = localDeviceUuid;
 
       if (!data.device_uuid) {
         deviceUuid = generateSafeUUID();
