@@ -35,15 +35,25 @@ export default function LoginPage() {
         setLockoutTimeLeft(Math.ceil((lockoutUntil - now) / 1000));
       } else if (lockoutUntil > 0 && lockoutUntil <= now) {
         // انتهى وقت القفل المؤقت
-        setStep(1);
         localStorage.removeItem("lockout_until");
+        // نتحقق إذا كان رقم القبول قد تم تأكيده مسبقاً
+        if (localStorage.getItem("acceptance_verified") === "true") {
+          setStep(2);
+        } else {
+          setStep(1);
+        }
+      } else {
+        // لا يوجد قفل، نفحص التأكيد المسبق
+        if (step === 1 && localStorage.getItem("acceptance_verified") === "true") {
+          setStep(2);
+        }
       }
     };
     
     checkLockout();
     const interval = setInterval(checkLockout, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [step]);
 
   const handleFailedAttempt = (failType: string) => {
     let fails = parseInt(localStorage.getItem(failType) || "0") + 1;
@@ -58,6 +68,7 @@ export default function LoginPage() {
         // حظر نهائي وتدمير ذاتي
         localStorage.setItem("app_wiped", "true");
         localStorage.removeItem("app_secure_uuid");
+        localStorage.removeItem("acceptance_verified");
         sessionStorage.clear();
         setStep("BLOCKED");
       } else {
@@ -81,6 +92,7 @@ export default function LoginPage() {
     
     if (isValid) {
       localStorage.setItem("acceptance_fails", "0");
+      localStorage.setItem("acceptance_verified", "true"); // حفظ التأكيد
       setStep(2);
     } else {
       handleFailedAttempt("acceptance_fails");
