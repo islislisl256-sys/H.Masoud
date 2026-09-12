@@ -6,7 +6,7 @@ import { BookOpen, AlertOctagon, Phone, Briefcase } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const [step, setStep] = useState<1 | 2 | 3 | "BLOCKED">(1);
+  const [step, setStep] = useState<1 | 2 | 3 | "BLOCKED" | "TEMP_LOCKED">(1);
   const [acceptanceNumber, setAcceptanceNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,28 +15,66 @@ export default function LoginPage() {
   
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [lockoutTimeLeft, setLockoutTimeLeft] = useState(0);
   
   const { login, verifyAcceptance, completeSetup } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (localStorage.getItem("app_wiped") === "true") {
-      setStep("BLOCKED");
-    }
+    const checkLockout = () => {
+      if (localStorage.getItem("app_wiped") === "true") {
+        setStep("BLOCKED");
+        return;
+      }
+      
+      const lockoutUntil = parseInt(localStorage.getItem("lockout_until") || "0");
+      const now = Date.now();
+      
+      if (lockoutUntil > now) {
+        setStep("TEMP_LOCKED");
+        setLockoutTimeLeft(Math.ceil((lockoutUntil - now) / 1000));
+      } else if (lockoutUntil > 0 && lockoutUntil <= now) {
+        // انتهى وقت القفل المؤقت
+        setStep(1);
+        localStorage.removeItem("lockout_until");
+      }
+    };
+    
+    checkLockout();
+    const interval = setInterval(checkLockout, 1000);
+    return () => clearInterval(interval);
   }, []);
 
-  const triggerSelfDestruct = () => {
-    localStorage.setItem("app_wiped", "true");
-    localStorage.removeItem("app_secure_uuid");
-    sessionStorage.clear();
-    setStep("BLOCKED");
+  const handleFailedAttempt = (failType: string) => {
+    let fails = parseInt(localStorage.getItem(failType) || "0") + 1;
+    let lockouts = parseInt(localStorage.getItem("total_lockouts") || "0");
+    
+    if (fails >= 3) {
+      lockouts += 1;
+      localStorage.setItem("total_lockouts", lockouts.toString());
+      localStorage.setItem(failType, "0"); // إعادة تعيين الأخطاء الحالية
+      
+      if (lockouts >= 3) {
+        // حظر نهائي وتدمير ذاتي
+        localStorage.setItem("app_wiped", "true");
+        localStorage.removeItem("app_secure_uuid");
+        sessionStorage.clear();
+        setStep("BLOCKED");
+      } else {
+        // حظر مؤقت لمدة 3 دقائق
+        const unlockTime = Date.now() + 3 * 60 * 1000;
+        localStorage.setItem("lockout_until", unlockTime.toString());
+        setStep("TEMP_LOCKED");
+      }
+    } else {
+      localStorage.setItem(failType, fails.toString());
+      setError(`خطأ في البيانات. لديك ${3 - fails} محاولات متبقية قبل القفل المؤقت.`);
+    }
   };
 
   const handleAcceptanceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(""); setIsLoading(true);
-    
-    let fails = parseInt(localStorage.getItem("acceptance_fails") || "0");
     
     const isValid = await verifyAcceptance(acceptanceNumber);
     setIsLoading(false);
@@ -45,13 +83,7 @@ export default function LoginPage() {
       localStorage.setItem("acceptance_fails", "0");
       setStep(2);
     } else {
-      fails += 1;
-      localStorage.setItem("acceptance_fails", fails.toString());
-      if (fails >= 3) {
-        triggerSelfDestruct();
-      } else {
-        setError(`رقم القبول غير صحيح. لديك ${3 - fails} محاولات متبقية قبل تدمير الجلسة.`);
-      }
+      handleFailedAttempt("acceptance_fails");
     }
   };
 
@@ -59,21 +91,14 @@ export default function LoginPage() {
     e.preventDefault();
     setError(""); setIsLoading(true);
     
-    let fails = parseInt(localStorage.getItem("login_fails") || "0");
-    
     const result = await login(email, password);
     setIsLoading(false);
     
     if (!result.success) {
-      fails += 1;
-      localStorage.setItem("login_fails", fails.toString());
-      if (fails >= 3) {
-        triggerSelfDestruct();
-      } else {
-        setError(`${result.message}. لديك ${3 - fails} محاولات متبقية قبل التدمير.`);
-      }
+      handleFailedAttempt("login_fails");
     } else {
       localStorage.setItem("login_fails", "0");
+      localStorage.setItem("total_lockouts", "0"); // تصفير السجل الكامل عند الدخول الناجح
       if (!result.user.phone_number || !result.user.business_type) {
         setStep(3);
       } else {
@@ -95,15 +120,38 @@ export default function LoginPage() {
     }
   };
 
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
+
   if (step === "BLOCKED") {
     return (
       <div className="min-h-screen flex items-center justify-center bg-red-50 p-4">
         <div className="max-w-md w-full text-center space-y-6">
           <AlertOctagon className="h-24 w-24 text-red-600 mx-auto animate-pulse" />
-          <h2 className="text-3xl font-bold text-red-700">تم قفل النظام لأسباب أمنية</h2>
+          <h2 className="text-3xl font-bold text-red-700">تم تدمير الجلسة نهائياً</h2>
           <p className="text-red-600 font-medium text-lg">
-            لقد تم تفعيل نظام التدمير الذاتي بعد تكرار محاولات الدخول الفاشلة. تم مسح بيانات الجلسة بالكامل.
+            لقد تم تفعيل نظام التدمير الذاتي بعد تجاوز الحد الأقصى من الأخطاء المتكررة (9 محاولات). تم مسح التطبيق من هذا الجهاز.
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "TEMP_LOCKED") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-amber-50 p-4">
+        <div className="max-w-md w-full text-center space-y-6">
+          <AlertOctagon className="h-24 w-24 text-amber-600 mx-auto animate-pulse" />
+          <h2 className="text-3xl font-bold text-amber-700">قفل أمني مؤقت</h2>
+          <p className="text-amber-600 font-medium text-lg">
+            لقد أدخلت بيانات خاطئة 3 مرات. يرجى الانتظار حتى انتهاء الوقت للمحاولة مجدداً.
+          </p>
+          <div className="text-5xl font-extrabold text-amber-800 tracking-widest mt-4">
+            {formatTime(lockoutTimeLeft)}
+          </div>
         </div>
       </div>
     );
