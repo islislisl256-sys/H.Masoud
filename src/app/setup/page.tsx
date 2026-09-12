@@ -35,7 +35,7 @@ export default function SetupPage() {
 
     try {
       const { error: updateError } = await mainSupabase
-        .from("fortress_users")
+        .from("app_accounts")
         .update({
           phone_number: phoneNumber,
           acceptance_number: acceptanceNumber,

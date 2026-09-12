@@ -59,52 +59,56 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const storedEncrypted = localStorage.getItem("app_secure_uuid");
       const localDeviceUuid = storedEncrypted ? decodeUUID(storedEncrypted) : null;
 
-      const { data, error } = await mainSupabase.from("app_accounts").select("*").eq("email", email).single();
+      // 1. تسجيل الدخول عبر Supabase Auth (الأمن الحقيقي)
+      const { data: authData, error: authError } = await mainSupabase.auth.signInWithPassword({
+        email: email,
+        password: pass,
+      });
+
+      if (authError || !authData.user) {
+        return { success: false, message: "بيانات الدخول خاطئة (تأكد من البريد الإلكتروني وكلمة المرور)" };
+      }
+
+      // 2. جلب ملف تعريف الحساب المربوط
+      const { data, error } = await mainSupabase.from("app_accounts").select("*").eq("auth_id", authData.user.id).single();
       
-      if (error || !data) return { success: false, message: "الحساب غير موجود" };
+      if (error || !data) {
+        // لتسجيل الخروج إذا لم يكن هناك حساب مربوط
+        await mainSupabase.auth.signOut();
+        return { success: false, message: "هذا الحساب موجود، لكنه غير مربوط بملف في النظام (يرجى ربط auth_id)" };
+      }
       
       if (data.is_banned) {
+        await mainSupabase.auth.signOut();
         return { success: false, message: "تم حظر هذا الحساب نهائياً من استخدام التطبيق." };
       }
 
-      if (data.password !== pass) {
-        return { success: false, message: "بيانات الدخول خاطئة (تأكد من كلمة المرور)" };
-      }
-      
-      // إلغاء مسح البيانات التلقائي لضمان سلامة الحساب
-      if (data.pending_wipe || data.pending_unlink) {
-        await mainSupabase.from("app_accounts").update({
-          pending_wipe: false,
-          pending_unlink: false
-        }).eq("id", data.id);
-      }
-
+      // 3. التحقق من ربط الجهاز (Hardware Binding)
       let deviceUuid = localDeviceUuid;
-
-      // حساب جديد أو تجهيز التوكن ونوعية التضغيط الأنسب (0.7)
-      const tokenGenerated = data.account_token || `TOKEN_${generateSafeUUID().substring(0, 12)}`;
-      const optimalQuality = data.compression_quality !== undefined && data.compression_quality !== null ? data.compression_quality : 0.7;
-
-      const profileUpdates: any = {
-        account_token: tokenGenerated,
-        compression_quality: optimalQuality,
-      };
+      const profileUpdates: any = {};
 
       if (!data.device_uuid) {
+        // أول دخول: ربط الجهاز
         deviceUuid = generateSafeUUID();
         profileUpdates.device_uuid = deviceUuid;
         profileUpdates.device_info = typeof navigator !== 'undefined' ? navigator.userAgent : 'Desktop/App';
         localStorage.setItem("app_secure_uuid", encodeUUID(deviceUuid));
       } else {
+        // دخول متكرر: مطابقة الجهاز
         if (data.device_uuid !== localDeviceUuid) {
-          return { success: false, message: "هذا الحساب مرتبط بجهاز آخر، أو أن هذا الجهاز مرتبط بحساب مختلف." };
+          await mainSupabase.auth.signOut();
+          return { success: false, message: "هذا الحساب مرتبط بجهاز آخر. يجب فك الارتباط أولاً من لوحة التحكم." };
         }
       }
 
-      // حفظ تحديثات الحساب والتوكن ونوعية التضغيط الأنسب في قاعدة البيانات
-      await mainSupabase.from("app_accounts").update(profileUpdates).eq("id", data.id);
+      // حفظ التحديثات إذا تم إنشاء معرف جديد
+      if (Object.keys(profileUpdates).length > 0) {
+        await mainSupabase.from("app_accounts").update(profileUpdates).eq("id", data.id);
+      }
 
+      // تهيئة قاعدة البيانات الفرعية إن وجدت
       initDynamicSupabase(data.db_url, data.db_key);
+      
       const userPayload = { ...data, ...profileUpdates };
       sessionStorage.setItem("isAuthenticated", "true");
       sessionStorage.setItem("currentUser", JSON.stringify(userPayload));

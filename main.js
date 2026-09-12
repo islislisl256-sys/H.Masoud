@@ -19,7 +19,9 @@ function createWindow() {
     autoHideMenuBar: true,
   });
 
-  loadURL(mainWindow);
+  loadURL(mainWindow).then(() => {
+    
+  });
 }
 
 app.whenReady().then(() => {
