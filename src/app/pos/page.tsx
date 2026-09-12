@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { QrCode, Search, Trash2, Plus, Minus, Save, ShoppingCart, Loader2, X, ImagePlus, Camera, Package, Weight, Printer, ScanLine, ArrowLeftRight, Settings } from "lucide-react";
+import { QrCode, Search, Trash2, Plus, Minus, Save, ShoppingCart, Loader2, X, ImagePlus, Camera, Package, Weight, Printer, ScanLine, Settings } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import ReceiptTemplate from "@/components/POS/ReceiptTemplate";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 
 type Product = {
@@ -50,7 +50,6 @@ export default function POSPage() {
   // Hardware Scanner & Printer Settings
   const [hardwareScannerActive, setHardwareScannerActive] = useState(true);
   const [printerSize, setPrinterSize] = useState<'58mm' | '80mm'>('80mm');
-  const [returnMode, setReturnMode] = useState(false);
   const [lastSavedInvoice, setLastSavedInvoice] = useState<{ number: string, items: any[], total: number, date: Date } | null>(null);
 
   const searchResults = useMemo(() => {
@@ -83,7 +82,6 @@ export default function POSPage() {
     }
   };
 
-  // Hardware Scanner Keyboard Hook
   useEffect(() => {
     if (!hardwareScannerActive) return;
 
@@ -112,7 +110,7 @@ export default function POSPage() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [hardwareScannerActive, products, activeCartId, carts]); // Added dependencies to ensure it has latest state
+  }, [hardwareScannerActive, products, activeCartId, carts]); 
 
   const handleImageScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -212,7 +210,6 @@ export default function POSPage() {
   const activeCart = carts.find(c => c.id === activeCartId) || carts[0];
   const invoiceItems = activeCart.items;
 
-  // Calculations
   const calculatedTotal = invoiceItems.reduce((sum, item) => sum + (item.sale_price * item.quantity), 0);
   const activeTotal = customTotal !== "" ? Number(customTotal) : calculatedTotal;
   const calculatedProfit = invoiceItems.reduce((sum, item) => sum + ((item.sale_price - item.purchase_price) * item.quantity), 0);
@@ -225,13 +222,9 @@ export default function POSPage() {
     try {
       const invoiceNumber = `INV-${Date.now()}`;
       
-      // If return mode, multiply total and profit by -1
-      const finalTotal = returnMode ? -Math.abs(activeTotal) : activeTotal;
-      const finalProfit = returnMode ? -Math.abs(activeProfit) : activeProfit;
-
       const { data: invoice, error: invoiceError } = await supabase
         .from('invoices')
-        .insert([{ invoice_number: invoiceNumber, total: finalTotal, profit: finalProfit }])
+        .insert([{ invoice_number: invoiceNumber, total: activeTotal, profit: activeProfit }])
         .select()
         .single();
         
@@ -240,22 +233,19 @@ export default function POSPage() {
       const itemsToInsert = invoiceItems.map(item => ({
         invoice_id: invoice.id,
         product_id: item.id,
-        quantity: returnMode ? -Math.abs(item.quantity) : item.quantity,
+        quantity: item.quantity,
         unit_price: item.sale_price,
-        total_price: returnMode ? -Math.abs(item.sale_price * item.quantity) : (item.sale_price * item.quantity),
-        profit: returnMode ? -Math.abs((item.sale_price - item.purchase_price) * item.quantity) : ((item.sale_price - item.purchase_price) * item.quantity),
+        total_price: item.sale_price * item.quantity,
+        profit: (item.sale_price - item.purchase_price) * item.quantity,
       }));
 
       const { error: itemsError } = await supabase.from('invoice_items').insert(itemsToInsert);
       if (itemsError) throw itemsError;
 
-      // Update Inventory
       for (const item of invoiceItems) {
          const product = products.find(p => p.id === item.id);
          if (product) {
-           const newQuantity = returnMode 
-             ? product.quantity + item.quantity 
-             : product.quantity - item.quantity;
+           const newQuantity = product.quantity - item.quantity;
            await supabase.from('products').update({ quantity: newQuantity }).eq('id', item.id);
          }
       }
@@ -264,27 +254,23 @@ export default function POSPage() {
         setLastSavedInvoice({
           number: invoiceNumber,
           items: invoiceItems,
-          total: activeTotal, // Print positive total on receipt always
+          total: activeTotal,
           date: new Date()
         });
         
-        // Wait for state to update and render the hidden receipt, then trigger print
         setTimeout(() => {
           window.print();
           setLastSavedInvoice(null);
           closeCart(activeCartId);
           fetchProducts();
           setSaving(false);
-          setReturnMode(false);
         }, 500);
       } else {
-        alert(returnMode ? "تم تسجيل الإرجاع بنجاح!" : "تم حفظ البيعة بنجاح!");
+        alert("تم حفظ البيعة بنجاح!");
         closeCart(activeCartId);
         fetchProducts();
         setSaving(false);
-        setReturnMode(false);
       }
-
     } catch (error) {
       console.error(error);
       alert("حدث خطأ أثناء الحفظ");
@@ -307,41 +293,17 @@ export default function POSPage() {
 
   return (
     <ProtectedLayout>
-      <div className={`space-y-4 pb-24 transition-colors duration-500 ${returnMode ? 'bg-red-50/30 dark:bg-red-900/10' : ''}`}>
+      <div className="space-y-4 pb-24 transition-colors duration-500">
         
-        {/* Header Controls: Return Mode & Printer Settings */}
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-          <button
-            onClick={() => setReturnMode(!returnMode)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all ${
-              returnMode 
-                ? 'bg-red-500 text-white shadow-lg animate-pulse' 
-                : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-200 dark:hover:bg-gray-600'
-            }`}
-          >
-            <ArrowLeftRight className="h-5 w-5" />
-            {returnMode ? "وضع الإرجاع مفعل (استرجاع للمخزن)" : "تفعيل وضع الإرجاع"}
-          </button>
-
+        <div className="flex flex-wrap items-center justify-end gap-3 bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
           <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900/50 p-1.5 rounded-lg border border-gray-200 dark:border-gray-700">
             <Settings className="h-4 w-4 text-gray-500 ml-1" />
             <span className="text-xs font-bold text-gray-600 dark:text-gray-400">حجم الطابعة:</span>
-            <button
-              onClick={() => setPrinterSize('58mm')}
-              className={`px-3 py-1 text-xs font-bold rounded-md ${printerSize === '58mm' ? 'bg-primary text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800'}`}
-            >
-              58mm
-            </button>
-            <button
-              onClick={() => setPrinterSize('80mm')}
-              className={`px-3 py-1 text-xs font-bold rounded-md ${printerSize === '80mm' ? 'bg-primary text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800'}`}
-            >
-              80mm
-            </button>
+            <button onClick={() => setPrinterSize('58mm')} className={`px-3 py-1 text-xs font-bold rounded-md ${printerSize === '58mm' ? 'bg-primary text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800'}`}>58mm</button>
+            <button onClick={() => setPrinterSize('80mm')} className={`px-3 py-1 text-xs font-bold rounded-md ${printerSize === '80mm' ? 'bg-primary text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800'}`}>80mm</button>
           </div>
         </div>
 
-        {/* تعدد الفواتير */}
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
           {carts.map(cart => (
             <button
@@ -349,7 +311,7 @@ export default function POSPage() {
               onClick={() => setActiveCartId(cart.id)}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold whitespace-nowrap transition-colors ${
                 activeCartId === cart.id 
-                  ? returnMode ? 'bg-red-600 text-white shadow-md' : 'bg-primary text-white shadow-md' 
+                  ? 'bg-primary text-white shadow-md' 
                   : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
@@ -361,47 +323,28 @@ export default function POSPage() {
                 </span>
               )}
               {carts.length > 1 && (
-                <div 
-                  onClick={(e) => { e.stopPropagation(); closeCart(cart.id); }}
-                  className="p-0.5 hover:bg-red-500 hover:text-white rounded-full ml-1"
-                >
+                <div onClick={(e) => { e.stopPropagation(); closeCart(cart.id); }} className="p-0.5 hover:bg-red-500 hover:text-white rounded-full ml-1">
                   <X className="h-3 w-3" />
                 </div>
               )}
             </button>
           ))}
-          <button
-            onClick={createNewCart}
-            className="flex items-center gap-1 px-3 py-2.5 rounded-xl font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors whitespace-nowrap border border-green-200 dark:border-green-900/50"
-          >
-            <Plus className="h-4 w-4" />
-            فاتورة جديدة
+          <button onClick={createNewCart} className="flex items-center gap-1 px-3 py-2.5 rounded-xl font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors whitespace-nowrap border border-green-200 dark:border-green-900/50">
+            <Plus className="h-4 w-4" /> فاتورة جديدة
           </button>
         </div>
 
-        {/* بحث سريع */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 relative">
           <div className="relative z-10">
             <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
               <Search className="h-5 w-5 text-gray-400" />
             </div>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="بحث سريع بالاسم أو الباركود يدوياً..."
-              className="w-full pl-3 pr-10 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white"
-              onKeyDown={handleManualSearch}
-            />
+            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="بحث سريع بالاسم أو الباركود يدوياً..." className="w-full pl-3 pr-10 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white" onKeyDown={handleManualSearch} />
           </div>
           {searchQuery.trim() && searchResults.length > 0 && (
             <div className="absolute top-full right-0 left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto">
               {searchResults.map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => { addProduct(p); setSearchQuery(""); }}
-                  className="w-full text-right px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-0 flex justify-between items-center"
-                >
+                <button key={p.id} onClick={() => { addProduct(p); setSearchQuery(""); }} className="w-full text-right px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-0 flex justify-between items-center">
                   <div>
                     <p className="font-bold text-gray-900 dark:text-white">{p.name}</p>
                     <p className="text-xs text-gray-500">{p.product_number}</p>
@@ -413,17 +356,12 @@ export default function POSPage() {
           )}
         </div>
 
-        {/* قائمة المنتجات السريعة (منتجات بلا باركود / بصور) */}
         {quickProducts.length > 0 && (
           <div>
             <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-2 px-1">المنتجات السريعة</h3>
             <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-hide">
               {quickProducts.map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => addProduct(p)}
-                  className="relative flex-shrink-0 w-28 h-32 flex flex-col items-center justify-end p-2 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:border-primary transition-colors active:scale-95 overflow-hidden bg-white dark:bg-gray-800"
-                >
+                <button key={p.id} onClick={() => addProduct(p)} className="relative flex-shrink-0 w-28 h-32 flex flex-col items-center justify-end p-2 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:border-primary transition-colors active:scale-95 overflow-hidden bg-white dark:bg-gray-800">
                   {p.image_url ? (
                     <>
                       <img src={p.image_url} alt={p.name} className="absolute inset-0 w-full h-full object-cover" />
@@ -435,13 +373,8 @@ export default function POSPage() {
                     </>
                   ) : (
                     <>
-                      <div className="w-full flex-1 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-2">
-                        <Package className="h-8 w-8 text-gray-400" />
-                      </div>
-                      <div className="w-full text-center">
-                        <p className="font-bold text-gray-900 dark:text-white text-sm truncate">{p.name}</p>
-                        <p className="text-xs text-primary font-bold mt-0.5">{p.sale_price} د.ج</p>
-                      </div>
+                      <div className="w-full flex-1 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-2"><Package className="h-8 w-8 text-gray-400" /></div>
+                      <div className="w-full text-center"><p className="font-bold text-gray-900 dark:text-white text-sm truncate">{p.name}</p><p className="text-xs text-primary font-bold mt-0.5">{p.sale_price} د.ج</p></div>
                     </>
                   )}
                 </button>
@@ -450,39 +383,24 @@ export default function POSPage() {
           </div>
         )}
 
-        {/* منتجات الميزان */}
         {weightProducts.length > 0 && (
           <div>
             <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-2 px-1">الميزان واللتر</h3>
             <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-hide">
               {weightProducts.map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => addProduct(p)}
-                  className="flex-shrink-0 flex items-center gap-3 bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:border-amber-500 transition-colors active:scale-95 pr-4 pl-6"
-                >
-                  <div className="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 p-2 rounded-lg">
-                    <Weight className="h-6 w-6" />
-                  </div>
-                  <div className="text-right">
-                    <p className="font-bold text-gray-900 dark:text-white text-base">{p.name}</p>
-                    <p className="text-xs text-gray-500">{p.sale_type === 'weight' ? 'بالكيلوغرام' : 'باللتر'} • <span className="text-primary font-bold">{p.sale_price} د.ج</span></p>
-                  </div>
+                <button key={p.id} onClick={() => addProduct(p)} className="flex-shrink-0 flex items-center gap-3 bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:border-amber-500 transition-colors active:scale-95 pr-4 pl-6">
+                  <div className="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 p-2 rounded-lg"><Weight className="h-6 w-6" /></div>
+                  <div className="text-right"><p className="font-bold text-gray-900 dark:text-white text-base">{p.name}</p><p className="text-xs text-gray-500">{p.sale_type === 'weight' ? 'بالكيلوغرام' : 'باللتر'} • <span className="text-primary font-bold">{p.sale_price} د.ج</span></p></div>
                 </button>
               ))}
             </div>
           </div>
         )}
 
-        {/* تفاصيل البيعة */}
-        <div className={`w-full flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-sm border overflow-hidden mt-4 ${returnMode ? 'border-red-400' : 'border-gray-200 dark:border-gray-700'}`}>
-          
+        <div className={`w-full flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-sm border overflow-hidden mt-4 border-gray-200 dark:border-gray-700`}>
           {isScanning && (
             <div className="w-full border-b border-gray-200 dark:border-gray-700 bg-black/5 dark:bg-white/5 py-4 px-4">
-              <BarcodeScanner
-                onScanSuccess={handleScanSuccess}
-                continuous={true}
-              />
+              <BarcodeScanner onScanSuccess={handleScanSuccess} continuous={true} />
             </div>
           )}
           
@@ -495,149 +413,87 @@ export default function POSPage() {
               </div>
             ) : (
               invoiceItems.map(item => (
-                <div key={item.id} className={`flex flex-col gap-2 p-4 border rounded-lg ${returnMode ? 'border-red-200 bg-red-50/50 dark:bg-red-900/20' : 'border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/20'}`}>
+                <div key={item.id} className="flex flex-col gap-2 p-4 border rounded-lg border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/20">
                   <div className="flex justify-between items-start">
                     <div>
                       <span className="font-bold text-gray-900 dark:text-white text-lg">{item.name}</span>
-                      {item.sale_type === 'weight' || item.sale_type === 'volume' ? (
-                        <span className="inline-block mx-2 text-xs bg-amber-100 text-amber-700 px-2 rounded-full">ميزان</span>
-                      ) : null}
-                      {returnMode && <span className="inline-block mx-2 text-xs bg-red-100 text-red-700 px-2 rounded-full font-bold">استرجاع</span>}
+                      {item.sale_type === 'weight' || item.sale_type === 'volume' ? <span className="inline-block mx-2 text-xs bg-amber-100 text-amber-700 px-2 rounded-full">ميزان</span> : null}
                     </div>
                     <button onClick={() => removeItem(item.id)} className="text-gray-400 hover:text-red-500 p-1"><Trash2 className="h-5 w-5" /></button>
                   </div>
                   <div className="flex justify-between items-center mt-1">
-                    <span className={`${returnMode ? 'text-red-500' : 'text-primary'} font-bold text-xl`}>{returnMode && '-'}{item.sale_price} د.ج</span>
+                    <span className="text-primary font-bold text-xl">{item.sale_price} د.ج</span>
                     <div className="flex items-center gap-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-2">
                       <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"><Minus className="h-5 w-5" /></button>
-                      <input 
-                        type="number" 
-                        step={item.sale_type === 'weight' || item.sale_type === 'volume' ? "0.01" : "1"}
-                        value={item.quantity} 
-                        onChange={(e) => updateQuantity(item.id, parseFloat(e.target.value) || 0)} 
-                        className="w-16 text-center text-lg font-bold text-gray-900 dark:text-white bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                      />
+                      <input type="number" step={item.sale_type === 'weight' || item.sale_type === 'volume' ? "0.01" : "1"} value={item.quantity} onChange={(e) => updateQuantity(item.id, parseFloat(e.target.value) || 0)} className="w-16 text-center text-lg font-bold text-gray-900 dark:text-white bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
                       <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"><Plus className="h-5 w-5" /></button>
                     </div>
                   </div>
                   <div className="text-sm text-gray-500 dark:text-gray-400 text-left mt-1 border-t border-dashed border-gray-200 dark:border-gray-600 pt-2">
-                    المجموع: <span className="font-bold text-gray-900 dark:text-white">{returnMode && '-'}{(item.sale_price * item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} د.ج</span>
+                    المجموع: <span className="font-bold text-gray-900 dark:text-white">{(item.sale_price * item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} د.ج</span>
                   </div>
                 </div>
               ))
             )}
           </div>
 
-          <div className={`p-4 border-t ${returnMode ? 'border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-900/10' : 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50'} space-y-4`}>
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 space-y-4">
             <div className="flex justify-between items-center text-xl font-bold text-gray-900 dark:text-white">
-              <span>{returnMode ? "إجمالي الإرجاع:" : "الإجمالي:"}</span>
+              <span>الإجمالي:</span>
               <div className="flex items-center gap-2">
-                {returnMode && <span className="text-red-500">-</span>}
-                <input
-                  type="number"
-                  value={customTotal !== "" ? customTotal : calculatedTotal}
-                  onChange={(e) => setCustomTotal(e.target.value)}
-                  className={`w-32 text-left text-xl font-bold bg-transparent border-b-2 outline-none px-1 py-0.5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${returnMode ? 'text-red-500 border-red-500/30 focus:border-red-500' : 'text-primary border-primary/30 focus:border-primary'}`}
-                />
-                <span className={returnMode ? 'text-red-500 text-base' : 'text-primary text-base'}>د.ج</span>
+                <input type="number" value={customTotal !== "" ? customTotal : calculatedTotal} onChange={(e) => setCustomTotal(e.target.value)} className="w-32 text-left text-xl font-bold bg-transparent border-b-2 outline-none px-1 py-0.5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-primary border-primary/30 focus:border-primary" />
+                <span className="text-primary text-base">د.ج</span>
               </div>
             </div>
             
             <div className="flex justify-between items-center text-lg font-bold border-b border-dashed border-gray-300 dark:border-gray-600 pb-3">
-              <span className={returnMode ? 'text-red-500' : 'text-green-600 dark:text-green-400'}>{returnMode ? "الخسارة/المخصوم:" : "الربح:"}</span>
-              <span className={returnMode ? 'text-red-500' : 'text-green-600 dark:text-green-400'}>{returnMode && '-'}{activeProfit.toLocaleString(undefined, { maximumFractionDigits: 2 })} د.ج</span>
+              <span className="text-green-600 dark:text-green-400">الربح:</span>
+              <span className="text-green-600 dark:text-green-400">{activeProfit.toLocaleString(undefined, { maximumFractionDigits: 2 })} د.ج</span>
             </div>
             
             <div className="grid grid-cols-2 gap-3 mt-4">
-              <motion.button 
-                whileTap={{ scale: 0.95 }}
-                onClick={() => saveInvoice(true)}
-                disabled={invoiceItems.length === 0 || saving}
-                className={`w-full flex items-center justify-center gap-2 text-white py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-lg shadow-md ${
-                  returnMode ? 'bg-red-600 hover:bg-red-700' : 'bg-primary hover:bg-primary-hover'
-                }`}
-              >
+              <motion.button whileTap={{ scale: 0.95 }} onClick={() => saveInvoice(true)} disabled={invoiceItems.length === 0 || saving} className="w-full flex items-center justify-center gap-2 text-white py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-lg shadow-md bg-primary hover:bg-primary-hover">
                 {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Printer className="h-5 w-5" />}
-                {saving ? "جاري..." : (returnMode ? "إرجاع وطباعة وصل" : "بيع وطباعة فاتورة")}
+                {saving ? "جاري..." : "بيع وطباعة فاتورة"}
               </motion.button>
-
-              <motion.button 
-                whileTap={{ scale: 0.95 }}
-                onClick={() => saveInvoice(false)}
-                disabled={invoiceItems.length === 0 || saving}
-                className={`w-full flex items-center justify-center gap-2 text-white py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-base shadow-md ${
-                  returnMode ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600'
-                }`}
-              >
+              <motion.button whileTap={{ scale: 0.95 }} onClick={() => saveInvoice(false)} disabled={invoiceItems.length === 0 || saving} className="w-full flex items-center justify-center gap-2 text-white py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-base shadow-md bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600">
                 {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-                {saving ? "جاري..." : (returnMode ? "تسجيل الإرجاع فقط" : "تسجيل بيع من غير طباعة")}
+                {saving ? "جاري..." : "تسجيل بيع من غير طباعة"}
               </motion.button>
             </div>
           </div>
         </div>
 
-        {/* Footer */}
         <div className="pt-8 pb-4 text-center">
           <p className="text-xs text-gray-400 dark:text-gray-500">®HERMA_LAISSAOUI_ISLAM_Developer</p>
         </div>
       </div>
 
-      {/* زر المسح العائم (Floating Actions) */}
       <div className="fixed bottom-20 md:bottom-6 right-6 z-50 flex flex-col items-center">
         {showScanMenu && !isScanning && (
           <div className="mb-4 flex flex-col gap-3 origin-bottom animate-in fade-in slide-in-from-bottom-4 items-center">
-            
-            <button 
-              onClick={() => { setHardwareScannerActive(!hardwareScannerActive); setShowScanMenu(false); }}
-              className={`flex items-center justify-center w-12 h-12 rounded-full shadow-lg transition-transform hover:scale-110 ${hardwareScannerActive ? 'bg-primary text-white' : 'bg-gray-500 text-white'}`}
-              title={hardwareScannerActive ? "إيقاف استشعار الماسح اليدوي (USB)" : "تفعيل استشعار الماسح اليدوي (USB)"}
-            >
+            <button onClick={() => { setHardwareScannerActive(!hardwareScannerActive); setShowScanMenu(false); }} className={`flex items-center justify-center w-12 h-12 rounded-full shadow-lg transition-transform hover:scale-110 ${hardwareScannerActive ? 'bg-primary text-white' : 'bg-gray-500 text-white'}`} title={hardwareScannerActive ? "إيقاف استشعار الماسح اليدوي (USB)" : "تفعيل استشعار الماسح اليدوي (USB)"}>
                <ScanLine className="h-5 w-5" />
             </button>
-
             <label className="flex items-center justify-center w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg cursor-pointer transition-transform hover:scale-110" title="رفع صورة فيها باركود">
                <ImagePlus className="h-5 w-5" />
                <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
             </label>
-            
-            <button 
-              onClick={() => { setIsScanning(true); setShowScanMenu(false); }}
-              className="flex items-center justify-center w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg transition-transform hover:scale-110" title="تشغيل الكاميرا للمسح"
-            >
+            <button onClick={() => { setIsScanning(true); setShowScanMenu(false); }} className="flex items-center justify-center w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg transition-transform hover:scale-110" title="تشغيل الكاميرا للمسح">
                <Camera className="h-5 w-5" />
             </button>
           </div>
         )}
-        <motion.button
-          whileTap={{ scale: 0.95 }}
-          onClick={() => isScanning ? setIsScanning(false) : setShowScanMenu(!showScanMenu)}
-          className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 active:scale-90 ${
-            isScanning 
-              ? "bg-red-500 hover:bg-red-600 shadow-red-500/30" 
-              : "bg-primary hover:bg-primary-hover shadow-primary/30"
-          }`}
-        >
-          {isScanning ? (
-            <X className="h-7 w-7 text-white" />
-          ) : (
-            <QrCode className="h-7 w-7 text-white" />
-          )}
+        <motion.button whileTap={{ scale: 0.95 }} onClick={() => isScanning ? setIsScanning(false) : setShowScanMenu(!showScanMenu)} className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 active:scale-90 ${isScanning ? "bg-red-500 hover:bg-red-600 shadow-red-500/30" : "bg-primary hover:bg-primary-hover shadow-primary/30"}`}>
+          {isScanning ? <X className="h-7 w-7 text-white" /> : <QrCode className="h-7 w-7 text-white" />}
         </motion.button>
       </div>
 
       <div id="hidden-qr-reader-pos" className="hidden"></div>
 
-      {/* Hidden Receipt Component to Print */}
       {lastSavedInvoice && (
-        <ReceiptTemplate 
-          invoiceNumber={lastSavedInvoice.number}
-          items={lastSavedInvoice.items}
-          total={lastSavedInvoice.total}
-          date={lastSavedInvoice.date}
-          size={printerSize}
-        />
+        <ReceiptTemplate invoiceNumber={lastSavedInvoice.number} items={lastSavedInvoice.items} total={lastSavedInvoice.total} date={lastSavedInvoice.date} size={printerSize} />
       )}
-
     </ProtectedLayout>
   );
 }
