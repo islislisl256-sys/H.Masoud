@@ -35,9 +35,11 @@ type PendingProduct = {
 import { motion } from "framer-motion";
 import CloudinarySetupModal from "@/components/Modals/CloudinarySetupModal";
 import { useAuth } from "@/contexts/AuthContext";
+import { useBarcode } from "@/contexts/BarcodeContext";
 
 export default function ProductsPage() {
   const { currentUser } = useAuth();
+  const { scannedBarcode, clearBarcode } = useBarcode();
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -57,6 +59,29 @@ export default function ProductsPage() {
   useEffect(() => {
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    if (scannedBarcode) {
+      if (pendingProducts.length > 0 || isAdding) {
+        // في وضع الإضافة، أضف المنتج للقائمة
+        if (!pendingProducts.some(p => p.product_number === scannedBarcode)) {
+          setPendingProducts(prev => [...prev, {
+            product_number: scannedBarcode,
+            name: '',
+            purchase_price: 0,
+            sale_price: 0,
+            quantity: 0,
+            image_url: '',
+            sale_type: 'unit'
+          }]);
+        }
+      } else {
+        // في الوضع العادي، ابحث عن المنتج
+        setSearchTerm(scannedBarcode);
+      }
+      clearBarcode();
+    }
+  }, [scannedBarcode, pendingProducts, isAdding]);
 
   const fetchProducts = async () => {
     setLoading(true);

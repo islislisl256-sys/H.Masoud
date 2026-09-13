@@ -7,6 +7,7 @@ import { Html5Qrcode } from "html5-qrcode";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { useBarcode } from "@/contexts/BarcodeContext";
 
 type Product = {
   id: string;
@@ -46,6 +47,8 @@ export default function ReturnsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [customTotal, setCustomTotal] = useState<string>("");
 
+  const { scannedBarcode, clearBarcode } = useBarcode();
+
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
     const lowerQ = searchQuery.toLowerCase();
@@ -75,6 +78,13 @@ export default function ReturnsPage() {
       alert("المنتج غير موجود!");
     }
   };
+
+  useEffect(() => {
+    if (scannedBarcode) {
+      handleScanSuccess(scannedBarcode);
+      clearBarcode();
+    }
+  }, [scannedBarcode, products]);
 
   const handleImageScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {

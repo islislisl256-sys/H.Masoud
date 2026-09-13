@@ -8,6 +8,7 @@ import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import ReceiptTemplate from "@/components/POS/ReceiptTemplate";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { useBarcode } from "@/contexts/BarcodeContext";
 
 type Product = {
   id: string;
@@ -82,35 +83,14 @@ export default function POSPage() {
     }
   };
 
+  const { scannedBarcode, clearBarcode } = useBarcode();
+
   useEffect(() => {
-    if (!hardwareScannerActive) return;
-
-    let barcodeBuffer = "";
-    let lastKeyTime = Date.now();
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const isInput = (e.target as HTMLElement).tagName === 'INPUT';
-      const currentTime = Date.now();
-      
-      if (currentTime - lastKeyTime > 50) {
-        barcodeBuffer = "";
-      }
-      
-      if (e.key === 'Enter') {
-        if (barcodeBuffer.length >= 3 && (!isInput || currentTime - lastKeyTime <= 50)) {
-          e.preventDefault();
-          handleScanSuccess(barcodeBuffer);
-          barcodeBuffer = "";
-        }
-      } else if (e.key.length === 1) { 
-        barcodeBuffer += e.key;
-      }
-      lastKeyTime = currentTime;
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [hardwareScannerActive, products, activeCartId, carts]); 
+    if (scannedBarcode) {
+      handleScanSuccess(scannedBarcode);
+      clearBarcode();
+    }
+  }, [scannedBarcode, products]);
 
   const handleImageScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {

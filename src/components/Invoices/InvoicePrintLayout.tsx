@@ -12,8 +12,23 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
     client_name, client_art, client_mf, client_rc, receipt_date, invoice_number,
     items,
     total_amount_receipt, total_amount_invoice, tva_amount, stamp_duty, grand_total_invoice,
-    amount_in_words_arabic
+    amount_in_words_arabic, store_logo
   } = payload;
+
+  const watermarkStyle: React.CSSProperties = store_logo ? {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundImage: `url(${store_logo})`,
+    backgroundRepeat: 'repeat',
+    backgroundSize: '150px 150px',
+    backgroundPosition: 'center',
+    opacity: 0.08,
+    pointerEvents: 'none',
+    zIndex: 0,
+  } : {};
 
   // ---------------------------------------------------------------------------
   // RECEIPT RENDERERS (Image 2 style)
@@ -223,21 +238,27 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
     <div ref={ref} className="w-full" style={{ fontSize: '12pt', direction: 'rtl', backgroundColor: '#ffffff', color: '#000000', fontFamily: 'Arial, sans-serif' }}>
       
       {/* Page 1: Receipt (Image 2 Style) */}
-      <div className="w-full pb-8">
-        {renderReceiptHeader()}
-        {renderReceiptClientAndTitle()}
-        {renderReceiptTable()}
-        {renderReceiptFooter()}
+      <div className="w-full pb-8" style={{ position: 'relative', minHeight: '800px' }}>
+        {store_logo && <div style={watermarkStyle} />}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {renderReceiptHeader()}
+          {renderReceiptClientAndTitle()}
+          {renderReceiptTable()}
+          {renderReceiptFooter()}
+        </div>
       </div>
 
       <div className="html2pdf__page-break"></div>
 
       {/* Page 2: Invoice (Image 1 Style) */}
-      <div className="w-full pt-8">
-        {renderInvoiceHeader()}
-        {renderInvoiceClientAndTitle()}
-        {renderInvoiceTable()}
-        {renderInvoiceFooter()}
+      <div className="w-full pt-8" style={{ position: 'relative', minHeight: '800px' }}>
+        {store_logo && <div style={watermarkStyle} />}
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          {renderInvoiceHeader()}
+          {renderInvoiceClientAndTitle()}
+          {renderInvoiceTable()}
+          {renderInvoiceFooter()}
+        </div>
       </div>
 
     </div>
@@ -247,5 +268,3 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
 InvoicePrintLayout.displayName = 'InvoicePrintLayout';
 
 export default InvoicePrintLayout;
-
-

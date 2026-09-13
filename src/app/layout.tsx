@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Cairo } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { BarcodeProvider } from "@/contexts/BarcodeContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import PwaGuard from "@/components/Layout/PwaGuard";
 
@@ -29,7 +30,9 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <PwaGuard>
             <AuthProvider>
-              {children}
+              <BarcodeProvider>
+                {children}
+              </BarcodeProvider>
             </AuthProvider>
           </PwaGuard>
         </ThemeProvider>

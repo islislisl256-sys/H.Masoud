@@ -34,6 +34,7 @@ export default function CustomInvoicesTab() {
     store_mf: "",
     store_art: "",
     store_nif: "",
+    store_logo: "",
   });
 
   const [clientInfo, setClientInfo] = useState({
@@ -46,6 +47,7 @@ export default function CustomInvoicesTab() {
   const [financials, setFinancials] = useState({ tva_amount: 0, stamp_duty: 0 });
   const [includeTva, setIncludeTva] = useState(true);
   const [amountInWords, setAmountInWords] = useState("");
+  const [pagesToPrint, setPagesToPrint] = useState<'receipt' | 'invoice' | 'both'>('both');
   
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [generating, setGenerating] = useState(false);
@@ -175,34 +177,49 @@ export default function CustomInvoicesTab() {
     };
   };
 
-  const handleGenerate = async (payloadOverride?: any) => {
-    const payload = payloadOverride || buildPayload();
+  const handleGenerate = async (formatOrPayload?: 'pdf' | 'docx' | any, payloadOverride?: any) => {
+    // دعم التوافق مع الاستدعاءات القديمة من السجل
+    let format: 'pdf' | 'docx' = 'pdf';
+    let payload: any;
+    if (typeof formatOrPayload === 'string' && (formatOrPayload === 'pdf' || formatOrPayload === 'docx')) {
+      format = formatOrPayload;
+      payload = payloadOverride || buildPayload();
+    } else if (formatOrPayload && typeof formatOrPayload === 'object') {
+      payload = formatOrPayload;
+    } else {
+      payload = buildPayload();
+    }
+
     if (!payload.client_name) { alert("الرجاء إدخال اسم العميل"); return; }
     
     setGenerating(true);
     
     try {
-      const element = document.getElementById('invoice-print-container');
-      if (element) {
-        // Handle dynamic import more robustly
-        const html2pdfModule = await import('html2pdf.js');
-        const html2pdf = html2pdfModule.default || html2pdfModule;
-        
-        const opt: any = {
-          margin:       0.4,
-          pagebreak:    { mode: ['avoid-all', 'css', 'legacy'], avoid: 'tr' },
-          filename:     `Invoice_${payload.client_name}_${payload.invoice_number || Date.now()}.pdf`,
-          image:        { type: 'jpeg', quality: 0.98 },
-          html2canvas:  { scale: 2, useCORS: true },
-          jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
-        
-        await html2pdf().set(opt).from(element).save();
+      if (format === 'docx') {
+        const { generateInvoiceDocx } = await import('@/lib/generateDocx');
+        await generateInvoiceDocx(payload, pagesToPrint);
       } else {
-        throw new Error("لم يتم العثور على قالب الطباعة");
+        const element = document.getElementById('invoice-print-container');
+        if (element) {
+          const html2pdfModule = await import('html2pdf.js');
+          const html2pdf = html2pdfModule.default || html2pdfModule;
+          
+          const opt: any = {
+            margin:       0.4,
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'], avoid: 'tr' },
+            filename:     `Invoice_${payload.client_name}_${payload.invoice_number || Date.now()}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+          };
+          
+          await html2pdf().set(opt).from(element).save();
+        } else {
+          throw new Error("لم يتم العثور على قالب الطباعة");
+        }
       }
 
-      if (!payloadOverride) {
+      if (!payloadOverride && typeof formatOrPayload !== 'object') {
         const newEntry: HistoryEntry = {
           id: Date.now().toString(),
           date: new Date().toLocaleString('ar-DZ'),
@@ -276,6 +293,21 @@ export default function CustomInvoicesTab() {
             <div><label className="text-xs text-gray-500 font-bold">رقم_الجبائي</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_mf} onChange={e => setStoreInfo({...storeInfo, store_mf: e.target.value})} /></div>
             <div><label className="text-xs text-gray-500 font-bold">رقم_المادة</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_art} onChange={e => setStoreInfo({...storeInfo, store_art: e.target.value})} /></div>
             <div><label className="text-xs text-gray-500 font-bold">nff</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_nif} onChange={e => setStoreInfo({...storeInfo, store_nif: e.target.value})} /></div>
+            <div>
+              <label className="text-xs text-gray-500 font-bold">شعار المتجر (اختياري - يظهر كعلامة مائية)</label>
+              <div className="flex items-center gap-3 mt-1">
+                {storeInfo.store_logo && <img src={storeInfo.store_logo} alt="شعار" className="w-12 h-12 rounded object-contain border" />}
+                <input type="file" accept="image/*" className="text-sm" onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => setStoreInfo({...storeInfo, store_logo: reader.result as string});
+                    reader.readAsDataURL(file);
+                  }
+                }} />
+                {storeInfo.store_logo && <button onClick={() => setStoreInfo({...storeInfo, store_logo: ""})} className="text-xs text-red-500 hover:text-red-700">إزالة</button>}
+              </div>
+            </div>
             <button onClick={saveStoreInfo} className="w-full flex items-center justify-center gap-2 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-lg transition-colors text-sm font-medium mt-4"><Save className="h-4 w-4" /> حفظ</button>
           </div>
         </div>
@@ -333,9 +365,33 @@ export default function CustomInvoicesTab() {
                 <textarea rows={4} className="w-full px-3 py-2 border rounded-lg text-sm resize-none dark:bg-gray-700" placeholder="أقفلت هذه الفاتورة عند مبلغ..." value={amountInWords} onChange={e => setAmountInWords(e.target.value)} />
               </div>
             </div>
-            <motion.button whileTap={{ scale: 0.98 }} onClick={() => handleGenerate()} disabled={generating} className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-bold transition-colors">
-              {generating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />} توليد PDF نهائي
-            </motion.button>
+
+            {/* اختيار الصفحات */}
+            <div className="flex flex-wrap items-center gap-4 pt-3 border-t border-dashed">
+              <span className="text-sm font-bold text-gray-700 dark:text-gray-300">الصفحات:</span>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" name="pages" checked={pagesToPrint === 'receipt'} onChange={() => setPagesToPrint('receipt')} className="accent-primary" />
+                <span className="text-sm">وصل الاستلام فقط</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" name="pages" checked={pagesToPrint === 'invoice'} onChange={() => setPagesToPrint('invoice')} className="accent-primary" />
+                <span className="text-sm">الفاتورة فقط</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" name="pages" checked={pagesToPrint === 'both'} onChange={() => setPagesToPrint('both')} className="accent-primary" />
+                <span className="text-sm">الاثنين معاً</span>
+              </label>
+            </div>
+
+            {/* أزرار التوليد */}
+            <div className="flex gap-3">
+              <motion.button whileTap={{ scale: 0.98 }} onClick={() => handleGenerate('pdf')} disabled={generating} className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-bold transition-colors">
+                {generating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />} توليد PDF
+              </motion.button>
+              <motion.button whileTap={{ scale: 0.98 }} onClick={() => handleGenerate('docx')} disabled={generating} className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition-colors">
+                {generating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />} توليد Word
+              </motion.button>
+            </div>
           </div>
         </div>
       </div>
