@@ -140,43 +140,77 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
   });
 
   const generateReceiptContent = () => [
-    new Paragraph({ children: [new TextRun({ text: store_name, bold: true, size: 44, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER }),
-    new Paragraph({ children: [new TextRun({ text: store_activity, size: 28, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER }),
-    new Paragraph({ children: [new TextRun({ text: store_address, size: 24, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER }),
-    new Paragraph({ children: [new TextRun({ text: `Compte CCP : ${store_ccp_1} clé ${store_ccp_2}`, size: 24, font: "Arial" })], alignment: AlignmentType.CENTER }),
-    new Paragraph({ children: [new TextRun({ text: `RC : ${store_rc} - MF: ${store_mf} - ART: ${store_art} - NIF: ${store_nif}`, size: 24, font: "Arial" })], alignment: AlignmentType.CENTER }),
+    new Paragraph({ children: [new TextRun({ text: store_name, bold: true, size: 36, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER, spacing: { after: 100 } }),
+    new Paragraph({ children: [new TextRun({ text: store_activity, size: 24, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER, spacing: { after: 100 } }),
+    ...(store_address ? [new Paragraph({ children: [new TextRun({ text: store_address, size: 24, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER, spacing: { after: 100 } })] : []),
+    ...((store_ccp_1 || store_ccp_2) ? [new Paragraph({ children: [new TextRun({ text: `Compte CCP : ${store_ccp_1} ${store_ccp_2 ? `clé ${store_ccp_2}` : ''}`, size: 24, font: "Arial" })], alignment: AlignmentType.CENTER, spacing: { after: 100 } })] : []),
+    new Paragraph({ children: [new TextRun({ text: `${store_rc ? `RC : ${store_rc} - ` : ''}${store_mf ? `MF: ${store_mf} - ` : ''}${store_art ? `ART: ${store_art} - ` : ''}${store_nif ? `NIF: ${store_nif}` : ''}`, size: 24, font: "Arial" })], alignment: AlignmentType.CENTER }),
     new Paragraph({ text: "", spacing: { after: 400 } }),
     
+    // Client Box aligned right
     new Table({
-      width: { size: 50, type: WidthType.PERCENTAGE },
+      width: { size: 40, type: WidthType.PERCENTAGE },
       alignment: AlignmentType.RIGHT,
       rows: [
         new TableRow({
           children: [
             new TableCell({
               children: [
-                new Paragraph({ children: [new TextRun({ text: `الزبون: ${client_name}`, bold: true, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
-                new Paragraph({ children: [new TextRun({ text: `س.ت: ${client_rc}`, bold: true, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
-                new Paragraph({ children: [new TextRun({ text: `الرقم الجبائي: ${client_mf}`, bold: true, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
-                new Paragraph({ children: [new TextRun({ text: `رقم المادة: ${client_art}`, bold: true, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
+                new Paragraph({ children: [new TextRun({ text: `الزبون: ${client_name}`, bold: true, size: 28, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
+                ...(client_rc ? [new Paragraph({ children: [new TextRun({ text: `س.ت: ${client_rc}`, bold: true, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT })] : []),
+                ...(client_mf ? [new Paragraph({ children: [new TextRun({ text: `الرقم الجبائي: ${client_mf}`, bold: true, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT })] : []),
+                ...(client_art ? [new Paragraph({ children: [new TextRun({ text: `رقم المادة: ${client_art}`, bold: true, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT })] : []),
               ],
-              margins: { top: 100, bottom: 100, left: 100, right: 100 }
+              margins: { top: 150, bottom: 150, left: 150, right: 150 },
+              borders: {
+                top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+              }
             })
           ]
         })
       ]
     }),
     
+    new Paragraph({ text: "", spacing: { after: 200 } }),
+    new Paragraph({ children: [new TextRun({ text: `التاريخ: ${receipt_date}`, bold: true, size: 28, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER, spacing: { after: 100 } }),
+    new Paragraph({ children: [new TextRun({ text: `وصل الاستلام رقم ${invoice_number}`, bold: true, size: 36, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER }),
     new Paragraph({ text: "", spacing: { after: 400 } }),
-    new Paragraph({ children: [new TextRun({ text: `وصل استلام : ${receipt_date}`, bold: true, size: 36, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER }),
-    new Paragraph({ text: "", spacing: { after: 400 } }),
+    
     receiptTable,
-    new Paragraph({ text: "", spacing: { after: 600 } }),
-    new Paragraph({ children: [new TextRun({ text: amount_in_words_arabic, bold: true, size: 28, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER }),
-    new Paragraph({ children: [new TextRun({ text: "الممون", bold: true, size: 36, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.LEFT, indent: { left: 1000 } })
+    
+    new Paragraph({ text: "", spacing: { after: 400 } }),
+    new Paragraph({ children: [new TextRun({ text: `التاريخ: ${receipt_date}`, bold: true, size: 28, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
+    new Paragraph({ text: "", spacing: { after: 200 } }),
+    
+    new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: {
+        top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE },
+        left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE },
+        insideHorizontal: { style: BorderStyle.NONE }, insideVertical: { style: BorderStyle.NONE }
+      },
+      rows: [
+        new TableRow({
+          children: [
+            new TableCell({
+              children: [new Paragraph({ children: [new TextRun({ text: "الممون", bold: true, size: 32, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.LEFT })],
+              borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
+            }),
+            new TableCell({
+              children: [new Paragraph({ children: [new TextRun({ text: "المستلم", bold: true, size: 32, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT })],
+              borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }
+            })
+          ]
+        })
+      ]
+    })
   ];
 
   const generateInvoiceContent = () => [
+    // Top Box (Store info)
     new Table({
       width: { size: 100, type: WidthType.PERCENTAGE },
       rows: [
@@ -184,38 +218,53 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
           children: [
             new TableCell({
               children: [
-                new Paragraph({ children: [new TextRun({ text: store_name, bold: true, size: 44, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER }),
-                new Paragraph({ children: [new TextRun({ text: store_activity, size: 28, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER }),
+                new Paragraph({ children: [new TextRun({ text: store_name, bold: true, size: 40, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER, spacing: { after: 100 } }),
+                new Paragraph({ children: [new TextRun({ text: store_activity, size: 28, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER, spacing: { after: 100 } }),
                 new Paragraph({ children: [new TextRun({ text: store_address, size: 28, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER }),
               ],
-              margins: { top: 200, bottom: 200, left: 200, right: 200 }
+              margins: { top: 150, bottom: 150, left: 150, right: 150 },
+              borders: {
+                top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+              }
             })
           ]
         })
       ]
     }),
+    
     new Paragraph({ text: "", spacing: { after: 200 } }),
-    new Paragraph({ children: [new TextRun({ text: `س.ت.رقم : ${store_rc}`, bold: true, size: 24, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
-    new Paragraph({ children: [new TextRun({ text: `رقم المادة : ${store_art}`, bold: true, size: 24, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
-    new Paragraph({ children: [new TextRun({ text: `الرقم الجبائي : ${store_mf}`, bold: true, size: 24, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
-    new Paragraph({ children: [new TextRun({ text: `CCP : ${store_ccp_1} Clé: ${store_ccp_2}`, bold: true, size: 24, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
-    new Paragraph({ children: [new TextRun({ text: `NIF : ${store_nif}`, bold: true, size: 24, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
+    // Right Details
+    ...(store_rc ? [new Paragraph({ children: [new TextRun({ text: `س.ت.رقم : ${store_rc}`, bold: true, size: 20, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT })] : []),
+    ...(store_art ? [new Paragraph({ children: [new TextRun({ text: `رقم المادة : ${store_art}`, bold: true, size: 20, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT })] : []),
+    ...(store_mf ? [new Paragraph({ children: [new TextRun({ text: `الرقم الجبائي : ${store_mf}`, bold: true, size: 20, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT })] : []),
+    ...((store_ccp_1 || store_ccp_2) ? [new Paragraph({ children: [new TextRun({ text: `CCP : ${store_ccp_1} ${store_ccp_2 ? ` Clé: ${store_ccp_2}` : ''}`, bold: true, size: 20, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT })] : []),
+    ...(store_nif ? [new Paragraph({ children: [new TextRun({ text: `NIF : ${store_nif}`, bold: true, size: 20, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT })] : []),
     new Paragraph({ text: "", spacing: { after: 400 } }),
 
+    // Client Box
     new Table({
-      width: { size: 50, type: WidthType.PERCENTAGE },
-      alignment: AlignmentType.LEFT,
+      width: { size: 40, type: WidthType.PERCENTAGE },
+      alignment: AlignmentType.RIGHT,
       rows: [
         new TableRow({
           children: [
             new TableCell({
               children: [
-                new Paragraph({ children: [new TextRun({ text: `في ذمة ${client_name}`, bold: true, size: 36, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
-                new Paragraph({ children: [new TextRun({ text: `رقم المادة: ${client_art} الرقم الجبائي:`, bold: true, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
-                new Paragraph({ children: [new TextRun({ text: client_mf, bold: true, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
-                new Paragraph({ children: [new TextRun({ text: `س.ت.رقم : ${client_rc}`, bold: true, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
+                new Paragraph({ children: [new TextRun({ text: `في ذمة ${client_name}`, bold: true, size: 32, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
+                ...(client_art ? [new Paragraph({ children: [new TextRun({ text: `رقم المادة: ${client_art}`, bold: true, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT })] : []),
+                ...(client_mf ? [new Paragraph({ children: [new TextRun({ text: `الرقم الجبائي: ${client_mf}`, bold: true, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT })] : []),
+                ...(client_rc ? [new Paragraph({ children: [new TextRun({ text: `س.ت.رقم : ${client_rc}`, bold: true, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT })] : []),
               ],
-              margins: { top: 100, bottom: 100, left: 100, right: 100 }
+              margins: { top: 150, bottom: 150, left: 150, right: 150 },
+              borders: {
+                top: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                bottom: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                left: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+                right: { style: BorderStyle.SINGLE, size: 1, color: "000000" },
+              }
             })
           ]
         })
@@ -223,13 +272,15 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
     }),
     
     new Paragraph({ text: "", spacing: { after: 400 } }),
-    new Paragraph({ children: [new TextRun({ text: `التاريخ: ${receipt_date}`, bold: true, size: 28, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER }),
-    new Paragraph({ children: [new TextRun({ text: `فاتورة رقم ${invoice_number}`, bold: true, size: 40, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER }),
+    new Paragraph({ children: [new TextRun({ text: `التاريخ: ${receipt_date}`, bold: true, size: 28, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER, spacing: { after: 100 } }),
+    new Paragraph({ children: [new TextRun({ text: `فاتورة رقم ${invoice_number}`, bold: true, size: 36, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER }),
     new Paragraph({ text: "", spacing: { after: 400 } }),
+    
     invoiceTable,
+    
     new Paragraph({ text: "", spacing: { after: 600 } }),
-    new Paragraph({ children: [new TextRun({ text: `وقفت هذه الفاتورة عند مبلغ: ${amount_in_words_arabic}`, bold: true, size: 28, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER }),
-    new Paragraph({ children: [new TextRun({ text: "الممون", bold: true, size: 36, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.LEFT, indent: { left: 1000 } })
+    new Paragraph({ children: [new TextRun({ text: `وقفت هذه الفاتورة عند مبلغ: ${amount_in_words_arabic}`, bold: true, size: 28, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER, spacing: { after: 600 } }),
+    new Paragraph({ children: [new TextRun({ text: "الممون", bold: true, size: 32, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.LEFT, indent: { left: 700 } })
   ];
 
   const sections: any[] = [];
