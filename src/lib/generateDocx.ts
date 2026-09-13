@@ -261,8 +261,9 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
                     horizontalPosition: { offset: 2000000 }, // roughly center
                     verticalPosition: { offset: 3500000 },
                     behindDocument: true,
-                  }
-                })
+                  },
+                  type: 'png'
+                } as any)
               ]
             })
           ]
