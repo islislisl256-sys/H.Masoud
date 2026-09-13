@@ -21,6 +21,13 @@ export default function LoginPage() {
   const router = useRouter();
 
   useEffect(() => {
+    // ⚠️ كود مؤقت أضفته لك الآن لفك الحظر عن هاتفك تلقائياً
+    localStorage.removeItem("app_wiped");
+    localStorage.removeItem("lockout_until");
+    localStorage.removeItem("total_lockouts");
+    localStorage.removeItem("acceptance_fails");
+    localStorage.removeItem("login_fails");
+
     const checkLockout = () => {
       if (localStorage.getItem("app_wiped") === "true") {
         setStep("BLOCKED");
