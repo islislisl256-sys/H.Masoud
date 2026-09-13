@@ -172,12 +172,13 @@ export default function ProductsPage() {
         sale_price: Number(rawP.sale_price) || 0,
         quantity: Number(rawP.quantity) || 0,
         image_url: finalImageUrl,
-        sale_type: rawP.sale_type
+        sale_type: rawP.sale_type,
+        owner_id: currentUser?.id
       };
       
       const { data, error } = await supabase.from('products').insert([p]).select().single();
       if (error) {
-        alert("خطأ: تأكد أن الرقم غير مكرر.");
+        alert("خطأ عند الحفظ: " + error.message);
       } else {
         setProducts(prev => [data, ...prev]);
         removePending(index);
@@ -217,7 +218,8 @@ export default function ProductsPage() {
           sale_price: Number(rawP.sale_price) || 0,
           quantity: Number(rawP.quantity) || 0,
           image_url: finalImageUrl,
-          sale_type: rawP.sale_type
+          sale_type: rawP.sale_type,
+          owner_id: currentUser?.id
         };
         
         const { error } = await supabase.from('products').insert([p]);

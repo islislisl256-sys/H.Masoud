@@ -8,6 +8,7 @@ import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { useBarcode } from "@/contexts/BarcodeContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Product = {
   id: string;
@@ -36,6 +37,7 @@ type Cart = {
 };
 
 export default function ReturnsPage() {
+  const { currentUser } = useAuth();
   const [carts, setCarts] = useState<Cart[]>([{ id: 'return-1', name: 'استرجاع 1', items: [] }]);
   const [activeCartId, setActiveCartId] = useState<string>('return-1');
   
@@ -203,7 +205,8 @@ export default function ReturnsPage() {
         .insert([{ 
           invoice_number: invoiceNumber, 
           total: activeTotal * multiplier, 
-          profit: activeProfit * multiplier 
+          profit: activeProfit * multiplier,
+          owner_id: currentUser?.id
         }])
         .select()
         .single();

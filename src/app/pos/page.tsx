@@ -9,6 +9,7 @@ import ReceiptTemplate from "@/components/POS/ReceiptTemplate";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { useBarcode } from "@/contexts/BarcodeContext";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Product = {
   id: string;
@@ -37,6 +38,7 @@ type Cart = {
 };
 
 export default function POSPage() {
+  const { currentUser } = useAuth();
   const [carts, setCarts] = useState<Cart[]>([{ id: 'cart-1', name: 'فاتورة 1', items: [] }]);
   const [activeCartId, setActiveCartId] = useState<string>('cart-1');
   
@@ -204,7 +206,7 @@ export default function POSPage() {
       
       const { data: invoice, error: invoiceError } = await supabase
         .from('invoices')
-        .insert([{ invoice_number: invoiceNumber, total: activeTotal, profit: activeProfit }])
+        .insert([{ invoice_number: invoiceNumber, total: activeTotal, profit: activeProfit, owner_id: currentUser?.id }])
         .select()
         .single();
         
