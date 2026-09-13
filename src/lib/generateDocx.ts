@@ -28,7 +28,7 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
     store_logo = "" // base64 or url
   } = payload;
 
-  const createCell = (text: string, bold: boolean = false, align: AlignmentType = AlignmentType.CENTER) => {
+  const createCell = (text: string, bold: boolean = false, align: any = AlignmentType.CENTER) => {
     return new TableCell({
       children: [new Paragraph({ children: [new TextRun({ text, bold, rightToLeft: true, font: "Arial" })], alignment: align })],
       margins: { top: 100, bottom: 100, left: 100, right: 100 },
