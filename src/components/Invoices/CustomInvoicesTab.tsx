@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Plus, Trash2, Save, FileText, Loader2, Download, History, Store, User, Edit, Calculator } from "lucide-react";
+import { Plus, Trash2, Save, FileText, Loader2, Download, History, Store, User, Edit, Calculator, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 import InvoicePrintLayout from "./InvoicePrintLayout";
+import { useAuth } from "@/contexts/AuthContext";
 
 type InvoiceItem = {
   item_index: number;
@@ -24,6 +25,9 @@ type HistoryEntry = {
 };
 
 export default function CustomInvoicesTab() {
+  const { currentUser } = useAuth();
+  const isPremium = currentUser?.plan_tier === 'PREMIUM';
+
   const [storeInfo, setStoreInfo] = useState({
     store_name: "بحصية الشيخ",
     store_activity: "تجارة للاجهزة الكهرومنزلية",
@@ -369,17 +373,19 @@ export default function CustomInvoicesTab() {
             {/* اختيار الصفحات */}
             <div className="flex flex-wrap items-center gap-4 pt-3 border-t border-dashed">
               <span className="text-sm font-bold text-gray-700 dark:text-gray-300">الصفحات:</span>
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input type="radio" name="pages" checked={pagesToPrint === 'receipt'} onChange={() => setPagesToPrint('receipt')} className="accent-primary" />
+              <label className={`flex items-center gap-1.5 ${!isPremium ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`} title={!isPremium ? "يتطلب الباقة المميزة" : ""}>
+                <input type="radio" name="pages" disabled={!isPremium} checked={pagesToPrint === 'receipt'} onChange={() => setPagesToPrint('receipt')} className="accent-primary" />
                 <span className="text-sm">وصل الاستلام فقط</span>
+                {!isPremium && <Lock className="w-3 h-3 text-amber-500" />}
               </label>
-              <label className="flex items-center gap-1.5 cursor-pointer">
-                <input type="radio" name="pages" checked={pagesToPrint === 'invoice'} onChange={() => setPagesToPrint('invoice')} className="accent-primary" />
+              <label className={`flex items-center gap-1.5 ${!isPremium ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`} title={!isPremium ? "يتطلب الباقة المميزة" : ""}>
+                <input type="radio" name="pages" disabled={!isPremium} checked={pagesToPrint === 'invoice'} onChange={() => setPagesToPrint('invoice')} className="accent-primary" />
                 <span className="text-sm">الفاتورة فقط</span>
+                {!isPremium && <Lock className="w-3 h-3 text-amber-500" />}
               </label>
               <label className="flex items-center gap-1.5 cursor-pointer">
-                <input type="radio" name="pages" checked={pagesToPrint === 'both'} onChange={() => setPagesToPrint('both')} className="accent-primary" />
-                <span className="text-sm">الاثنين معاً</span>
+                <input type="radio" name="pages" checked={pagesToPrint === 'both' || !isPremium} onChange={() => setPagesToPrint('both')} className="accent-primary" />
+                <span className="text-sm">الاثنين معاً {isPremium ? '' : '(متاح)'}</span>
               </label>
             </div>
 

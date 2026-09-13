@@ -52,7 +52,12 @@ export default function Sidebar() {
       </div>
       <div className="flex-1 overflow-y-auto py-4">
         <nav className="px-2 space-y-1">
-          {navigation.map((item) => {
+          {navigation.filter(item => {
+            if (currentUser?.role === 'SELLER') {
+              return ['المنتجات', 'نقطة البيع', 'الإعدادات'].includes(item.name);
+            }
+            return true;
+          }).map((item) => {
             const isActive = pathname === item.href;
             return (
               <Link

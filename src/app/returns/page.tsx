@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { useBarcode } from "@/contexts/BarcodeContext";
 import { useAuth } from "@/contexts/AuthContext";
+import PremiumLockOverlay from "@/components/UI/PremiumLockOverlay";
 
 type Product = {
   id: string;
@@ -259,6 +260,7 @@ export default function ReturnsPage() {
 
   return (
     <ProtectedLayout>
+      <PremiumLockOverlay featureName="نظام المرتجعات">
       <div className="space-y-4 pb-24">
         
         <div className="flex items-center gap-3 mb-2">
@@ -520,6 +522,7 @@ export default function ReturnsPage() {
       </div>
 
       <div id="hidden-qr-reader-returns" className="hidden"></div>
+      </PremiumLockOverlay>
     </ProtectedLayout>
   );
 }
