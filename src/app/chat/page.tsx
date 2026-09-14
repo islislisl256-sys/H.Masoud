@@ -61,11 +61,11 @@ export default function ChatPage() {
     scrollToBottom();
   }, [messages]);
 
-  const scrollToBottom = () => {
+  function scrollToBottom() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  const fetchMessages = async () => {
+  async function fetchMessages() {
     if (!currentUser) return;
     const { data, error } = await mainSupabase
       .from("workspace_messages")
@@ -77,7 +77,7 @@ export default function ChatPage() {
       .order("created_at", { ascending: true });
 
     if (!error && data) {
-      setMessages(data as any);
+      setMessages(data as unknown as Message[]);
     }
     setIsLoading(false);
   };
