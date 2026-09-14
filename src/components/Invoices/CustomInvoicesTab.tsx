@@ -210,7 +210,7 @@ export default function CustomInvoicesTab() {
           
           const opt: any = {
             margin:       0.4,
-            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'], avoid: 'tr' },
+            pagebreak:    { mode: ['css', 'legacy'], avoid: 'tr' },
             filename:     `Invoice_${payload.client_name}_${payload.invoice_number || Date.now()}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true },
