@@ -51,7 +51,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
   );
 
   const renderReceiptClientAndTitle = () => (
-    <div className="mb-1">
+    <div className="mb-0">
       <div className="text-right mb-4">
         <div style={{ border: '1px solid #000000', padding: '10px', display: 'inline-block', minWidth: '350px', textAlign: 'right', fontWeight: 'bold' }}>
           <div className="text-lg mb-1">الزبون: {client_name}</div>
@@ -60,10 +60,10 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
           {store_art && <div>رقم المادة: {store_art}</div>}
         </div>
       </div>
-      <div className="text-center font-bold text-lg mb-0">
+      <div className="text-center font-bold text-lg mb-0 leading-none">
         التاريخ: {receipt_date}
       </div>
-      <div className="text-center font-bold text-2xl mb-1">
+      <div className="text-center font-bold text-2xl mb-0 leading-none">
         وصل تسليم رقم {invoice_number}
       </div>
     </div>
@@ -163,10 +163,10 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
         </div>
       </div>
       
-      <div className="text-center font-bold text-lg mb-0">
+      <div className="text-center font-bold text-lg mb-0 leading-none">
         التاريخ: {receipt_date}
       </div>
-      <div className="text-center font-bold text-2xl mb-0">
+      <div className="text-center font-bold text-2xl mb-0 leading-none">
         فاتورة رقم {invoice_number}
       </div>
     </div>
