@@ -178,7 +178,11 @@ export default function ProductsPage() {
       
       const { data, error } = await supabase.from('products').insert([p]).select().single();
       if (error) {
-        alert("خطأ عند الحفظ: " + error.message);
+        if (error.code === '23505') {
+          alert(`المنتج بالباركود ${p.product_number} موجود مسبقاً في متجرك! الرجاء تعديل الكمية من القائمة بدلاً من إضافته كمنتج جديد.`);
+        } else {
+          alert("خطأ عند الحفظ: " + error.message);
+        }
       } else {
         setProducts(prev => [data, ...prev]);
         removePending(index);
@@ -225,8 +229,10 @@ export default function ProductsPage() {
         const { error } = await supabase.from('products').insert([p]);
         if (!error) {
           successCount++;
-          // We don't remove one by one to avoid index shifting issues during loop,
-          // We will just clear the array or refetch at the end
+        } else if (error.code === '23505') {
+          alert(`المنتج "${rawP.name}" (الباركود: ${rawP.product_number}) موجود مسبقاً! تم تجاهله.`);
+        } else {
+          console.error("Error inserting product:", error);
         }
       } catch (e: any) {
         console.error("Error saving product:", rawP.name, e);
