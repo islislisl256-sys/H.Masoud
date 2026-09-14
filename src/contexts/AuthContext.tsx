@@ -299,10 +299,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       
       // تحديث بيانات المتجر للجميع فقط إذا كان القائد هو من يقوم بالإعداد
       if (currentUser.role === 'LEADER') {
-        const { error: err } = await mainSupabase.from("app_accounts").update({
-          business_type: businessType,
-          store_name: storeName
-        }).eq("acceptance_number", currentUser.acceptance_number);
+        const { error: err } = await mainSupabase.rpc('update_workspace_info', {
+          p_store_name: storeName,
+          p_business_type: businessType
+        });
         workspaceError = err;
       }
 
