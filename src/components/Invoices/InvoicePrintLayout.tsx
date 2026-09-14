@@ -55,16 +55,16 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
       <div className="text-right mb-4">
         <div style={{ border: '1px solid #000000', padding: '10px', display: 'inline-block', minWidth: '350px', textAlign: 'right', fontWeight: 'bold' }}>
           <div className="text-lg mb-1">الزبون: {client_name}</div>
-          {client_rc && <div>س.ت: {client_rc}</div>}
-          {client_mf && <div>الرقم الجبائي: {client_mf}</div>}
-          {client_art && <div>رقم المادة: {client_art}</div>}
+          <div>س.ت: {client_rc || ""}</div>
+          <div>الرقم الجبائي: {client_mf || ""}</div>
+          <div>رقم المادة: {client_art || ""}</div>
         </div>
       </div>
       <div className="text-center font-bold text-lg mb-1">
         التاريخ: {receipt_date}
       </div>
       <div className="text-center font-bold text-2xl">
-        وصل الاستلام رقم {invoice_number}
+        وصل تسليم رقم {invoice_number}
       </div>
     </div>
   );
@@ -153,13 +153,13 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
   );
 
   const renderInvoiceClientAndTitle = () => (
-    <div className="mb-6">
+    <div className="mb-2">
       <div className="text-right mb-4">
         <div style={{ border: '1px solid #000000', padding: '10px', display: 'inline-block', minWidth: '350px', textAlign: 'right', fontWeight: 'bold' }}>
           <div className="text-xl mb-1">في ذمة {client_name}</div>
-          {client_art && <div>رقم المادة: {client_art}</div>}
-          {client_mf && <div>الرقم الجبائي: {client_mf}</div>}
-          {client_rc && <div>س.ت.رقم: {client_rc}</div>}
+          <div>س.ت: {client_rc || ""}</div>
+          <div>الرقم الجبائي: {client_mf || ""}</div>
+          <div>رقم المادة: {client_art || ""}</div>
         </div>
       </div>
       
@@ -229,7 +229,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
         أوقفت هذه الفاتورة عند مبلغ: {amount_in_words_arabic}
       </div>
       <div className="text-left font-bold text-xl ml-20">
-        المورد
+        الممون
       </div>
     </div>
   );
