@@ -20,6 +20,11 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
       router.push("/login");
     } else if (isAuthenticated && currentUser && !currentUser.setup_completed && pathname !== "/setup") {
       router.push("/setup");
+    } else if (isAuthenticated && currentUser?.role === 'SELLER') {
+      const restrictedForSeller = ['/', '/statistics', '/cloud-stats', '/returns', '/settings'];
+      if (restrictedForSeller.includes(pathname)) {
+        router.push('/products');
+      }
     }
   }, [isAuthenticated, currentUser, pathname, router]);
 

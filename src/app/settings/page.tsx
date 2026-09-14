@@ -204,25 +204,47 @@ export default function SettingsPage() {
                   )}
                 </div>
                 
-                <PremiumLockOverlay featureName="التخزين السحابي المفتوح" isInline={true}>
+                <div>
                   <div className="space-y-4">
                     <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                      يمكنك تسجيل الدخول لحساب مساحة الصور الخاص بك أو تغييره في أي وقت من هنا.
+                      {currentUser?.plan_tier === 'PREMIUM' ? 
+                        "يمكنك تسجيل الدخول لحساب مساحة الصور الخاص بك أو تغييره في أي وقت من هنا." :
+                        "في الباقة العادية، يمكنك ربط مساحة الصور (Cloudinary) مرة واحدة فقط. السعة محدودة بـ 200 صورة."
+                      }
                     </p>
 
                     {/* Dedicated Cloud Account Login / Connection Button */}
                     <button
                       type="button"
                       onClick={() => setShowCloudModal(true)}
-                      className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-all active:scale-[0.99]"
+                      disabled={currentUser?.plan_tier !== 'PREMIUM' && !!currentUser?.cloudinary_cloud_name}
+                      className={`w-full flex items-center justify-center gap-2 font-bold py-3 px-4 rounded-xl shadow-sm transition-all active:scale-[0.99] ${
+                        currentUser?.plan_tier !== 'PREMIUM' && !!currentUser?.cloudinary_cloud_name
+                          ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white'
+                      }`}
                     >
                       <LogIn className="w-5 h-5" />
-                      <span>{currentUser?.cloudinary_cloud_name ? "تغيير حساب الصور / تسجيل دخول جديد" : "تسجيل الدخول / ربط حساب الصور"}</span>
+                      <span>
+                        {currentUser?.cloudinary_cloud_name 
+                          ? (currentUser?.plan_tier === 'PREMIUM' ? "تغيير حساب الصور / تسجيل دخول جديد" : "تم ربط الحساب بنجاح (مقفول)") 
+                          : "تسجيل الدخول / ربط حساب الصور"}
+                      </span>
+                      {currentUser?.plan_tier !== 'PREMIUM' && !!currentUser?.cloudinary_cloud_name && <Lock className="w-4 h-4 text-amber-500" />}
                     </button>
 
                     <div className="pt-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الحد الأقصى للصور المسموح بها في الباقة (100‑1500)</label>
-                      <input type="number" dir="ltr" min="100" max="1500" value={maxImages} onChange={(e) => setMaxImages(Number(e.target.value))} className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-1 focus:ring-primary" />
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الحد الأقصى للصور المسموح بها في الباقة</label>
+                      <input 
+                        type="number" 
+                        dir="ltr" 
+                        min="100" 
+                        max="1500" 
+                        value={currentUser?.plan_tier === 'PREMIUM' ? maxImages : 200} 
+                        onChange={(e) => setMaxImages(Number(e.target.value))} 
+                        disabled={currentUser?.plan_tier !== 'PREMIUM'}
+                        className={`w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-1 focus:ring-primary ${currentUser?.plan_tier !== 'PREMIUM' ? 'opacity-50 cursor-not-allowed' : ''}`} 
+                      />
                     </div>
                   </div>
                   <div className="pt-4 border-t border-gray-100 dark:border-gray-700 mt-4">
@@ -231,7 +253,7 @@ export default function SettingsPage() {
                       <span>{isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
                     </button>
                   </div>
-                </PremiumLockOverlay>
+                </div>
               </div>
             )}
 

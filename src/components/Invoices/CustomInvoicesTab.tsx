@@ -394,8 +394,15 @@ export default function CustomInvoicesTab() {
               <motion.button whileTap={{ scale: 0.98 }} onClick={() => handleGenerate('pdf')} disabled={generating} className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white py-3 rounded-xl font-bold transition-colors">
                 {generating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />} توليد PDF
               </motion.button>
-              <motion.button whileTap={{ scale: 0.98 }} onClick={() => handleGenerate('docx')} disabled={generating} className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-bold transition-colors">
+              <motion.button 
+                whileTap={isPremium && !generating ? { scale: 0.98 } : {}} 
+                onClick={() => isPremium && handleGenerate('docx')} 
+                disabled={generating || !isPremium} 
+                title={!isPremium ? "توليد ملفات Word متاح في الباقة المميزة فقط" : ""}
+                className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-bold transition-colors ${!isPremium ? 'bg-gray-300 dark:bg-gray-700 text-gray-500 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+              >
                 {generating ? <Loader2 className="h-5 w-5 animate-spin" /> : <Download className="h-5 w-5" />} توليد Word
+                {!isPremium && <Lock className="w-4 h-4 text-amber-500" />}
               </motion.button>
             </div>
           </div>
