@@ -51,19 +51,19 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
   );
 
   const renderReceiptClientAndTitle = () => (
-    <div className="mb-2">
+    <div className="mb-1">
       <div className="text-right mb-4">
         <div style={{ border: '1px solid #000000', padding: '10px', display: 'inline-block', minWidth: '350px', textAlign: 'right', fontWeight: 'bold' }}>
           <div className="text-lg mb-1">الزبون: {client_name}</div>
-          <div>س.ت: {client_rc || ""}</div>
-          <div>الرقم الجبائي: {client_mf || ""}</div>
-          <div>رقم المادة: {client_art || ""}</div>
+          {client_rc && <div>س.ت: {client_rc}</div>}
+          {client_mf && <div>الرقم الجبائي: {client_mf}</div>}
+          {client_art && <div>رقم المادة: {client_art}</div>}
         </div>
       </div>
-      <div className="text-center font-bold text-lg mb-1">
+      <div className="text-center font-bold text-lg mb-0">
         التاريخ: {receipt_date}
       </div>
-      <div className="text-center font-bold text-2xl">
+      <div className="text-center font-bold text-2xl mb-1">
         وصل تسليم رقم {invoice_number}
       </div>
     </div>
@@ -153,20 +153,20 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
   );
 
   const renderInvoiceClientAndTitle = () => (
-    <div className="mb-2">
+    <div className="mb-1">
       <div className="text-right mb-4">
         <div style={{ border: '1px solid #000000', padding: '10px', display: 'inline-block', minWidth: '350px', textAlign: 'right', fontWeight: 'bold' }}>
           <div className="text-xl mb-1">في ذمة {client_name}</div>
-          <div>س.ت: {client_rc || ""}</div>
-          <div>الرقم الجبائي: {client_mf || ""}</div>
-          <div>رقم المادة: {client_art || ""}</div>
+          {client_rc && <div>س.ت: {client_rc}</div>}
+          {client_mf && <div>الرقم الجبائي: {client_mf}</div>}
+          {client_art && <div>رقم المادة: {client_art}</div>}
         </div>
       </div>
       
-      <div className="text-center font-bold text-lg mb-1">
+      <div className="text-center font-bold text-lg mb-0">
         التاريخ: {receipt_date}
       </div>
-      <div className="text-center font-bold text-2xl">
+      <div className="text-center font-bold text-2xl mb-1">
         فاتورة رقم {invoice_number}
       </div>
     </div>
