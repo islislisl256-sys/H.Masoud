@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";`nimport { LogOut, User, Moon, Sun, Menu } from "lucide-react";
+import Link from "next/link";
+import { LogOut, User, Moon, Sun, Menu } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "next-themes";
 
