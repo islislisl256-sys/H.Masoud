@@ -32,6 +32,31 @@ export default function ChatPage() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // --- Functions moved above useEffect to satisfy strict React immutability/hoisting rules ---
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const fetchMessages = async () => {
+    if (!currentUser) return;
+    const { data, error } = await mainSupabase
+      .from("workspace_messages")
+      .select(`
+        *,
+        app_accounts:sender_id (full_name, role)
+      `)
+      .eq("workspace_id", currentUser.workspace_id)
+      .order("created_at", { ascending: true });
+
+    if (!error && data) {
+      setMessages(data as unknown as Message[]);
+    }
+    setIsLoading(false);
+  };
+
+  // --- End of hoisted functions ---
+
   useEffect(() => {
     if (!currentUser) return;
     fetchMessages();
@@ -55,32 +80,13 @@ export default function ChatPage() {
     return () => {
       mainSupabase.removeChannel(channel);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUser]);
 
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  function scrollToBottom() {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  async function fetchMessages() {
-    if (!currentUser) return;
-    const { data, error } = await mainSupabase
-      .from("workspace_messages")
-      .select(`
-        *,
-        app_accounts:sender_id (full_name, role)
-      `)
-      .eq("workspace_id", currentUser.workspace_id)
-      .order("created_at", { ascending: true });
-
-    if (!error && data) {
-      setMessages(data as unknown as Message[]);
-    }
-    setIsLoading(false);
-  };
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
