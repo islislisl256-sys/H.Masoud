@@ -115,7 +115,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
   );
 
   const renderReceiptFooter = () => (
-    <div>
+    <div style={{ paddingBottom: '60px' }}>
       <div className="text-right font-bold text-lg mt-4 pr-4 mb-4">
         التاريخ: {receipt_date}
       </div>
@@ -224,12 +224,12 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
   };
 
   const renderInvoiceFooter = () => (
-    <div>
+    <div style={{ paddingBottom: '60px' }}>
       <div className="text-center font-bold text-lg mb-12 px-4">
-        وقفت هذه الفاتورة عند مبلغ: {amount_in_words_arabic}
+        أوقفت هذه الفاتورة عند مبلغ: {amount_in_words_arabic}
       </div>
       <div className="text-left font-bold text-xl ml-20">
-        الممون
+        المورد
       </div>
     </div>
   );
@@ -238,7 +238,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
     <div ref={ref} className="w-full" style={{ fontSize: '12pt', direction: 'rtl', backgroundColor: '#ffffff', color: '#000000', fontFamily: 'Arial, sans-serif' }}>
       
       {/* Page 1: Receipt (Image 2 Style) */}
-      <div className="w-full pb-8" style={{ position: 'relative', minHeight: '800px' }}>
+      <div className="w-full" style={{ position: 'relative', minHeight: '100vh', paddingBottom: '80px' }}>
         {store_logo && <div style={watermarkStyle} />}
         <div style={{ position: 'relative', zIndex: 1 }}>
           {renderReceiptHeader()}
@@ -251,7 +251,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
       <div className="html2pdf__page-break"></div>
 
       {/* Page 2: Invoice (Image 1 Style) */}
-      <div className="w-full pt-8" style={{ position: 'relative', minHeight: '800px' }}>
+      <div className="w-full pt-8" style={{ position: 'relative', minHeight: '100vh', paddingBottom: '80px' }}>
         {store_logo && <div style={watermarkStyle} />}
         <div style={{ position: 'relative', zIndex: 1 }}>
           {renderInvoiceHeader()}
