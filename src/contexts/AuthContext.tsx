@@ -210,9 +210,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, message: "فشل تسجيل الدخول (تأكد من البريد الإلكتروني وكلمة المرور)" };
       }
 
+      // 4. التأكد من أن الحساب ينتمي لنفس مساحة العمل التي تم إدخال رقم الاعتماد الخاص بها
+      const { data: isValidWorkspace } = await mainSupabase.rpc("check_account_workspace", {
+        p_auth_id: authData.user.id,
+        p_acceptance_number: verifiedAcceptance
+      });
+
+      if (!isValidWorkspace) {
+        await mainSupabase.auth.signOut();
+        return { success: false, message: "الحساب غير مسجل في المؤسسة المحددة برقم الاعتماد هذا. هذه ثغرة أمنية تم إحباطها." };
+      }
+
+      // جلب بيانات الحساب بعد التحقق الأمني
       const { data, error } = await mainSupabase.from("app_accounts").select("*")
         .eq("auth_id", authData.user.id)
-        .eq("acceptance_number", verifiedAcceptance)
         .single();
       
       if (error || !data) {
