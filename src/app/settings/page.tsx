@@ -10,6 +10,7 @@ import { mainSupabase } from "@/lib/supabase";
 import { compressImage } from "@/lib/imageUtils";
 import { getCloudinaryCloudName, getCloudinaryUploadPreset, getCloudinaryApiKey, getCloudinaryApiSecret, getCloudinaryMaxImages } from "@/lib/cloudinaryConfig";
 import CloudinarySetupModal from "@/components/Modals/CloudinarySetupModal";
+import PremiumLockOverlay from "@/components/UI/PremiumLockOverlay";
 
 export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
@@ -117,117 +118,122 @@ export default function SettingsPage() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* General Settings */}
-          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
-            <div className="flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 pb-4">
-              <Store className="h-6 w-6 text-primary" />
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">إعدادات المكتبة</h2>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">اسم المكتبة / المتجر</label>
-                <input
-                  type="text"
-                  value={storeName}
-                  onChange={(e) => setStoreName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رابط الشعار (URL) أو رفع صورة</label>
-                <div className="flex gap-2">
-                  <input
-                    type="url"
-                    placeholder="https://example.com/logo.png"
-                    dir="ltr"
-                    value={storeLogo}
-                    onChange={(e) => setStoreLogo(e.target.value)}
-                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm"
-                  />
-                  <label className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer transition-colors text-sm font-medium shrink-0">
-                    {uploadingLogo ? <Loader2 className="h-4 w-4 animate-spin text-gray-500" /> : <UploadCloud className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
-                    <span className="hidden sm:inline text-gray-700 dark:text-gray-300">رفع صورة</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={uploadingLogo} />
-                  </label>
-                </div>
-                {storeLogo && (
-                  <div className="mt-2 h-16 w-16 rounded border border-gray-200 p-1 flex items-center justify-center bg-white">
-                    <img src={storeLogo} alt="Logo preview" className="max-h-full max-w-full object-contain" />
-                  </div>
-                )}
-              </div>
-
-              <div className="pt-4 flex items-center justify-between border-t border-gray-100 dark:border-gray-700">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-white">الوضع الليلي</h3>
-                  <p className="text-xs text-gray-500 dark:text-gray-400">تفعيل الوضع المظلم بشكل افتراضي</p>
-                </div>
-                {mounted && (
-                  <button 
-                    onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${theme === 'dark' ? 'bg-primary' : 'bg-gray-200'}`}
-                  >
-                    <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${theme === 'dark' ? '-translate-x-5' : 'translate-x-0'}`} />
-                  </button>
-                )}
-              </div>
-            </div>
-            
-            <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
-              <button disabled={isSaving} onClick={handleSaveStore} className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">
-                <Save className="h-4 w-4" />
-                <span>{isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="space-y-6">
+          {currentUser?.role === 'LEADER' && (
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
-              <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-4">
-                <div className="flex items-center gap-3">
-                  <UploadCloud className="h-6 w-6 text-primary" />
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">إعدادات التخزين السحابي</h2>
-                </div>
-                {currentUser?.cloudinary_cloud_name ? (
-                  <span className="text-xs font-bold px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full flex items-center gap-1">
-                    ● مرتبط ({currentUser.cloudinary_cloud_name})
-                  </span>
-                ) : (
-                  <span className="text-xs font-bold px-3 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full flex items-center gap-1">
-                    ● لم يتم الربط بعد
-                  </span>
-                )}
+              <div className="flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 pb-4">
+                <Store className="h-6 w-6 text-primary" />
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">إعدادات المكتبة</h2>
               </div>
               
               <div className="space-y-4">
-                <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
-                  يمكنك تسجيل الدخول لحساب مساحة الصور الخاص بك أو تغييره في أي وقت من هنا.
-                </p>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">اسم المكتبة / المتجر</label>
+                  <input
+                    type="text"
+                    value={storeName}
+                    onChange={(e) => setStoreName(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm"
+                  />
+                </div>
 
-                {/* Dedicated Cloud Account Login / Connection Button */}
-                <button
-                  type="button"
-                  onClick={() => setShowCloudModal(true)}
-                  className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-all active:scale-[0.99]"
-                >
-                  <LogIn className="w-5 h-5" />
-                  <span>{currentUser?.cloudinary_cloud_name ? "تغيير حساب الصور / تسجيل دخول جديد" : "تسجيل الدخول / ربط حساب الصور"}</span>
-                </button>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رابط الشعار (URL) أو رفع صورة</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="url"
+                      placeholder="https://example.com/logo.png"
+                      dir="ltr"
+                      value={storeLogo}
+                      onChange={(e) => setStoreLogo(e.target.value)}
+                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm"
+                    />
+                    <label className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer transition-colors text-sm font-medium shrink-0">
+                      {uploadingLogo ? <Loader2 className="h-4 w-4 animate-spin text-gray-500" /> : <UploadCloud className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
+                      <span className="hidden sm:inline text-gray-700 dark:text-gray-300">رفع صورة</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={uploadingLogo} />
+                    </label>
+                  </div>
+                  {storeLogo && (
+                    <div className="mt-2 h-16 w-16 rounded border border-gray-200 p-1 flex items-center justify-center bg-white">
+                      <img src={storeLogo} alt="Logo preview" className="max-h-full max-w-full object-contain" />
+                    </div>
+                  )}
+                </div>
 
-                <div className="pt-2">
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الحد الأقصى للصور المسموح بها في الباقة (100‑1500)</label>
-                  <input type="number" dir="ltr" min="100" max="1500" value={maxImages} onChange={(e) => setMaxImages(Number(e.target.value))} className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-1 focus:ring-primary" />
+                <div className="pt-4 flex items-center justify-between border-t border-gray-100 dark:border-gray-700">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">الوضع الليلي</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">تفعيل الوضع المظلم بشكل افتراضي</p>
+                  </div>
+                  {mounted && (
+                    <button 
+                      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                      className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 ${theme === 'dark' ? 'bg-primary' : 'bg-gray-200'}`}
+                    >
+                      <span className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${theme === 'dark' ? '-translate-x-5' : 'translate-x-0'}`} />
+                    </button>
+                  )}
                 </div>
               </div>
+              
               <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
-                <button disabled={isSaving} onClick={handleSaveStore} className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 text-sm font-bold">
+                <button disabled={isSaving} onClick={handleSaveStore} className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">
                   <Save className="h-4 w-4" />
                   <span>{isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
                 </button>
               </div>
             </div>
+          )}
+
+          <div className="space-y-6">
+            {currentUser?.role === 'LEADER' && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
+                <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-4">
+                  <div className="flex items-center gap-3">
+                    <UploadCloud className="h-6 w-6 text-primary" />
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">إعدادات التخزين السحابي</h2>
+                  </div>
+                  {currentUser?.cloudinary_cloud_name ? (
+                    <span className="text-xs font-bold px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full flex items-center gap-1">
+                      ● مرتبط ({currentUser.cloudinary_cloud_name})
+                    </span>
+                  ) : (
+                    <span className="text-xs font-bold px-3 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full flex items-center gap-1">
+                      ● لم يتم الربط بعد
+                    </span>
+                  )}
+                </div>
+                
+                <PremiumLockOverlay featureName="التخزين السحابي المفتوح" isInline={true}>
+                  <div className="space-y-4">
+                    <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
+                      يمكنك تسجيل الدخول لحساب مساحة الصور الخاص بك أو تغييره في أي وقت من هنا.
+                    </p>
+
+                    {/* Dedicated Cloud Account Login / Connection Button */}
+                    <button
+                      type="button"
+                      onClick={() => setShowCloudModal(true)}
+                      className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold py-3 px-4 rounded-xl shadow-sm transition-all active:scale-[0.99]"
+                    >
+                      <LogIn className="w-5 h-5" />
+                      <span>{currentUser?.cloudinary_cloud_name ? "تغيير حساب الصور / تسجيل دخول جديد" : "تسجيل الدخول / ربط حساب الصور"}</span>
+                    </button>
+
+                    <div className="pt-2">
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الحد الأقصى للصور المسموح بها في الباقة (100‑1500)</label>
+                      <input type="number" dir="ltr" min="100" max="1500" value={maxImages} onChange={(e) => setMaxImages(Number(e.target.value))} className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-1 focus:ring-primary" />
+                    </div>
+                  </div>
+                  <div className="pt-4 border-t border-gray-100 dark:border-gray-700 mt-4">
+                    <button disabled={isSaving} onClick={handleSaveStore} className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 text-sm font-bold">
+                      <Save className="h-4 w-4" />
+                      <span>{isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
+                    </button>
+                  </div>
+                </PremiumLockOverlay>
+              </div>
+            )}
 
             {/* Account Settings */}
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
@@ -248,6 +254,23 @@ export default function SettingsPage() {
                 </div>
                 
                 <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-2">
+                    لغة النظام (Language)
+                    {currentUser?.plan_tier !== 'PREMIUM' && <Lock className="w-3 h-3 text-amber-500" title="يتطلب الباقة المميزة" />}
+                  </label>
+                  <select
+                    disabled={currentUser?.plan_tier !== 'PREMIUM'}
+                    className={`w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm ${currentUser?.plan_tier !== 'PREMIUM' ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    defaultValue="ar"
+                    title={currentUser?.plan_tier !== 'PREMIUM' ? 'هذه الميزة تتطلب الباقة المميزة' : ''}
+                  >
+                    <option value="ar">العربية (Arabic)</option>
+                    <option value="fr">الفرنسية (French)</option>
+                    <option value="en">الإنجليزية (English)</option>
+                  </select>
+                </div>
+
+                <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">كلمة المرور الجديدة</label>
                   <input
                     type="password"
@@ -265,33 +288,36 @@ export default function SettingsPage() {
               </div>
             </div>
             
-            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
-              <div className="flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 pb-4">
-                <Link2 className="h-6 w-6 text-primary" />
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">روابط سريعة</h2>
+            {currentUser?.role !== 'SELLER' && (
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
+                <div className="flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 pb-4">
+                  <Link2 className="h-6 w-6 text-primary" />
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">روابط سريعة</h2>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <Link href="/returns" className="bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 p-4 rounded-xl flex flex-col items-center justify-center gap-2 border border-orange-100 dark:border-orange-800 transition-colors active:scale-95">
+                    <Undo2 className="w-6 h-6" />
+                    <span className="font-bold text-sm">المرتجعات</span>
+                  </Link>
+                  <Link href="/contact" className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 p-4 rounded-xl flex flex-col items-center justify-center gap-2 border border-emerald-100 dark:border-emerald-800 transition-colors active:scale-95">
+                    <Mail className="w-6 h-6" />
+                    <span className="font-bold text-sm">اتصل بنا</span>
+                  </Link>
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <Link href="/returns" className="bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 p-4 rounded-xl flex flex-col items-center justify-center gap-2 border border-orange-100 dark:border-orange-800 transition-colors active:scale-95">
-                  <Undo2 className="w-6 h-6" />
-                  <span className="font-bold text-sm">المرتجعات</span>
-                </Link>
-                <Link href="/contact" className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 p-4 rounded-xl flex flex-col items-center justify-center gap-2 border border-emerald-100 dark:border-emerald-800 transition-colors active:scale-95">
-                  <Mail className="w-6 h-6" />
-                  <span className="font-bold text-sm">اتصل بنا</span>
-                </Link>
-              </div>
-            </div>
+            )}
 
             {/* مساحة التخزين السحابية */}
-            <Link href="/cloud-stats" className="block w-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-5 shadow-sm text-white hover:shadow-md transition-shadow active:scale-[0.99]">
-              <div className="flex items-center gap-4 mb-3">
-                <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
-                  <Cloud className="w-8 h-8" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold">مساحة التخزين السحابية</h3>
-                  <p className="text-sm text-blue-100 mt-1">نسبة استهلاك الصور من الباقة المجانية</p>
-                </div>
+            {currentUser?.role === 'LEADER' && (
+              <Link href="/cloud-stats" className="block w-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-5 shadow-sm text-white hover:shadow-md transition-shadow active:scale-[0.99]">
+                <div className="flex items-center gap-4 mb-3">
+                  <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm">
+                    <Cloud className="w-8 h-8" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-bold">مساحة التخزين السحابية</h3>
+                    <p className="text-sm text-blue-100 mt-1">نسبة استهلاك الصور من الباقة المجانية</p>
+                  </div>
                 <div className="mr-auto text-left">
                   <span className="text-3xl font-black">{Math.min(((currentUser?.storage_used || 0) / (currentUser?.cloudinary_max_images ?? 100)) * 100, 100).toFixed(1)}%</span>
                 </div>
@@ -306,6 +332,7 @@ export default function SettingsPage() {
                 />
               </div>
             </Link>
+            )}
           </div>
         </div>
       </div>
