@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { BookOpen, AlertOctagon, Phone, Briefcase } from "lucide-react";
+import { BookOpen, AlertOctagon, Phone, Briefcase, ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { mainSupabase } from "@/lib/supabase";
 
 export default function LoginPage() {
   const [step, setStep] = useState<1 | 2 | 3 | "BLOCKED" | "TEMP_LOCKED">(1);
