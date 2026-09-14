@@ -60,10 +60,10 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
           {store_art && <div>رقم المادة: {store_art}</div>}
         </div>
       </div>
-      <div className="text-center font-bold text-lg mb-0 leading-none">
+      <div className="text-center font-bold text-lg mb-1">
         التاريخ: {receipt_date}
       </div>
-      <div className="text-center font-bold text-2xl mb-0 leading-none">
+      <div className="text-center font-bold text-2xl mb-4">
         وصل تسليم رقم {invoice_number}
       </div>
     </div>
@@ -163,10 +163,10 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
         </div>
       </div>
       
-      <div className="text-center font-bold text-lg mb-0 leading-none">
+      <div className="text-center font-bold text-lg mb-1">
         التاريخ: {receipt_date}
       </div>
-      <div className="text-center font-bold text-2xl mb-0 leading-none">
+      <div className="text-center font-bold text-2xl mb-4">
         فاتورة رقم {invoice_number}
       </div>
     </div>
