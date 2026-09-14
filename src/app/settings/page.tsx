@@ -159,26 +159,35 @@ export default function SettingsPage() {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">نوع التجارة {currentUser?.role !== 'LEADER' && '(للقراءة فقط)'}</label>
-                <select
-                  value={businessType}
-                  onChange={(e) => setBusinessType(e.target.value)}
-                  disabled={currentUser?.role !== 'LEADER'}
-                  className={`w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm ${currentUser?.role !== 'LEADER' ? 'bg-gray-100 opacity-70' : ''}`}
-                >
-                  <option value="مكتبة">مكتبة</option>
-                  <option value="محل عام">محل عام</option>
-                  <option value="مواد غذائية">مواد غذائية</option>
-                  <option value="صيدلية">صيدلية</option>
-                </select>
-              </div>
+              {currentUser?.role === 'LEADER' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">نوع التجارة</label>
+                  <select
+                    value={businessType}
+                    onChange={(e) => setBusinessType(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm"
+                  >
+                    <option value="مكتبة">مكتبة</option>
+                    <option value="محل عام">محل عام</option>
+                    <option value="مواد غذائية">مواد غذائية</option>
+                    <option value="صيدلية">صيدلية</option>
+                  </select>
+                </div>
+              )}
             </div>
             
             <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
               <button disabled={isSaving} onClick={handleSaveStore} className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">
                 <Save className="h-4 w-4" />
                 <span>{isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
+              </button>
+            </div>
+
+            {/* Communication Button */}
+            <div className="pt-4 mt-6 border-t border-gray-100 dark:border-gray-700">
+              <button type="button" onClick={() => window.location.href = '/chat'} className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-4 rounded-xl hover:opacity-90 transition-opacity font-bold shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>التواصل مع فريق العمل</span>
               </button>
             </div>
           </div>
