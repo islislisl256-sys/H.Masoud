@@ -206,7 +206,7 @@ export default function POSPage() {
       
       const { data: invoice, error: invoiceError } = await supabase
         .from('invoices')
-        .insert([{ invoice_number: invoiceNumber, total: activeTotal, profit: activeProfit, owner_id: currentUser?.id }])
+        .insert([{ invoice_number: invoiceNumber, total: activeTotal, profit: activeProfit, owner_id: currentUser?.workspace_id }])
         .select()
         .single();
         
@@ -219,7 +219,7 @@ export default function POSPage() {
         unit_price: item.sale_price,
         total_price: item.sale_price * item.quantity,
         profit: (item.sale_price - item.purchase_price) * item.quantity,
-        owner_id: currentUser?.id,
+        owner_id: currentUser?.workspace_id,
       }));
 
       const { error: itemsError } = await supabase.from('invoice_items').insert(itemsToInsert);
