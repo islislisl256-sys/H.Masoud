@@ -155,8 +155,15 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
 
         // Start with facingMode environment (let browser pick best back camera)
         await startWithCamera({ facingMode: "environment" });
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error initializing scanner", err);
+        if (err?.name === 'NotAllowedError' || err?.message?.toLowerCase().includes('permission')) {
+          if (typeof window !== 'undefined') {
+            import('react-hot-toast').then(({ default: toast }) => {
+              toast.error("يرجى إعطاء صلاحية الكاميرا للمتصفح لتتمكن من مسح الباركود", { duration: 5000 });
+            });
+          }
+        }
       }
     };
 
