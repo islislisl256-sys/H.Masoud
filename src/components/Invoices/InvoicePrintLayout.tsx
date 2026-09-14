@@ -42,10 +42,10 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
         <p>Compte CCP : {store_ccp_1} {store_ccp_2 ? `clé ${store_ccp_2}` : ''}</p>
       )}
       <p>
-        {store_rc && `س.ت: ${store_rc} - `}
+        {store_rc && `RC : ${store_rc} - `}
         {store_mf && `MF: ${store_mf} - `}
-        {store_art && `رقم المادة: ${store_art} - `}
-        {store_nif && `الرقم الجبائي: ${store_nif}`}
+        {store_art && `ART: ${store_art} - `}
+        {store_nif && `NIF: ${store_nif}`}
       </p>
     </div>
   );
@@ -55,9 +55,9 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
       <div className="text-right mb-4">
         <div style={{ border: '1px solid #000000', padding: '10px', display: 'inline-block', minWidth: '350px', textAlign: 'right', fontWeight: 'bold' }}>
           <div className="text-lg mb-1">الزبون: {client_name}</div>
-          {client_rc && <div>س.ت: {client_rc}</div>}
-          {client_mf && <div>الرقم الجبائي: {client_mf}</div>}
-          {client_art && <div>رقم المادة: {client_art}</div>}
+          {store_rc && <div>س.ت: {store_rc}</div>}
+          {store_nif && <div>الرقم الجبائي: {store_nif}</div>}
+          {store_art && <div>رقم المادة: {store_art}</div>}
         </div>
       </div>
       <div className="text-center font-bold text-lg mb-0">
@@ -143,11 +143,11 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
       </div>
       {/* Right details */}
       <div className="text-left font-bold text-sm" style={{ direction: 'rtl' }}>
-        {store_rc && <div>س.ت: {store_rc}</div>}
-        {store_mf && <div>MF: {store_mf}</div>}
-        {store_art && <div>رقم المادة: {store_art}</div>}
-        {(store_ccp_1 || store_ccp_2) && <div>CCP: {store_ccp_1} {store_ccp_2 ? `Clé: ${store_ccp_2}` : ''}</div>}
-        {store_nif && <div>الرقم الجبائي: {store_nif}</div>}
+        {store_rc && <div>RC : {store_rc}</div>}
+        {store_art && <div>ART : {store_art}</div>}
+        {store_mf && <div>MF : {store_mf}</div>}
+        {(store_ccp_1 || store_ccp_2) && <div>CCP : {store_ccp_1} {store_ccp_2 ? ` Clé: ${store_ccp_2}` : ''}</div>}
+        {store_nif && <div>NIF : {store_nif}</div>}
       </div>
     </div>
   );
@@ -157,9 +157,9 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
       <div className="text-right mb-4">
         <div style={{ border: '1px solid #000000', padding: '10px', display: 'inline-block', minWidth: '350px', textAlign: 'right', fontWeight: 'bold' }}>
           <div className="text-xl mb-1">في ذمة {client_name}</div>
-          {client_rc && <div>س.ت: {client_rc}</div>}
-          {client_mf && <div>الرقم الجبائي: {client_mf}</div>}
-          {client_art && <div>رقم المادة: {client_art}</div>}
+          {store_rc && <div>س.ت: {store_rc}</div>}
+          {store_nif && <div>الرقم الجبائي: {store_nif}</div>}
+          {store_art && <div>رقم المادة: {store_art}</div>}
         </div>
       </div>
       
