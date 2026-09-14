@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { Save, Lock, Store, UploadCloud, Loader2, Undo2, Mail, Link2, Cloud, LogIn, CheckCircle2 } from "lucide-react";
 import { Save, Lock, Store, UploadCloud, Loader2, Undo2, Mail, Link2, Cloud, LogIn, CheckCircle2, User } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
