@@ -256,7 +256,7 @@ export default function SettingsPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-2">
                     لغة النظام (Language)
-                    {currentUser?.plan_tier !== 'PREMIUM' && <Lock className="w-3 h-3 text-amber-500" title="يتطلب الباقة المميزة" />}
+                    {currentUser?.plan_tier !== 'PREMIUM' && <span title="يتطلب الباقة المميزة"><Lock className="w-3 h-3 text-amber-500" /></span>}
                   </label>
                   <select
                     disabled={currentUser?.plan_tier !== 'PREMIUM'}
