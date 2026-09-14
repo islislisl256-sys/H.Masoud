@@ -160,6 +160,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAndRenew();
   }, []);
 
+  // === نظام "الأونلاين" (Heartbeat) لمراقبة النشاط ===
+  useEffect(() => {
+    if (!isAuthenticated || !currentUser) return;
+
+    const pingOnlineStatus = async () => {
+      try {
+        await mainSupabase.rpc('update_last_active');
+      } catch (e) {
+        // تجاهل الخطأ إذا لم يكن هناك إنترنت (ليعمل بصمت)
+      }
+    };
+
+    // إرسال أول نبضة فور تسجيل الدخول أو فتح التطبيق
+    pingOnlineStatus();
+
+    // إرسال نبضة كل 3 دقائق (180,000 ملي ثانية)
+    const intervalId = setInterval(pingOnlineStatus, 3 * 60 * 1000);
+
+    return () => clearInterval(intervalId);
+  }, [isAuthenticated, currentUser]);
+
   const verifyAcceptance = async (acceptanceNumber: string) => {
     try {
       const { data, error } = await mainSupabase.rpc('verify_acceptance_number', { input_number: acceptanceNumber });
