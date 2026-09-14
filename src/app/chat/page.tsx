@@ -152,10 +152,11 @@ export default function ChatPage() {
     <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 flex items-center px-4 sm:px-6 z-10 shadow-sm shrink-0">
         <button 
-          onClick={() => router.back()}
-          className="p-2 mr-2 ml-4 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+          onClick={() => router.push('/settings')}
+          className="flex items-center gap-1.5 p-2 ml-4 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
         >
           <ArrowRight className="w-5 h-5" />
+          <span className="font-medium text-sm">رجوع للإعدادات</span>
         </button>
         <div className="flex items-center gap-3">
           {currentUser?.store_logo ? (
