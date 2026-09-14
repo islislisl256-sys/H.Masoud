@@ -25,6 +25,7 @@ type InvoiceItem = {
 };
 
 export default function InvoicesPage() {
+  const { currentUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'system' | 'custom'>('system');
   const [searchDate, setSearchDate] = useState("");
   const [invoices, setInvoices] = useState<Invoice[]>([]);
