@@ -59,7 +59,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     if (!currentUser) return;
-    fetchMessages();
+    // eslint-disable-next-line\n    fetchMessages();
 
     const channel = mainSupabase
       .channel('workspace_messages_channel')
@@ -71,7 +71,7 @@ export default function ChatPage() {
           table: 'workspace_messages',
           filter: `workspace_id=eq.${currentUser.workspace_id}`
         },
-        (payload) => {
+        () => {
           fetchMessages();
         }
       )
