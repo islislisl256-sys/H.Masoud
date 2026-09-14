@@ -232,11 +232,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       let deviceUuid = localDeviceUuid;
 
       if (!data.device_uuid) {
-        deviceUuid = generateSafeUUID();
+        // الحساب جديد (عذراء) - لم يُربط بجهاز بعد
+        if (!localDeviceUuid) {
+          // هذا الجهاز لم يُسجَّل من قبل أبداً → نولّد بصمة جديدة للجهاز
+          deviceUuid = generateSafeUUID();
+          localStorage.setItem("app_secure_uuid", encodeUUID(deviceUuid));
+        } else {
+          // الجهاز يمتلك بصمة مسبقة (من حساب آخر) → نستخدم نفس البصمة
+          deviceUuid = localDeviceUuid;
+        }
         profileUpdates.device_uuid = deviceUuid;
         profileUpdates.device_info = typeof navigator !== 'undefined' ? navigator.userAgent : 'Desktop/App';
-        localStorage.setItem("app_secure_uuid", encodeUUID(deviceUuid));
       } else {
+        // الحساب مربوط مسبقاً بجهاز → نتحقق من التطابق
         if (data.device_uuid !== localDeviceUuid) {
           await mainSupabase.auth.signOut();
           return { success: false, message: "هذا الحساب مرتبط بجهاز آخر. يجب فك الارتباط أولاً من لوحة التحكم." };
