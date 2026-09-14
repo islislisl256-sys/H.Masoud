@@ -21,9 +21,10 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
     } else if (isAuthenticated && currentUser && !currentUser.setup_completed && pathname !== "/setup") {
       router.push("/setup");
     } else if (isAuthenticated && currentUser?.role === 'SELLER') {
-      const restrictedForSeller = ['/', '/statistics', '/cloud-stats', '/returns', '/settings'];
+      // البائع مسموح له فقط بـ: المنتجات، نقطة البيع، والإعدادات
+      const restrictedForSeller = ['/', '/statistics', '/cloud-stats', '/returns', '/invoices'];
       if (restrictedForSeller.includes(pathname)) {
-        router.push('/products');
+        router.push('/pos');
       }
     }
   }, [isAuthenticated, currentUser, pathname, router]);

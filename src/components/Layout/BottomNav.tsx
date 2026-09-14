@@ -13,6 +13,7 @@ import {
 import { motion } from "framer-motion";
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { useAuth } from "@/contexts/AuthContext";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -28,11 +29,17 @@ const navigation = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const { currentUser } = useAuth();
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 pb-safe z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
       <nav className="flex justify-around items-center h-16 px-2">
-        {navigation.map((item) => {
+        {navigation.filter(item => {
+          if (currentUser?.role === 'SELLER') {
+            return ['المنتجات', 'البيع', 'الإعدادات'].includes(item.name);
+          }
+          return true;
+        }).map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
