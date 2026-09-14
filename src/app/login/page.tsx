@@ -12,13 +12,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
   const [fullName, setFullName] = useState("");
-  const [businessType, setBusinessType] = useState("retail");
+  const [storeName, setStoreName] = useState("");
+  const [businessType, setBusinessType] = useState("مكتبة");
   
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [lockoutTimeLeft, setLockoutTimeLeft] = useState(0);
   
-  const { login, verifyAcceptance, completeSetup } = useAuth();
+  const { login, verifyAcceptance, completeSetup, currentUser } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -125,7 +126,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError(""); setIsLoading(true);
     
-    const success = await completeSetup(fullName, phone, businessType);
+    const success = await completeSetup(fullName, phone, businessType, storeName);
     if (success) {
       router.push("/");
     } else {
@@ -243,17 +244,30 @@ export default function LoginPage() {
                 className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring-primary sm:text-sm"
                 placeholder="05xxxxxx" dir="ltr" />
             </div>
-            <div>
-              <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 gap-2"><Briefcase className="w-4 h-4"/> نوع النشاط</label>
-              <select value={businessType} onChange={(e) => setBusinessType(e.target.value)}
-                className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring-primary sm:text-sm">
-                <option value="retail">بيع بالتجزئة (سوبر ماركت، ملابس)</option>
-                <option value="pharmacy">صيدلية</option>
-                <option value="restaurant">مطعم / كافيه</option>
-                <option value="library">مكتبة / أدوات مدرسية</option>
-                <option value="other">أخرى</option>
-              </select>
-            </div>
+            {currentUser?.role === 'LEADER' && (
+              <div>
+                <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 gap-2">
+                  <Briefcase className="w-4 h-4"/> اسم المتجر
+                </label>
+                <input type="text" required value={storeName} onChange={(e) => setStoreName(e.target.value)}
+                  className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring-primary sm:text-sm"
+                  placeholder="اسم متجرك" />
+              </div>
+            )}
+            
+            {currentUser?.role === 'LEADER' && (
+              <div>
+                <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 gap-2"><Briefcase className="w-4 h-4"/> نوع التجارة</label>
+                <select value={businessType} onChange={(e) => setBusinessType(e.target.value)}
+                  className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring-primary sm:text-sm">
+                  <option value="مكتبة">مكتبة / قرطاسية</option>
+                  <option value="محل عام">محل عام</option>
+                  <option value="مواد غذائية">مواد غذائية</option>
+                  <option value="صيدلية">صيدلية</option>
+                  <option value="other">أخرى</option>
+                </select>
+              </div>
+            )}
             {error && <div className="text-red-500 text-sm text-center font-medium py-2">{error}</div>}
             <button type="submit" disabled={isLoading} className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary">
               {isLoading ? 'جاري الحفظ...' : 'حفظ والدخول للنظام'}

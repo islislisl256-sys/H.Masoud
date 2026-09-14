@@ -11,7 +11,7 @@ type AuthContextType = {
   licenseWarning: string | null;
   login: (email: string, pass: string) => Promise<{ success: boolean; message?: string; user?: any }>;
   verifyAcceptance: (acceptanceNumber: string) => Promise<boolean>;
-  completeSetup: (fullName: string, phone: string, businessType: string) => Promise<boolean>;
+  completeSetup: (fullName: string, phone: string, businessType: string, storeName: string) => Promise<boolean>;
   renewLicense: () => Promise<{ success: boolean; message: string }>;
   logout: () => void;
 };
@@ -281,24 +281,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const completeSetup = async (fullName: string, phone: string, businessType: string) => {
+  const completeSetup = async (fullName: string, phone: string, businessType: string, storeName: string) => {
     if (!currentUser) return false;
     try {
-      // تحديث كل الحسابات في نفس مساحة العمل برقم الاعتماد
-      const { error: workspaceError } = await mainSupabase.from("app_accounts").update({
-        business_type: businessType,
-        setup_completed: true
-      }).eq("acceptance_number", currentUser.acceptance_number);
+      let workspaceError = null;
+      
+      // تحديث بيانات المتجر للجميع فقط إذا كان القائد هو من يقوم بالإعداد
+      if (currentUser.role === 'LEADER') {
+        const { error: err } = await mainSupabase.from("app_accounts").update({
+          business_type: businessType,
+          store_name: storeName
+        }).eq("acceptance_number", currentUser.acceptance_number);
+        workspaceError = err;
+      }
 
-      // تحديث الحساب الحالي بإضافة الاسم والهاتف
+      // تحديث الحساب الحالي (الاسم، الهاتف، وإكمال الإعداد الخاص به)
       const { error } = await mainSupabase.from("app_accounts").update({
         full_name: fullName,
         phone_number: phone,
+        setup_completed: true
       }).eq("id", currentUser.id);
 
       if (error || workspaceError) return false;
 
-      const updatedUser = { ...currentUser, full_name: fullName, phone_number: phone, business_type: businessType, setup_completed: true };
+      const updatedUser = { 
+        ...currentUser, 
+        full_name: fullName, 
+        phone_number: phone, 
+        setup_completed: true,
+        ...(currentUser.role === 'LEADER' && { business_type: businessType, store_name: storeName })
+      };
+      
       setCurrentUser(updatedUser);
       sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
       return true;
