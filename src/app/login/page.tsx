@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
+  const [fullName, setFullName] = useState("");
   const [businessType, setBusinessType] = useState("retail");
   
   const [error, setError] = useState("");
@@ -92,7 +93,8 @@ export default function LoginPage() {
     
     if (isValid) {
       localStorage.setItem("acceptance_fails", "0");
-      localStorage.setItem("acceptance_verified", "true"); // حفظ التأكيد
+      localStorage.setItem("acceptance_verified", "true"); // لتخطي المرحلة الأولى
+      localStorage.setItem("verified_workspace_acceptance", acceptanceNumber); // لمنع تسجيل الدخول بحساب مؤسسة أخرى
       setStep(2);
     } else {
       handleFailedAttempt("acceptance_fails");
@@ -111,7 +113,7 @@ export default function LoginPage() {
     } else {
       localStorage.setItem("login_fails", "0");
       localStorage.setItem("total_lockouts", "0"); // تصفير السجل الكامل عند الدخول الناجح
-      if (!result.user.phone_number || !result.user.business_type) {
+      if (!result.user.setup_completed) {
         setStep(3);
       } else {
         router.push("/");
@@ -123,7 +125,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError(""); setIsLoading(true);
     
-    const success = await completeSetup(phone, businessType);
+    const success = await completeSetup(fullName, phone, businessType);
     if (success) {
       router.push("/");
     } else {
@@ -225,7 +227,15 @@ export default function LoginPage() {
         {step === 3 && (
           <form className="mt-8 space-y-4" onSubmit={handleSetupSubmit}>
             <div className="bg-blue-50 dark:bg-blue-900/30 p-4 rounded-lg mb-4 text-sm text-blue-800 dark:text-blue-200 text-center">
-              بما أن هذه هي المرة الأولى، يرجى استكمال البيانات.
+              مرحباً بك لأول مرة! يرجى إكمال بياناتك للمتابعة.
+            </div>
+            <div>
+              <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 gap-2">
+                الاسم الكامل
+              </label>
+              <input type="text" required value={fullName} onChange={(e) => setFullName(e.target.value)}
+                className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring-primary sm:text-sm"
+                placeholder="أدخل اسمك الكامل" />
             </div>
             <div>
               <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 gap-2"><Phone className="w-4 h-4"/> رقم الهاتف</label>

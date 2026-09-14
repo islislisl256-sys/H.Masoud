@@ -175,14 +175,12 @@ export default function SettingsPage() {
               </div>
             </div>
             
-            {currentUser?.role !== 'LEADER' && (
-              <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
-                <button disabled={isSaving} onClick={handleSaveStore} className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">
-                  <Save className="h-4 w-4" />
-                  <span>{isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
-                </button>
-              </div>
-            )}
+            <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+              <button disabled={isSaving} onClick={handleSaveStore} className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">
+                <Save className="h-4 w-4" />
+                <span>{isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
+              </button>
+            </div>
           </div>
 
           {currentUser?.role === 'LEADER' && (

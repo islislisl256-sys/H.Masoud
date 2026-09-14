@@ -11,7 +11,7 @@ type AuthContextType = {
   licenseWarning: string | null;
   login: (email: string, pass: string) => Promise<{ success: boolean; message?: string; user?: any }>;
   verifyAcceptance: (acceptanceNumber: string) => Promise<boolean>;
-  completeSetup: (phone: string, businessType: string) => Promise<boolean>;
+  completeSetup: (fullName: string, phone: string, businessType: string) => Promise<boolean>;
   renewLicense: () => Promise<{ success: boolean; message: string }>;
   logout: () => void;
 };
@@ -195,6 +195,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const storedEncrypted = localStorage.getItem("app_secure_uuid");
       const localDeviceUuid = storedEncrypted ? decodeUUID(storedEncrypted) : null;
+      const verifiedAcceptance = localStorage.getItem("verified_workspace_acceptance");
+
+      if (!verifiedAcceptance) {
+        return { success: false, message: "لم يتم التحقق من رقم الاعتماد في هذه الجلسة. يرجى الرجوع وتأكيد رقم الاعتماد أولاً." };
+      }
 
       const { data: authData, error: authError } = await mainSupabase.auth.signInWithPassword({
         email: email,
@@ -202,14 +207,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (authError || !authData.user) {
-        return { success: false, message: "بيانات الدخول خاطئة (تأكد من البريد الإلكتروني وكلمة المرور)" };
+        return { success: false, message: "فشل تسجيل الدخول (تأكد من البريد الإلكتروني وكلمة المرور)" };
       }
 
-      const { data, error } = await mainSupabase.from("app_accounts").select("*").eq("auth_id", authData.user.id).single();
+      const { data, error } = await mainSupabase.from("app_accounts").select("*")
+        .eq("auth_id", authData.user.id)
+        .eq("acceptance_number", verifiedAcceptance)
+        .single();
       
       if (error || !data) {
         await mainSupabase.auth.signOut();
-        return { success: false, message: "هذا الحساب موجود، لكنه غير مربوط بملف في النظام (يرجى ربط auth_id)" };
+        return { success: false, message: "الحساب غير مسجل في المؤسسة أو المتجر المحدد برقم الاعتماد هذا. هذه ثغرة أمنية تم إحباطها." };
       }
       
       if (data.is_banned) {
@@ -273,18 +281,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const completeSetup = async (phone: string, businessType: string) => {
+  const completeSetup = async (fullName: string, phone: string, businessType: string) => {
     if (!currentUser) return false;
     try {
-      const { error } = await mainSupabase.from("app_accounts").update({
-        phone_number: phone,
+      // تحديث كل الحسابات في نفس مساحة العمل برقم الاعتماد
+      const { error: workspaceError } = await mainSupabase.from("app_accounts").update({
         business_type: businessType,
         setup_completed: true
+      }).eq("acceptance_number", currentUser.acceptance_number);
+
+      // تحديث الحساب الحالي بإضافة الاسم والهاتف
+      const { error } = await mainSupabase.from("app_accounts").update({
+        full_name: fullName,
+        phone_number: phone,
       }).eq("id", currentUser.id);
 
-      if (error) return false;
+      if (error || workspaceError) return false;
 
-      const updatedUser = { ...currentUser, phone_number: phone, business_type: businessType, setup_completed: true };
+      const updatedUser = { ...currentUser, full_name: fullName, phone_number: phone, business_type: businessType, setup_completed: true };
       setCurrentUser(updatedUser);
       sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
       return true;
@@ -296,10 +310,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     sessionStorage.removeItem("isAuthenticated");
     sessionStorage.removeItem("currentUser");
+    localStorage.removeItem("acceptance_verified");
+    localStorage.removeItem("verified_workspace_acceptance");
     setIsAuthenticated(false);
     setCurrentUser(null);
-    setLicenseWarning(null);
-    router.push("/login");
+    mainSupabase.auth.signOut().then(() => {
+      window.location.href = "/login";
+    });
   };
 
   return (
