@@ -185,13 +185,13 @@ export default function ChatPage() {
           messages.map((msg) => {
             const isMine = msg.sender_id === currentUser.id;
             return (
-              <div key={msg.id} className={\`flex \${isMine ? 'justify-end' : 'justify-start'}\`}>
+              <div key={msg.id} className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}>
                 <div 
-                  className={\`relative max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-2 shadow-sm group \${
+                  className={`relative max-w-[85%] sm:max-w-[70%] rounded-2xl px-4 py-2 shadow-sm group ${
                     isMine 
                       ? 'bg-primary text-white rounded-tl-none' 
                       : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-tr-none border border-gray-100 dark:border-gray-700'
-                  }\`}
+                  }`}
                   onDoubleClick={() => handleDoubleClick(msg)}
                 >
                   {!isMine && (
@@ -218,18 +218,18 @@ export default function ChatPage() {
                     <p className="text-sm break-words whitespace-pre-wrap">{msg.content}</p>
                   )}
 
-                  <div className={\`flex items-center gap-2 mt-1 text-[10px] \${isMine ? 'text-blue-100' : 'text-gray-400'}\`}>
+                  <div className={`flex items-center gap-2 mt-1 text-[10px] ${isMine ? 'text-blue-100' : 'text-gray-400'}`}>
                     <span>{new Date(msg.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
                     {msg.is_edited && <span>(مُعدلة)</span>}
                   </div>
 
                   {msg.liked_by && msg.liked_by.length > 0 && (
-                    <div className={\`absolute -bottom-2 \${isMine ? '-left-2' : '-right-2'} bg-white dark:bg-gray-800 rounded-full shadow-md px-1.5 py-0.5 text-xs border border-gray-100 dark:border-gray-700 flex items-center gap-1 z-10\`}>
+                    <div className={`absolute -bottom-2 ${isMine ? '-left-2' : '-right-2'} bg-white dark:bg-gray-800 rounded-full shadow-md px-1.5 py-0.5 text-xs border border-gray-100 dark:border-gray-700 flex items-center gap-1 z-10`}>
                       👍 <span className="text-gray-600 dark:text-gray-300 font-medium">{msg.liked_by.length}</span>
                     </div>
                   )}
 
-                  <div className={\`absolute top-2 \${isMine ? '-left-16' : '-right-16'} opacity-0 group-hover:opacity-100 flex flex-col items-center gap-1 transition-opacity\`}>
+                  <div className={`absolute top-2 ${isMine ? '-left-16' : '-right-16'} opacity-0 group-hover:opacity-100 flex flex-col items-center gap-1 transition-opacity`}>
                     {isMine && !editingId && (
                       <button onClick={() => { setEditingId(msg.id); setEditContent(msg.content); }} className="p-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full hover:text-primary shadow-sm" title="تعديل">
                         <Edit2 className="w-3.5 h-3.5" />
