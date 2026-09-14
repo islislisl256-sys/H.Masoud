@@ -219,9 +219,17 @@ export default function LoginPage() {
                 placeholder="••••••••" dir="ltr" />
             </div>
             {error && <div className="text-red-500 text-sm text-center font-medium py-2">{error}</div>}
-            <button type="submit" disabled={isLoading} className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary">
-              {isLoading ? 'جاري الدخول...' : 'تسجيل الدخول'}
-            </button>
+            
+            <div className="flex flex-col gap-3">
+              <button type="submit" disabled={isLoading} className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary">
+                {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
+              </button>
+              
+              <button type="button" onClick={handleBackToStep1} disabled={isLoading} className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <ArrowRight className="w-4 h-4" />
+                رجوع لإدخال رقم المؤسسة
+              </button>
+            </div>
           </form>
         )}
 
@@ -269,9 +277,17 @@ export default function LoginPage() {
               </div>
             )}
             {error && <div className="text-red-500 text-sm text-center font-medium py-2">{error}</div>}
-            <button type="submit" disabled={isLoading} className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary">
-              {isLoading ? 'جاري الحفظ...' : 'حفظ والدخول للنظام'}
-            </button>
+            
+            <div className="flex flex-col gap-3">
+              <button type="submit" disabled={isLoading} className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-primary">
+                {isLoading ? 'جاري الحفظ...' : 'حفظ والدخول للنظام'}
+              </button>
+
+              <button type="button" onClick={handleBackToStep2} disabled={isLoading} className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <ArrowRight className="w-4 h-4" />
+                تسجيل خروج والرجوع
+              </button>
+            </div>
           </form>
         )}
       </div>
