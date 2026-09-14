@@ -5,6 +5,8 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { BarcodeProvider } from "@/contexts/BarcodeContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import PwaGuard from "@/components/Layout/PwaGuard";
+import NextTopLoader from 'nextjs-toploader';
+import { Toaster } from "react-hot-toast";
 
 const cairo = Cairo({ subsets: ["arabic"], variable: "--font-cairo" });
 
@@ -27,10 +29,12 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl" suppressHydrationWarning>
       <body className={`${cairo.variable} font-sans antialiased bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100`}>
+        <NextTopLoader color="#0ea5e9" showSpinner={true} />
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <PwaGuard>
             <AuthProvider>
               <BarcodeProvider>
+                <Toaster position="top-center" toastOptions={{ className: 'dark:bg-gray-800 dark:text-white font-bold' }} />
                 {children}
               </BarcodeProvider>
             </AuthProvider>

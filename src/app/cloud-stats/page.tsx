@@ -1,4 +1,5 @@
 "use client";
+import toast from 'react-hot-toast';
 
 import React, { useEffect, useState } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
@@ -114,10 +115,10 @@ export default function CloudStatsPage() {
         const updatedUser = { ...currentUser, storage_used: newUsed };
         sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
       } else {
-        alert("فشل مسح الصورة: " + JSON.stringify(result));
+        toast("فشل مسح الصورة: " + JSON.stringify(result));
       }
     } catch (err: any) {
-      alert("حدث خطأ: " + err.message);
+      toast("حدث خطأ: " + err.message);
     } finally {
       setDeletingId(null);
     }

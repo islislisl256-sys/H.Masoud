@@ -1,4 +1,5 @@
 "use client";
+import toast from 'react-hot-toast';
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
@@ -153,7 +154,7 @@ export default function ProductsPage() {
   const saveSingle = async (index: number) => {
     const rawP = pendingProducts[index];
     if (!rawP.product_number || !rawP.name) {
-      alert("أدخل رقم واسم المنتج");
+      toast("أدخل رقم واسم المنتج");
       return;
     }
     
@@ -179,16 +180,16 @@ export default function ProductsPage() {
       const { data, error } = await supabase.from('products').insert([p]).select().single();
       if (error) {
         if (error.code === '23505') {
-          alert(`المنتج بالباركود ${p.product_number} موجود مسبقاً في متجرك! الرجاء تعديل الكمية من القائمة بدلاً من إضافته كمنتج جديد.`);
+          toast(`المنتج بالباركود ${p.product_number} موجود مسبقاً في متجرك! الرجاء تعديل الكمية من القائمة بدلاً من إضافته كمنتج جديد.`);
         } else {
-          alert("خطأ عند الحفظ: " + error.message);
+          toast("خطأ عند الحفظ: " + error.message);
         }
       } else {
         setProducts(prev => [data, ...prev]);
         removePending(index);
       }
     } catch (e: any) {
-      alert(e.message || "حدث خطأ أثناء حفظ المنتج");
+      toast(e.message || "حدث خطأ أثناء حفظ المنتج");
       if (e.message === "لم يتم إعداد Cloudinary") setShowCloudinaryModal(true);
     } finally {
       setSaving(false);
@@ -198,7 +199,7 @@ export default function ProductsPage() {
   const saveAll = async () => {
     const validRaw = pendingProducts.filter(p => p.product_number && p.name);
     if (validRaw.length === 0) {
-      alert("تأكد من إدخال اسم كل منتج");
+      toast("تأكد من إدخال اسم كل منتج");
       return;
     }
     
@@ -230,7 +231,7 @@ export default function ProductsPage() {
         if (!error) {
           successCount++;
         } else if (error.code === '23505') {
-          alert(`المنتج "${rawP.name}" (الباركود: ${rawP.product_number}) موجود مسبقاً! تم تجاهله.`);
+          toast(`المنتج "${rawP.name}" (الباركود: ${rawP.product_number}) موجود مسبقاً! تم تجاهله.`);
         } else {
           console.error("Error inserting product:", error);
         }
@@ -244,7 +245,7 @@ export default function ProductsPage() {
     }
     
     if (successCount > 0) {
-      alert(`تم حفظ ${successCount} منتج بنجاح`);
+      toast(`تم حفظ ${successCount} منتج بنجاح`);
       setPendingProducts([]);
       fetchProducts();
     }
@@ -259,7 +260,7 @@ export default function ProductsPage() {
         const decodedText = await html5QrCode.scanFile(file, true);
         handleScanSuccess(decodedText);
       } catch {
-        alert("لم يتم العثور على باركود في الصورة.");
+        toast("لم يتم العثور على باركود في الصورة.");
       }
       setShowScanMenu(false);
     }

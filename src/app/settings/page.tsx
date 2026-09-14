@@ -3,12 +3,14 @@
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
 import { Save, Lock, Store, UploadCloud, Loader2, Undo2, Mail, Link2, Cloud, LogIn, CheckCircle2 } from "lucide-react";
+import { Save, Lock, Store, UploadCloud, Loader2, Undo2, Mail, Link2, Cloud, LogIn, CheckCircle2, User } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { useAuth } from "@/contexts/AuthContext";
 import { mainSupabase } from "@/lib/supabase";
 import { compressImage } from "@/lib/imageUtils";
 import { getCloudinaryCloudName, getCloudinaryUploadPreset, getCloudinaryApiKey, getCloudinaryApiSecret, getCloudinaryMaxImages } from "@/lib/cloudinaryConfig";
+import toast from 'react-hot-toast';
 import CloudinarySetupModal from "@/components/Modals/CloudinarySetupModal";
 import PremiumLockOverlay from "@/components/UI/PremiumLockOverlay";
 
@@ -20,6 +22,10 @@ export default function SettingsPage() {
   const [storeName, setStoreName] = useState("");
   const [storeLogo, setStoreLogo] = useState("");
   const [username, setUsername] = useState("");
+  
+  const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [businessType, setBusinessType] = useState("");
   
   const [cloudName, setCloudName] = useState("");
   const [uploadPreset, setUploadPreset] = useState("");
@@ -39,6 +45,11 @@ export default function SettingsPage() {
       setStoreName(currentUser.store_name || "مكتبة الحاج مسعود");
       setStoreLogo(currentUser.store_logo || "");
       setUsername(currentUser.name || "HERMA");
+      
+      setFullName(currentUser.full_name || "");
+      setPhoneNumber(currentUser.phone_number || "");
+      setBusinessType(currentUser.business_type || "");
+      
       setCloudName(currentUser.cloudinary_cloud_name || "");
       setUploadPreset(currentUser.cloudinary_upload_preset || "");
       setApiKey(currentUser.cloudinary_api_key || "");
@@ -70,11 +81,10 @@ export default function SettingsPage() {
       const data = await res.json();
       if (data.secure_url) {
         setStoreLogo(data.secure_url);
-      } else {
-        alert("فشل الرفع، تحقق من الإعدادات");
+        toast.success("تم رفع الشعار بنجاح");
       }
-    } catch (err) {
-      alert("حدث خطأ أثناء الاتصال بالخادم");
+    } catch (e) {
+      toast.error("فشل رفع الشعار");
     } finally {
       setUploadingLogo(false);
     }
@@ -84,9 +94,12 @@ export default function SettingsPage() {
     if (!currentUser) return;
     setIsSaving(true);
     try {
-      const updates = { 
-        store_name: storeName, 
+      const updates = {
+        store_name: storeName,
         store_logo: storeLogo,
+        full_name: fullName,
+        phone_number: phoneNumber,
+        ...(currentUser?.role === 'LEADER' ? { business_type: businessType } : {}),
         cloudinary_cloud_name: cloudName,
         cloudinary_upload_preset: uploadPreset,
         cloudinary_api_key: apiKey,
@@ -101,9 +114,9 @@ export default function SettingsPage() {
       
       const updated = { ...currentUser, ...updates };
       sessionStorage.setItem("currentUser", JSON.stringify(updated));
-      alert("تم الحفظ بنجاح! سيتم تطبيق التغييرات فوراً.");
+      toast.success("تم حفظ الإعدادات بنجاح!");
     } catch (e) {
-      alert("حدث خطأ أثناء الحفظ");
+      toast.error("حدث خطأ أثناء الحفظ");
     } finally {
       setIsSaving(false);
     }
@@ -113,11 +126,66 @@ export default function SettingsPage() {
     <ProtectedLayout>
       <div className="space-y-6 pb-32 md:pb-12">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">إعدادات النظام</h1>
-          <p className="text-muted-foreground mt-1">تخصيص النظام وإدارة الحساب</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">الإعدادات</h1>
+          <p className="text-muted-foreground mt-1">تخصيص النظام وإعدادات الحساب</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
+          {/* الإعدادات الشخصية - تظهر للجميع */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
+            <div className="flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 pb-4">
+              <User className="h-6 w-6 text-primary" />
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">المعلومات الشخصية</h2>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الاسم الكامل</label>
+                <input
+                  type="text"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رقم الهاتف</label>
+                <input
+                  type="tel"
+                  dir="ltr"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">نوع التجارة {currentUser?.role !== 'LEADER' && '(للقراءة فقط)'}</label>
+                <select
+                  value={businessType}
+                  onChange={(e) => setBusinessType(e.target.value)}
+                  disabled={currentUser?.role !== 'LEADER'}
+                  className={`w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm ${currentUser?.role !== 'LEADER' ? 'bg-gray-100 opacity-70' : ''}`}
+                >
+                  <option value="مكتبة">مكتبة</option>
+                  <option value="محل عام">محل عام</option>
+                  <option value="مواد غذائية">مواد غذائية</option>
+                  <option value="صيدلية">صيدلية</option>
+                </select>
+              </div>
+            </div>
+            
+            {currentUser?.role !== 'LEADER' && (
+              <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
+                <button disabled={isSaving} onClick={handleSaveStore} className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">
+                  <Save className="h-4 w-4" />
+                  <span>{isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
+                </button>
+              </div>
+            )}
+          </div>
+
           {currentUser?.role === 'LEADER' && (
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
               <div className="flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 pb-4">

@@ -10,13 +10,14 @@ export default function SetupPage() {
   const { isAuthenticated, currentUser } = useAuth();
   const router = useRouter();
 
+  const [fullName, setFullName] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
   const [acceptanceNumber, setAcceptanceNumber] = useState("");
   const [businessType, setBusinessType] = useState("مكتبة");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const businessTypes = ["مكتبة", "مواد غذائية", "متجر ملابس", "صيدلية"];
+  const businessTypes = ["مكتبة", "محل عام", "مواد غذائية", "صيدلية"];
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -37,6 +38,7 @@ export default function SetupPage() {
       const { error: updateError } = await mainSupabase
         .from("app_accounts")
         .update({
+          full_name: fullName,
           phone_number: phoneNumber,
           acceptance_number: acceptanceNumber,
           business_type: businessType,
@@ -49,6 +51,7 @@ export default function SetupPage() {
       // Update session storage
       const updatedUser = {
         ...currentUser,
+        full_name: fullName,
         phone_number: phoneNumber,
         acceptance_number: acceptanceNumber,
         business_type: businessType,
@@ -61,7 +64,7 @@ export default function SetupPage() {
       
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "حدث خطأ أثناء حفظ البيانات");
+      setError(err.message || "حدث خطأ أثناء الإعداد");
       setIsLoading(false);
     }
   };
@@ -86,6 +89,20 @@ export default function SetupPage() {
         </div>
         
         <form className="mt-8 space-y-4" onSubmit={handleSetup}>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              الاسم الكامل
+            </label>
+            <input
+              type="text"
+              required
+              value={fullName}
+              onChange={(e) => setFullName(e.target.value)}
+              className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 placeholder-gray-500 dark:placeholder-gray-400 text-gray-900 dark:text-white dark:bg-gray-700 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm"
+              placeholder="الاسم الكامل"
+            />
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               رقم الهاتف

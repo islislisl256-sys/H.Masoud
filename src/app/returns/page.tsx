@@ -1,4 +1,5 @@
 "use client";
+import toast from 'react-hot-toast';
 
 import React, { useState, useEffect, useMemo } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
@@ -78,7 +79,7 @@ export default function ReturnsPage() {
     if (product) {
       addProduct(product);
     } else {
-      alert("المنتج غير موجود!");
+      toast("المنتج غير موجود!");
     }
   };
 
@@ -97,7 +98,7 @@ export default function ReturnsPage() {
         const decodedText = await html5QrCode.scanFile(file, true);
         handleScanSuccess(decodedText);
       } catch (err) {
-        alert("لم يتم العثور على باركود في الصورة.");
+        toast("لم يتم العثور على باركود في الصورة.");
       }
       setShowScanMenu(false);
     }
@@ -234,12 +235,12 @@ export default function ReturnsPage() {
          }
       }
 
-      alert("تم تأكيد الاسترجاع!");
+      toast("تم تأكيد الاسترجاع!");
       closeCart(activeCartId); 
       fetchProducts();
     } catch (error) {
       console.error(error);
-      alert("حدث خطأ أثناء الحفظ");
+      toast("حدث خطأ أثناء الحفظ");
     } finally {
       setSaving(false);
     }
