@@ -122,6 +122,21 @@ export default function LoginPage() {
     }
   };
 
+  const handleBackToStep1 = () => {
+    localStorage.removeItem("acceptance_verified");
+    localStorage.removeItem("verified_workspace_acceptance");
+    setStep(1);
+    setError("");
+  };
+
+  const handleBackToStep2 = async () => {
+    setIsLoading(true);
+    await mainSupabase.auth.signOut();
+    setIsLoading(false);
+    setStep(2);
+    setError("");
+  };
+
   const handleSetupSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(""); setIsLoading(true);
