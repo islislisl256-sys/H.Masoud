@@ -43,10 +43,10 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
         <p>Compte CCP : {store_ccp_1} {store_ccp_2 ? `clé ${store_ccp_2}` : ''}</p>
       )}
       <p>
-        {store_rc && `RC : ${store_rc} - `}
-        {store_mf && `MF: ${store_mf} - `}
-        {store_art && `ART: ${store_art} - `}
-        {store_nif && `NIF: ${store_nif}`}
+        {store_rc && `RC : ${store_rc}`} {store_rc && store_mf && ' - '} {store_mf && `MF: ${store_mf}`}
+      </p>
+      <p>
+        {store_art && `ART: ${store_art}`} {store_art && store_nif && ' - '} {store_nif && `NIF: ${store_nif}`}
       </p>
     </div>
   );

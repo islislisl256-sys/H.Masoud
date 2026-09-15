@@ -196,6 +196,11 @@ export default function CustomInvoicesTab() {
 
     if (!payload.client_name) { alert("الرجاء إدخال اسم العميل"); return; }
     
+    if (!payload.store_name || !payload.store_activity || !payload.store_rc || !payload.store_nif || !payload.store_art) {
+      alert("لا يمكن إنشاء الفاتورة: يجب ملء جميع المعلومات الأساسية للمتجر (اسم المتجر، النشاط، RC، NIF، ART)");
+      return;
+    }
+    
     setGenerating(true);
     
     try {
