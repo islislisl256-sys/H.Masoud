@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { mainSupabase } from "@/lib/supabase";
 
 export default function LoginPage() {
-  const [step, setStep] = useState<1 | 2 | 3 | "BLOCKED" | "TEMP_LOCKED">(1);
+  const [step, setStep] = useState<1 | 2 | 3 | "BLOCKED" | "TEMP_LOCKED" | "EXPIRED">(1);
   const [acceptanceNumber, setAcceptanceNumber] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -111,8 +111,12 @@ export default function LoginPage() {
     setIsLoading(false);
     
     if (!result.success) {
-      handleFailedAttempt("login_fails", result.message);
-    } else {
+        if (result.message && (result.message.includes("انتهى اشتراك") || result.message.includes("اشتراك"))) {
+          setStep("EXPIRED");
+        } else {
+          handleFailedAttempt("login_fails", result.message);
+        }
+      } else {
       localStorage.setItem("login_fails", "0");
       localStorage.setItem("total_lockouts", "0"); // تصفير السجل الكامل عند الدخول الناجح
       if (!result.user.setup_completed && localStorage.getItem("setup_completed_" + result.user.id) !== "true") {
@@ -294,6 +298,35 @@ const handleBackToStep2 = async () => {
             </div>
           </form>
         )}
+      
+        {step === "EXPIRED" && (
+          <div className="text-center space-y-6">
+            <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 dark:bg-yellow-900/30">
+              <AlertOctagon className="h-8 w-8 text-yellow-600 dark:text-yellow-500" />
+            </div>
+            <div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">انتهى اشتراك الحساب</h2>
+              <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+                لقد انتهت فترة الاشتراك الخاصة بمكتبتك. يرجى التواصل مع الإدارة لتجديد الاشتراك ومواصلة استخدام النظام.
+              </p>
+            </div>
+            
+            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-xl border border-gray-100 dark:border-gray-700 space-y-3">
+               <a href="https://wa.me/213555555555" target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 p-3 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors font-medium">
+                 <Phone className="w-5 h-5" />
+                 تواصل عبر الواتساب
+               </a>
+               <a href="mailto:support@masoud.com" className="flex items-center justify-center gap-2 p-3 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium">
+                 تواصل عبر الإيميل
+               </a>
+            </div>
+
+            <button onClick={() => setStep(1)} className="mt-4 text-sm font-medium text-primary hover:underline">
+              العودة للصفحة الرئيسية
+            </button>
+          </div>
+        )}
+
       </div>
     </div>
   );
