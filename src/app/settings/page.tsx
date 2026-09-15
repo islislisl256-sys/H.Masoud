@@ -42,12 +42,12 @@ export default function SettingsPage() {
     setMounted(true);
     if (currentUser) {
       setStoreName(currentUser.store_name || "مكتبة الحاج مسعود");
-      setStoreLogo(currentUser.store_logo || "");
-      setUsername(currentUser.name || "HERMA");
+      setStoreLogo(currentUser.store_logo ?? "");
+      setUsername(currentUser.name ?? "HERMA");
       
-      setFullName(currentUser.full_name || "");
-      setPhoneNumber(currentUser.phone_number || "");
-      setBusinessType(currentUser.business_type || "");
+      setFullName(currentUser.full_name ?? "");
+      setPhoneNumber(currentUser.phone_number ?? "");
+      setBusinessType(currentUser.business_type ?? "");
       
       setCloudName(currentUser.cloudinary_cloud_name || "");
       setUploadPreset(currentUser.cloudinary_upload_preset || "");
