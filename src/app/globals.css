@@ -28,3 +28,9 @@ html, body {
   overscroll-behavior-x: none;
 }
 
+
+
+.fake-password {
+  -webkit-text-security: disc;
+  text-security: disc;
+}

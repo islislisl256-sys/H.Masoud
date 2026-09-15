@@ -205,8 +205,8 @@ const handleBackToStep2 = async () => {
           <form className="mt-8 space-y-4" onSubmit={handleAcceptanceSubmit}>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رقم القبول</label>
-              <input type="text" style={{ WebkitTextSecurity: "disc" }} required value={acceptanceNumber} onChange={(e) => setAcceptanceNumber(e.target.value)}
-                className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-700 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm text-center tracking-widest text-lg"
+              <input type="text" required value={acceptanceNumber} onChange={(e) => setAcceptanceNumber(e.target.value)}
+                className="fake-password appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-700 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm text-center tracking-widest text-lg"
                 placeholder="••••••••" dir="ltr" />
             </div>
             {error && <div className="text-red-500 text-sm text-center font-medium py-2">{error}</div>}
@@ -221,13 +221,13 @@ const handleBackToStep2 = async () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الإيميل</label>
               <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring-primary sm:text-sm"
+                className="fake-password appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring-primary sm:text-sm"
                 placeholder="admin@example.com" dir="ltr" />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">كلمة المرور</label>
-              <input type="text" style={{ WebkitTextSecurity: "disc" }} required value={password} onChange={(e) => setPassword(e.target.value)}
-                className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring-primary sm:text-sm"
+              <input type="text" required value={password} onChange={(e) => setPassword(e.target.value)}
+                className="fake-password appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring-primary sm:text-sm"
                 placeholder="••••••••" dir="ltr" />
             </div>
             {error && <div className="text-red-500 text-sm text-center font-medium py-2">{error}</div>}
@@ -251,13 +251,13 @@ const handleBackToStep2 = async () => {
                 الاسم الكامل
               </label>
               <input type="text" required value={fullName} onChange={(e) => setFullName(e.target.value)}
-                className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring-primary sm:text-sm"
+                className="fake-password appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring-primary sm:text-sm"
                 placeholder="أدخل اسمك الكامل" />
             </div>
             <div>
               <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 gap-2"><Phone className="w-4 h-4"/> رقم الهاتف</label>
               <input type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)}
-                className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring-primary sm:text-sm"
+                className="fake-password appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring-primary sm:text-sm"
                 placeholder="05xxxxxx" dir="ltr" />
             </div>
             {currentUser?.role === 'LEADER' && (
@@ -266,7 +266,7 @@ const handleBackToStep2 = async () => {
                   <Briefcase className="w-4 h-4"/> اسم المتجر
                 </label>
                 <input type="text" required value={storeName} onChange={(e) => setStoreName(e.target.value)}
-                  className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring-primary sm:text-sm"
+                  className="fake-password appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring-primary sm:text-sm"
                   placeholder="اسم متجرك" />
               </div>
             )}
@@ -275,7 +275,7 @@ const handleBackToStep2 = async () => {
               <div>
                 <label className="flex items-center text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 gap-2"><Briefcase className="w-4 h-4"/> نوع التجارة</label>
                 <select value={businessType} onChange={(e) => setBusinessType(e.target.value)}
-                  className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring-primary sm:text-sm">
+                  className="fake-password appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring-primary sm:text-sm">
                   <option value="مكتبة">مكتبة / قرطاسية</option>
                   <option value="محل عام">محل عام</option>
                   <option value="مواد غذائية">مواد غذائية</option>
