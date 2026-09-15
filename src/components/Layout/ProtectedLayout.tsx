@@ -7,6 +7,7 @@ import Sidebar from "./Sidebar";
 import Header from "./Header";
 import BottomNav from "./BottomNav";
 import ChatNotificationsManager from "../ChatNotificationsManager";
+import { showPermissionToast } from "../CustomToasts";
 import { AnimatePresence, motion } from "framer-motion";
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
@@ -29,6 +30,18 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
       }
     }
   }, [isAuthenticated, currentUser, pathname, router]);
+
+    useEffect(() => {
+    if (mounted && isAuthenticated && currentUser) {
+      // Check if permissions are granted. Only show if 'default' (not yet asked)
+      if (typeof window !== 'undefined' && 'Notification' in window) {
+        if (Notification.permission === 'default' && !sessionStorage.getItem('perm_toast_shown')) {
+          showPermissionToast();
+          sessionStorage.setItem('perm_toast_shown', 'true');
+        }
+      }
+    }
+  }, [mounted, isAuthenticated, currentUser]);
 
   if (!mounted) return null;
 

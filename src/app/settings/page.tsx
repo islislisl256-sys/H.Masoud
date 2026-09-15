@@ -10,6 +10,7 @@ import { mainSupabase } from "@/lib/supabase";
 import { compressImage } from "@/lib/imageUtils";
 import { getCloudinaryCloudName, getCloudinaryUploadPreset, getCloudinaryApiKey, getCloudinaryApiSecret, getCloudinaryMaxImages } from "@/lib/cloudinaryConfig";
 import toast from 'react-hot-toast';
+import { showSystemToast } from '@/components/CustomToasts';
 import CloudinarySetupModal from "@/components/Modals/CloudinarySetupModal";
 import PremiumLockOverlay from "@/components/UI/PremiumLockOverlay";
 
@@ -80,7 +81,7 @@ export default function SettingsPage() {
       const data = await res.json();
       if (data.secure_url) {
         setStoreLogo(data.secure_url);
-        toast.success("تم رفع الشعار بنجاح");
+        showSystemToast("تحديث بيانات", "تم رفع الشعار بنجاح.", "edit_user");
       }
     } catch (e) {
       toast.error("فشل رفع الشعار");
