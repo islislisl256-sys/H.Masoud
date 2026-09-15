@@ -115,7 +115,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
   const renderReceiptFooter = () => (
     <div style={{ paddingBottom: '60px' }}>
       <div className="text-right font-bold text-lg mt-4 pr-4 mb-4">
-        التاريخ: {receipt_date}
+        {receipt_date}
       </div>
       <div className="flex justify-between px-10">
         <div className="text-right font-bold text-xl">
@@ -162,7 +162,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
       </div>
       
       <div className="text-center font-bold text-lg mb-1">
-        التاريخ: {receipt_date}
+        {receipt_date}
       </div>
       <div className="text-center font-bold text-2xl mb-4">
         فاتورة رقم {invoice_number}

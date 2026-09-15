@@ -325,9 +325,10 @@ export default function CustomInvoicesTab() {
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 space-y-4">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-3"><User className="h-5 w-5 text-primary" /> الزبون والوثيقة</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div><label className="text-xs text-gray-500 font-bold">اسم_الزبون</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.client_name} onChange={e => setClientInfo({...clientInfo, client_name: e.target.value})} /></div>
               <div><label className="text-xs text-gray-500 font-bold">رقم_الفاتورة_و_الوصل</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.invoice_number} onChange={e => setClientInfo({...clientInfo, invoice_number: e.target.value})} /></div>
+                <div><label className="text-xs text-gray-500 font-bold">التاريخ</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.receipt_date} onChange={e => setClientInfo({...clientInfo, receipt_date: e.target.value})} /></div>
             </div>
           </div>
 
