@@ -6,6 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 import Header from "./Header";
 import BottomNav from "./BottomNav";
+import ChatNotificationsManager from "../ChatNotificationsManager";
 import { AnimatePresence, motion } from "framer-motion";
 
 export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
@@ -62,6 +63,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
             </button>
           </div>
         )}
+        <ChatNotificationsManager />
         <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 lg:p-8 pb-20 md:pb-8">
           <AnimatePresence mode="wait">
             <motion.div

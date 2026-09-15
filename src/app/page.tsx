@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { showProductToast, showPermissionToast } from '@/components/CustomToasts';
+import { showSystemToast, showPermissionToast } from '@/components/CustomToasts';
 
 import Link from 'next/link';
 import { TrendingUp, DollarSign, Loader2, Calendar, Trophy, LineChart as LineChartIcon, Cloud, Image as ImageIcon, Undo2, Mail } from "lucide-react";
@@ -116,15 +116,33 @@ export default function DashboardPage() {
     // PREVIEW NOTIFICATIONS (Requested by user for styling preview)
     // ----------------------------------------------------------------------
     const timer = setTimeout(() => {
-      showProductToast("تم إضافة المنتج", "تم إضافة 'كتاب الرياضيات' إلى المخزون بنجاح.", "add");
+      showSystemToast("تم إضافة المنتج", "تم إضافة 'كتاب الرياضيات' إلى المخزون بنجاح.", "add");
       
       setTimeout(() => {
-        showProductToast("عملية بيع ناجحة", "تم بيع 'قلم رصاص' وإضافته للفاتورة.", "sale");
+        showSystemToast("عملية بيع ناجحة", "تم بيع 'قلم رصاص' وإضافته للفاتورة.", "sale");
       }, 1000);
+      
+      setTimeout(() => {
+        showSystemToast("تحديث بيانات", "تم تغيير معلومات المستخدم بنجاح.", "edit_user");
+      }, 2000);
 
       setTimeout(() => {
-        showPermissionToast();
-      }, 2000);
+        showSystemToast("تمت الإضافة", "تم استخراج فاتورة مخصصة بنجاح.", "invoice");
+      }, 3000);
+      
+      setTimeout(() => {
+        showSystemToast("قاعدة البيانات", "تم ربط قاعدة البيانات الخاصة بالصور بنجاح.", "db");
+      }, 4000);
+
+      setTimeout(() => {
+        // Only show if permissions are NOT granted (preview mode: we just show it to test)
+        if (typeof window !== 'undefined' && Notification.permission !== 'granted') {
+          showPermissionToast();
+        } else {
+          // Force show for styling preview as requested by user
+          showPermissionToast();
+        }
+      }, 5000);
     }, 1500);
 
     return () => clearTimeout(timer);
@@ -145,15 +163,33 @@ export default function DashboardPage() {
     // PREVIEW NOTIFICATIONS (Requested by user for styling preview)
     // ----------------------------------------------------------------------
     const timer = setTimeout(() => {
-      showProductToast("تم إضافة المنتج", "تم إضافة 'كتاب الرياضيات' إلى المخزون بنجاح.", "add");
+      showSystemToast("تم إضافة المنتج", "تم إضافة 'كتاب الرياضيات' إلى المخزون بنجاح.", "add");
       
       setTimeout(() => {
-        showProductToast("عملية بيع ناجحة", "تم بيع 'قلم رصاص' وإضافته للفاتورة.", "sale");
+        showSystemToast("عملية بيع ناجحة", "تم بيع 'قلم رصاص' وإضافته للفاتورة.", "sale");
       }, 1000);
+      
+      setTimeout(() => {
+        showSystemToast("تحديث بيانات", "تم تغيير معلومات المستخدم بنجاح.", "edit_user");
+      }, 2000);
 
       setTimeout(() => {
-        showPermissionToast();
-      }, 2000);
+        showSystemToast("تمت الإضافة", "تم استخراج فاتورة مخصصة بنجاح.", "invoice");
+      }, 3000);
+      
+      setTimeout(() => {
+        showSystemToast("قاعدة البيانات", "تم ربط قاعدة البيانات الخاصة بالصور بنجاح.", "db");
+      }, 4000);
+
+      setTimeout(() => {
+        // Only show if permissions are NOT granted (preview mode: we just show it to test)
+        if (typeof window !== 'undefined' && Notification.permission !== 'granted') {
+          showPermissionToast();
+        } else {
+          // Force show for styling preview as requested by user
+          showPermissionToast();
+        }
+      }, 5000);
     }, 1500);
 
     return () => clearTimeout(timer);

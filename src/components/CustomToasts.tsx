@@ -1,27 +1,45 @@
-﻿import React from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import toast, { Toast } from 'react-hot-toast';
-import { CheckCircle, AlertTriangle, Camera, PackagePlus, ShoppingBag, X } from 'lucide-react';
+import { CheckCircle, Camera, PackagePlus, ShoppingBag, X, UserCog, FileText, Database, Bell, MessageSquare, Heart } from 'lucide-react';
 
-export const showProductToast = (title: string, message: string, type: 'add' | 'sale') => {
+export const showSystemToast = (title: string, message: string, type: 'add' | 'sale' | 'edit_user' | 'invoice' | 'db' | 'chat' | 'heart') => {
+  const getIcon = () => {
+    switch(type) {
+      case 'add': return <PackagePlus className="h-6 w-6 text-blue-600 dark:text-blue-400" />;
+      case 'sale': return <ShoppingBag className="h-6 w-6 text-green-600 dark:text-green-400" />;
+      case 'edit_user': return <UserCog className="h-6 w-6 text-purple-600 dark:text-purple-400" />;
+      case 'invoice': return <FileText className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />;
+            case 'db': return <Database className="h-6 w-6 text-cyan-600 dark:text-cyan-400" />;
+      case 'chat': return <MessageSquare className="h-6 w-6 text-pink-600 dark:text-pink-400" />;
+      case 'heart': return <Heart className="h-6 w-6 text-red-600 dark:text-red-400 fill-current" />;
+    }
+  };
+
+  const getBg = () => {
+    switch(type) {
+      case 'add': return 'bg-blue-100 dark:bg-blue-900/30';
+      case 'sale': return 'bg-green-100 dark:bg-green-900/30';
+      case 'edit_user': return 'bg-purple-100 dark:bg-purple-900/30';
+      case 'invoice': return 'bg-indigo-100 dark:bg-indigo-900/30';
+            case 'db': return 'bg-cyan-100 dark:bg-cyan-900/30';
+      case 'chat': return 'bg-pink-100 dark:bg-pink-900/30';
+      case 'heart': return 'bg-red-100 dark:bg-red-900/30';
+    }
+  };
+
   toast.custom((t: Toast) => (
     <div
       className={`${
         t.visible ? 'animate-enter' : 'animate-leave'
-      } max-w-md w-full bg-white dark:bg-gray-800 shadow-lg rounded-2xl pointer-events-auto flex ring-1 ring-black/5 dark:ring-white/10 overflow-hidden`}
+      } max-w-md w-full bg-white dark:bg-gray-900 shadow-[0_0_20px_rgba(59,130,246,0.3)] rounded-2xl pointer-events-auto flex ring-1 ring-blue-500/20 overflow-hidden border border-blue-100 dark:border-blue-800/50`}
       style={{ direction: 'rtl' }}
     >
       <div className="flex-1 w-0 p-4">
         <div className="flex items-start">
           <div className="flex-shrink-0 pt-0.5">
-            {type === 'add' ? (
-              <div className="h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-                <PackagePlus className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-              </div>
-            ) : (
-              <div className="h-10 w-10 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                <ShoppingBag className="h-6 w-6 text-green-600 dark:text-green-400" />
-              </div>
-            )}
+            <div className={`h-10 w-10 rounded-full flex items-center justify-center ${getBg()}`}>
+              {getIcon()}
+            </div>
           </div>
           <div className="mr-3 flex-1">
             <p className="text-sm font-bold text-gray-900 dark:text-white">
@@ -33,7 +51,7 @@ export const showProductToast = (title: string, message: string, type: 'add' | '
           </div>
         </div>
       </div>
-      <div className="flex border-r border-gray-200 dark:border-gray-700">
+      <div className="flex border-r border-gray-100 dark:border-gray-800">
         <button
           onClick={() => toast.dismiss(t.id)}
           className="w-full border border-transparent rounded-none rounded-l-lg p-4 flex items-center justify-center text-sm font-medium text-gray-400 hover:text-gray-500 dark:hover:text-gray-300 focus:outline-none"
@@ -45,36 +63,78 @@ export const showProductToast = (title: string, message: string, type: 'add' | '
   ), { duration: 4000, position: 'top-center' });
 };
 
+// OS Level Push Notification Wrapper
+export const sendPushNotification = (title: string, options?: NotificationOptions) => {
+  if (!("Notification" in window)) return;
+  if (Notification.permission === "granted") {
+    new Notification(title, {
+      icon: '/icons/icon-192x192.png',
+      badge: '/icons/icon-192x192.png',
+      ...options
+    });
+  }
+};
+
 export const showPermissionToast = () => {
-  toast.custom((t: Toast) => (
-    <div
-      className={`${
-        t.visible ? 'animate-enter' : 'animate-leave'
-      } max-w-md w-full bg-gradient-to-r from-amber-500 to-orange-500 shadow-2xl rounded-2xl pointer-events-auto flex ring-1 ring-black/5 overflow-hidden`}
-      style={{ direction: 'rtl' }}
-    >
-      <div className="flex-1 w-0 p-4">
-        <div className="flex items-start">
-          <div className="flex-shrink-0 pt-0.5">
-            <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center shadow-inner">
-              <Camera className="h-6 w-6 text-white" />
+  toast.custom((t: Toast) => {
+    const handleGrantNotifications = async () => {
+      if ("Notification" in window) {
+        const perm = await Notification.requestPermission();
+        if (perm === 'granted') {
+          toast.success("تم تفعيل إشعارات الرسائل!");
+          toast.dismiss(t.id);
+        } else {
+          toast.error("تم رفض الصلاحية. يرجى تفعيلها من إعدادات المتصفح.");
+        }
+      }
+    };
+
+    const handleGrantCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        stream.getTracks().forEach(track => track.stop()); // Stop immediately, we just needed permission
+        toast.success("تم تفعيل الكاميرا بنجاح!");
+      } catch (err) {
+        toast.error("تم رفض الكاميرا أو لا توجد كاميرا متصلة.");
+      }
+    };
+
+    return (
+      <div
+        className={`${
+          t.visible ? 'animate-enter' : 'animate-leave'
+        } max-w-md w-full bg-gradient-to-r from-amber-500 to-orange-500 shadow-[0_10px_40px_rgba(245,158,11,0.5)] rounded-2xl pointer-events-auto flex ring-1 ring-black/5 overflow-hidden border border-orange-400`}
+        style={{ direction: 'rtl' }}
+      >
+        <div className="flex-1 w-0 p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0 pt-0.5">
+              <div className="h-10 w-10 rounded-full bg-white/20 flex items-center justify-center shadow-inner">
+                <Bell className="h-6 w-6 text-white" />
+              </div>
             </div>
-          </div>
-          <div className="mr-3 flex-1">
-            <p className="text-sm font-bold text-white">
-              إذن الوصول للكاميرا والصور
-            </p>
-            <p className="mt-1 text-sm text-amber-50 font-medium">
-              يرجى منح المتصفح صلاحية الوصول للكاميرا لتتمكن من مسح الباركود بسهولة.
-            </p>
-            <div className="mt-3 flex gap-2">
-               <button onClick={() => toast.dismiss(t.id)} className="bg-white text-orange-600 px-4 py-1.5 rounded-lg text-xs font-bold shadow-sm hover:bg-orange-50 transition-colors">
-                 حسناً، فهمت
-               </button>
+            <div className="mr-3 flex-1">
+              <p className="text-sm font-bold text-white">
+                أذونات النظام المطلوبة
+              </p>
+              <p className="mt-1 text-xs text-amber-50 font-medium">
+                يرجى منح المتصفح الصلاحيات اللازمة لوصول إشعارات المحادثات (حتى خارج التطبيق) واستخدام الكاميرا.
+              </p>
+              <div className="mt-3 flex gap-2 flex-wrap">
+                 <button onClick={handleGrantNotifications} className="bg-white text-orange-600 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm hover:bg-orange-50 transition-colors">
+                   تفعيل الإشعارات
+                 </button>
+                 <button onClick={handleGrantCamera} className="bg-white/20 border border-white/40 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-white/30 transition-colors">
+                   تجربة الكاميرا
+                 </button>
+                 <button onClick={() => toast.dismiss(t.id)} className="bg-transparent text-amber-100 px-2 py-1.5 rounded-lg text-xs hover:text-white transition-colors">
+                   لاحقاً
+                 </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
-  ), { duration: 10000, position: 'top-center' });
+    );
+  }, { duration: Infinity, position: 'top-center', id: 'permission-toast' });
 };

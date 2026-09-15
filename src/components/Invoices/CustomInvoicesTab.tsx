@@ -178,6 +178,7 @@ export default function CustomInvoicesTab() {
       stamp_duty: Number(financials.stamp_duty),
       grand_total_invoice,
       amount_in_words_arabic: amountInWords,
+      seller_name: currentUser?.full_name || currentUser?.store_name || "البائع",
     };
   };
 
@@ -217,7 +218,7 @@ export default function CustomInvoicesTab() {
           const opt: any = {
             margin:       0.4,
             pagebreak:    { mode: ['css', 'legacy'], avoid: 'tr' },
-            filename:     `Invoice_${payload.client_name}_${payload.invoice_number || Date.now()}.pdf`,
+            filename:     `Invoice_${payload.client_name}_${payload.invoice_number || Date.now()}_${payload.seller_name || "seller"}.pdf`,
             image:        { type: 'jpeg', quality: 0.98 },
             html2canvas:  { scale: 2, useCORS: true },
             jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }

@@ -25,6 +25,7 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
     stamp_duty = 0,
     grand_total_invoice = 0,
     amount_in_words_arabic = "",
+    seller_name = "",
     store_logo = "" // base64 or url
   } = payload;
 
@@ -197,6 +198,7 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
       
       new Paragraph({ text: "", spacing: { after: 400 } }),
       new Paragraph({ children: [new TextRun({ text: receipt_date, bold: true, size: 28, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
+      ...(seller_name ? [new Paragraph({ children: [new TextRun({ text: `البائع: ${seller_name}`, bold: false, size: 20, rightToLeft: true, font: "Arial", color: "4B5563" })], alignment: AlignmentType.RIGHT })] : []),
       new Paragraph({ text: "", spacing: { after: 200 } }),
       
       new Table({
@@ -301,6 +303,7 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
     new Paragraph({ text: "", spacing: { after: 200 } }),
 
     new Paragraph({ children: [new TextRun({ text: `المبلغ الإجمالي بالحروف: ${amount_in_words_arabic}`, bold: true, size: 24, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
+    ...(seller_name ? [new Paragraph({ children: [new TextRun({ text: `البائع: ${seller_name}`, bold: false, size: 20, rightToLeft: true, font: "Arial", color: "4B5563" })], alignment: AlignmentType.RIGHT })] : []),
     new Paragraph({ text: "", spacing: { after: 200 } }),
     
     new Table({
@@ -393,5 +396,5 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
   });
 
   const blob = await Packer.toBlob(doc);
-  saveAs(blob, `Invoice_${client_name}_${invoice_number}.docx`);
+  saveAs(blob, `Invoice_${client_name}_${invoice_number}_${seller_name}.docx`);
 };
