@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
-import { showSystemToast } from "@/components/CustomToasts";
+import { showSystemToast, confirmDialog } from "@/components/CustomToasts";
 import { Plus, Trash2, Save, FileText, Loader2, Download, History, Store, User, Edit, Calculator, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 import InvoicePrintLayout from "./InvoicePrintLayout";
@@ -262,7 +262,7 @@ export default function CustomInvoicesTab() {
 
   const loadHistoryItem = (entry: HistoryEntry) => {
     const p = entry.payload;
-    if (confirm("هل تريد تحميل هذه الفاتورة للتعديل عليها؟ سيتم استبدال البيانات الحالية.")) {
+    confirmDialog("استعادة الفاتورة", "هل أنت متأكد من استعادة هذه الفاتورة؟ سيتم مسح البيانات الحالية.", () => {
       setClientInfo({
         client_name: p.client_name || "",
         receipt_date: p.receipt_date || "", invoice_number: p.invoice_number || "",
@@ -271,15 +271,15 @@ export default function CustomInvoicesTab() {
       setFinancials({ tva_amount: p.tva_amount || 0, stamp_duty: p.stamp_duty || 0 });
       setAmountInWords(p.amount_in_words_arabic || "");
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    });
   };
 
   const deleteHistoryItem = (id: string) => {
-    if (confirm("تأكيد الحذف؟")) {
+    confirmDialog("مسح السجل", "هل أنت متأكد من مسح هذا السجل؟", () => {
       const newHistory = history.filter(h => h.id !== id);
       setHistory(newHistory);
       localStorage.setItem("custom_invoice_history_v2", JSON.stringify(newHistory));
-    }
+    });
   };
 
   return (
@@ -456,3 +456,4 @@ export default function CustomInvoicesTab() {
     </div>
   );
 }
+

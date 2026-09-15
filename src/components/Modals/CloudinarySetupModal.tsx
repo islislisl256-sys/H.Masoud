@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { showSystemToast } from "@/components/CustomToasts";
+﻿import React, { useState, useEffect } from "react";
+import { showSystemToast, confirmDialog } from "@/components/CustomToasts";
 import { Cloud, X, ExternalLink, CheckCircle2, Loader2, Sparkles, AlertOctagon, RefreshCw, Lock, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { mainSupabase } from "@/lib/supabase";
@@ -102,7 +102,7 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
   };
 
   const handleDisconnect = async () => {
-    if (!confirm("هل أنت متأكد من فك ربط حساب السحابة الحالي؟")) return;
+    confirmDialog("تأكيد", "هل أنت متأكد من مسح الإعدادات؟", async () => {
     try {
       const updates = {
         cloudinary_cloud_name: null,
@@ -122,6 +122,7 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
     } catch (e) {
       showSystemToast("تنبيه", "تأكد من إدخال البيانات المطلوبة.", "warning");
     }
+    });
   };
 
   return (
@@ -306,3 +307,5 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
     </div>
   );
 }
+
+

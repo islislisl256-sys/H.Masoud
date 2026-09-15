@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { confirmDialog, showSystemToast } from "@/components/CustomToasts";
 import { useAuth } from "@/contexts/AuthContext";
 import { mainSupabase } from "@/lib/supabase";
 import { Send, Edit2, Trash2, ArrowRight, Store, MessageSquare } from "lucide-react";
@@ -125,7 +126,7 @@ export default function ChatPage() {
   const handleDeleteMessage = async (id: string) => {
     if (currentUser?.role !== 'LEADER') return;
     
-    if (confirm("هل أنت متأكد من حذف هذه الرسالة؟")) {
+    confirmDialog("مسح الرسالة", "هل أنت متأكد من مسح هذه الرسالة؟", async () => {
       const { error } = await mainSupabase.from("workspace_messages")
         .delete()
         .eq("id", id);
@@ -133,7 +134,7 @@ export default function ChatPage() {
       if (error) {
         toast.error("فشل حذف الرسالة");
       }
-    }
+    });
   };
 
   const handleDoubleClick = async (msg: Message) => {

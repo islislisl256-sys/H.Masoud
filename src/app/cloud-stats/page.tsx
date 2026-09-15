@@ -1,5 +1,6 @@
 "use client";
 import toast from 'react-hot-toast';
+import { confirmDialog, showSystemToast } from "@/components/CustomToasts";
 
 import React, { useEffect, useState } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
@@ -70,7 +71,7 @@ export default function CloudStatsPage() {
   };
 
   const handleDelete = async (public_id: string) => {
-    if (!confirm("هل أنت متأكد من مسح هذه الصورة نهائياً؟")) return;
+    confirmDialog("تأكيد الحذف", "هل أنت متأكد من مسح هذه الصورة سحابياً؟", async () => {
     setDeletingId(public_id);
     try {
       let result;
@@ -122,6 +123,7 @@ export default function CloudStatsPage() {
     } finally {
       setDeletingId(null);
     }
+  });
   };
 
   if (!mounted || !currentUser) return null;

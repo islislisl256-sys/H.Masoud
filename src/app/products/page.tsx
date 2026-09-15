@@ -1,6 +1,6 @@
-"use client";
+﻿"use client";
 import toast from 'react-hot-toast';
-import { showSystemToast } from '@/components/CustomToasts';
+import { showSystemToast, confirmDialog } from '@/components/CustomToasts';
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
@@ -283,7 +283,7 @@ export default function ProductsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("حذف هذا المنتج؟")) {
+    confirmDialog("تأكيد الحذف", "هل أنت متأكد من مسح هذا المنتج؟", async () => {
       const product = products.find(p => p.id === id);
       const { error } = await supabase.from('products').delete().eq('id', id);
       
@@ -335,7 +335,7 @@ export default function ProductsPage() {
         }
         fetchProducts();
       }
-    }
+    });
   };
 
   const handleToggleAdding = () => {
@@ -695,3 +695,4 @@ export default function ProductsPage() {
     </ProtectedLayout>
   );
 }
+
