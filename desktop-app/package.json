@@ -1,0 +1,28 @@
+{
+  "name": "library-system-desktop",
+  "version": "1.0.0",
+  "description": "Desktop version of the Library System",
+  "main": "main.js",
+  "productName": "Ù†Ø¸Ø§Ù… Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…ÙƒØªØ¨Ø©",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win"
+  },
+  "author": "Masoud",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^44.4.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.masoud.library",
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "include": "build/installer.nsh"
+    }
+  }
+}
