@@ -316,16 +316,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (error || workspaceError) return false;
 
       const updatedUser = { 
-        ...currentUser, 
-        full_name: fullName, 
-        phone_number: phone, 
-        setup_completed: true,
-        ...(currentUser.role === 'LEADER' && { business_type: businessType, store_name: storeName })
-      };
-      
-      setCurrentUser(updatedUser);
-      sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
-      return true;
+          ...currentUser, 
+          full_name: fullName, 
+          phone_number: phone, 
+          setup_completed: true,
+          ...(currentUser.role === 'LEADER' && { business_type: businessType, store_name: storeName })
+        };
+        
+        setCurrentUser(updatedUser);
+        sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
+        localStorage.setItem("setup_completed_" + currentUser.id, "true");
+        return true;
     } catch (err) {
       return false;
     }

@@ -115,7 +115,7 @@ export default function LoginPage() {
     } else {
       localStorage.setItem("login_fails", "0");
       localStorage.setItem("total_lockouts", "0"); // تصفير السجل الكامل عند الدخول الناجح
-      if (!result.user.setup_completed) {
+      if (!result.user.setup_completed && localStorage.getItem("setup_completed_" + result.user.id) !== "true") {
         setStep(3);
       } else {
         router.push("/");
