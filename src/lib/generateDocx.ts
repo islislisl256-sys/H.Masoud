@@ -1,4 +1,4 @@
-import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, BorderStyle, WidthType, AlignmentType, PageBreak, Header, ImageRun } from 'docx';
+import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, BorderStyle, WidthType, AlignmentType, TableLayoutType, PageBreak, Header, ImageRun } from 'docx';
 import { saveAs } from 'file-saver';
 
 export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' | 'invoice' | 'both') => {
@@ -40,7 +40,7 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
       }
     };
     if (colSpan > 1) cellProps.columnSpan = colSpan;
-    if (widthPercent) cellProps.width = { size: widthPercent, type: WidthType.PERCENTAGE };
+    if (widthPercent) cellProps.width = { size: Math.round((widthPercent / 100) * 9000), type: WidthType.DXA };
     return new TableCell(cellProps);
   };
 
@@ -58,7 +58,9 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
   };
 
   const receiptTable = new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
+    width: { size: 9000, type: WidthType.DXA },
+    columnWidths: [1800, 1800, 900, 4050, 450],
+    layout: TableLayoutType.FIXED,
     rows: [
       new TableRow({
         children: [
@@ -89,7 +91,9 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
   });
 
   const invoiceTable = new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
+    width: { size: 9000, type: WidthType.DXA },
+    columnWidths: [1350, 1350, 900, 900, 4050, 450],
+    layout: TableLayoutType.FIXED,
     rows: [
       new TableRow({
         children: [
@@ -157,9 +161,11 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
       
       // Client Box aligned right
       new Table({
-        width: { size: 3500, type: WidthType.DXA },
-        alignment: AlignmentType.RIGHT,
-        rows: [
+      width: { size: 3500, type: WidthType.DXA },
+      columnWidths: [3500],
+      layout: TableLayoutType.FIXED,
+      alignment: AlignmentType.RIGHT,
+      rows: [
           new TableRow({
             children: [
               new TableCell({
@@ -194,7 +200,9 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
       new Paragraph({ text: "", spacing: { after: 200 } }),
       
       new Table({
-        width: { size: 100, type: WidthType.PERCENTAGE },
+        width: { size: 9000, type: WidthType.DXA },
+        columnWidths: [4500, 4500],
+        layout: TableLayoutType.FIXED,
         borders: {
           top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE },
           left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE },
@@ -220,7 +228,9 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
 
   const generateInvoiceContent = () => [
     new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
+      width: { size: 9000, type: WidthType.DXA },
+      columnWidths: [9000],
+      layout: TableLayoutType.FIXED,
       rows: [
         new TableRow({
           children: [
@@ -253,6 +263,8 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
 
     new Table({
       width: { size: 3500, type: WidthType.DXA },
+      columnWidths: [3500],
+      layout: TableLayoutType.FIXED,
       alignment: AlignmentType.RIGHT,
       rows: [
         new TableRow({
@@ -292,9 +304,11 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
     new Paragraph({ text: "", spacing: { after: 200 } }),
     
     new Table({
-      width: { size: 100, type: WidthType.PERCENTAGE },
-      borders: {
-        top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE },
+        width: { size: 9000, type: WidthType.DXA },
+        columnWidths: [4500, 4500],
+        layout: TableLayoutType.FIXED,
+        borders: {
+          top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE },
         left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE },
         insideHorizontal: { style: BorderStyle.NONE }, insideVertical: { style: BorderStyle.NONE }
       },
