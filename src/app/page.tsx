@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState, useMemo } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
+import { showProductToast, showPermissionToast } from '@/components/CustomToasts';
+
 import Link from 'next/link';
 import { TrendingUp, DollarSign, Loader2, Calendar, Trophy, LineChart as LineChartIcon, Cloud, Image as ImageIcon, Undo2, Mail } from "lucide-react";
 import { supabase } from "@/lib/supabase";
@@ -109,7 +111,26 @@ export default function DashboardPage() {
   };
 
   if (loading) {
-    return (
+      useEffect(() => {
+    // ----------------------------------------------------------------------
+    // PREVIEW NOTIFICATIONS (Requested by user for styling preview)
+    // ----------------------------------------------------------------------
+    const timer = setTimeout(() => {
+      showProductToast("تم إضافة المنتج", "تم إضافة 'كتاب الرياضيات' إلى المخزون بنجاح.", "add");
+      
+      setTimeout(() => {
+        showProductToast("عملية بيع ناجحة", "تم بيع 'قلم رصاص' وإضافته للفاتورة.", "sale");
+      }, 1000);
+
+      setTimeout(() => {
+        showPermissionToast();
+      }, 2000);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
       <ProtectedLayout>
         <div className="flex items-center justify-center h-[60vh]">
           <Loader2 className="h-10 w-10 animate-spin text-primary" />
@@ -118,6 +139,25 @@ export default function DashboardPage() {
     );
   }
 
+
+    useEffect(() => {
+    // ----------------------------------------------------------------------
+    // PREVIEW NOTIFICATIONS (Requested by user for styling preview)
+    // ----------------------------------------------------------------------
+    const timer = setTimeout(() => {
+      showProductToast("تم إضافة المنتج", "تم إضافة 'كتاب الرياضيات' إلى المخزون بنجاح.", "add");
+      
+      setTimeout(() => {
+        showProductToast("عملية بيع ناجحة", "تم بيع 'قلم رصاص' وإضافته للفاتورة.", "sale");
+      }, 1000);
+
+      setTimeout(() => {
+        showPermissionToast();
+      }, 2000);
+    }, 1500);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <ProtectedLayout>
