@@ -64,8 +64,8 @@ export default function InvoicesPage() {
   const handleDelete = async (id: string) => {
     if (confirm("حذف هذه البيعة؟")) {
       const { error } = await supabase.from('invoices').delete().eq('id', id);
-      if (!error) fetchInvoices(); showSystemToast("تم الحذف", "تم حذف الفاتورة بنجاح.", "delete");
-      else showSystemToast("خطأ", "حدث خطأ ما", "error");
+      if (!error) { fetchInvoices(); showSystemToast("تم الحذف", "تم حذف الفاتورة بنجاح.", "delete"); }
+      else { showSystemToast("خطأ", "حدث خطأ ما", "error"); }
     }
   };
 
