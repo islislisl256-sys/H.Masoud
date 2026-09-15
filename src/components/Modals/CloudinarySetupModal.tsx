@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { showSystemToast } from "@/components/CustomToasts";
 import { Cloud, X, ExternalLink, CheckCircle2, Loader2, Sparkles, AlertOctagon, RefreshCw, Lock, Trash2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { mainSupabase } from "@/lib/supabase";
@@ -116,10 +117,10 @@ export default function CloudinarySetupModal({ isOpen, onClose, onSuccess }: { i
       setUploadPreset("");
       setApiKey("");
       setApiSecret("");
-      alert("تم فك ربط الحساب بنجاح.");
+      showSystemToast("تنبيه", "تأكد من إدخال البيانات المطلوبة.", "warning");
       onSuccess();
     } catch (e) {
-      alert("حدث خطأ أثناء فك الربط");
+      showSystemToast("تنبيه", "تأكد من إدخال البيانات المطلوبة.", "warning");
     }
   };
 

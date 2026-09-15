@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { showSystemToast } from "@/components/CustomToasts";
 import { Plus, Trash2, Save, FileText, Loader2, Download, History, Store, User, Edit, Calculator, Lock } from "lucide-react";
 import { motion } from "framer-motion";
 import InvoicePrintLayout from "./InvoicePrintLayout";
@@ -66,7 +67,7 @@ export default function CustomInvoicesTab() {
 
   const saveStoreInfo = () => {
     localStorage.setItem("custom_invoice_store_v2", JSON.stringify(storeInfo));
-    alert("تم حفظ معلومات المتجر!");
+    showSystemToast("تنبيه", "يرجى التحقق من البيانات.", "warning");
   };
 
   
@@ -195,11 +196,11 @@ export default function CustomInvoicesTab() {
       payload = buildPayload();
     }
 
-    if (!payload.client_name) { alert("الرجاء إدخال اسم العميل"); return; }
+    if (!payload.client_name) { showSystemToast("تنبيه", "يرجى التحقق من البيانات.", "warning"); return; }
     
     const isInvalid = (val: any) => !val || (typeof val === 'string' && val.trim() === '');
     if (isInvalid(payload.store_name) || isInvalid(payload.store_activity) || isInvalid(payload.store_rc) || isInvalid(payload.store_nif) || isInvalid(payload.store_art)) {
-      alert("لا يمكن إنشاء الفاتورة: يجب ملء جميع المعلومات الأساسية للمتجر (اسم المتجر، النشاط، RC، NIF، ART) ولا يمكن تركها فراغاً.");
+      showSystemToast("تنبيه", "يرجى التحقق من البيانات.", "warning");
       return;
     }
     
@@ -253,7 +254,7 @@ export default function CustomInvoicesTab() {
       }
     } catch (error: any) {
       console.error(error);
-      alert(`حدث خطأ أثناء التوليد: ${error?.message || "خطأ غير معروف"}`);
+      showSystemToast("خطأ", "حدث خطأ غير متوقع.", "error");
     } finally {
       setGenerating(false);
     }

@@ -1,8 +1,8 @@
 ﻿import React, { useEffect, useState } from 'react';
 import toast, { Toast } from 'react-hot-toast';
-import { CheckCircle, Camera, PackagePlus, ShoppingBag, X, UserCog, FileText, Database, Bell, MessageSquare, Heart } from 'lucide-react';
+import { CheckCircle, Camera, PackagePlus, ShoppingBag, X, UserCog, FileText, Database, Bell, MessageSquare, Heart, Trash2, AlertTriangle, XCircle } from 'lucide-react';
 
-export const showSystemToast = (title: string, message: string, type: 'add' | 'sale' | 'edit_user' | 'invoice' | 'db' | 'chat' | 'heart') => {
+export const showSystemToast = (title: string, message: string, type: 'add' | 'sale' | 'edit_user' | 'invoice' | 'db' | 'chat' | 'heart' | 'delete' | 'warning' | 'error') => {
   const getIcon = () => {
     switch(type) {
       case 'add': return <PackagePlus className="h-6 w-6 text-blue-600 dark:text-blue-400" />;
@@ -11,7 +11,10 @@ export const showSystemToast = (title: string, message: string, type: 'add' | 's
       case 'invoice': return <FileText className="h-6 w-6 text-indigo-600 dark:text-indigo-400" />;
             case 'db': return <Database className="h-6 w-6 text-cyan-600 dark:text-cyan-400" />;
       case 'chat': return <MessageSquare className="h-6 w-6 text-pink-600 dark:text-pink-400" />;
-      case 'heart': return <Heart className="h-6 w-6 text-red-600 dark:text-red-400 fill-current" />;
+            case 'heart': return <Heart className="h-6 w-6 text-red-600 dark:text-red-400 fill-current" />;
+      case 'delete': return <Trash2 className="h-6 w-6 text-red-600 dark:text-red-400" />;
+      case 'warning': return <AlertTriangle className="h-6 w-6 text-amber-600 dark:text-amber-400" />;
+      case 'error': return <XCircle className="h-6 w-6 text-red-600 dark:text-red-400" />;
     }
   };
 
@@ -23,7 +26,10 @@ export const showSystemToast = (title: string, message: string, type: 'add' | 's
       case 'invoice': return 'bg-indigo-100 dark:bg-indigo-900/30';
             case 'db': return 'bg-cyan-100 dark:bg-cyan-900/30';
       case 'chat': return 'bg-pink-100 dark:bg-pink-900/30';
-      case 'heart': return 'bg-red-100 dark:bg-red-900/30';
+            case 'heart': return 'bg-red-100 dark:bg-red-900/30';
+      case 'delete': return 'bg-red-100 dark:bg-red-900/30';
+      case 'warning': return 'bg-amber-100 dark:bg-amber-900/30';
+      case 'error': return 'bg-red-100 dark:bg-red-900/30';
     }
   };
 

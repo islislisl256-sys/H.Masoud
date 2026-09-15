@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { showSystemToast } from "@/components/CustomToasts";
 import { Download, Library, Smartphone, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -56,7 +57,7 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
     } else if (isIOS) {
       setShowIOSInstructions(true);
     } else {
-      alert("التطبيق مثبت بالفعل أو أن متصفحك لا يدعم التثبيت المباشر. جرب الإضافة للشاشة الرئيسية من القائمة.");
+      showSystemToast("تنبيه", "تطبيقك يعمل بالفعل في وضع ملء الشاشة.", "warning");
     }
   };
 

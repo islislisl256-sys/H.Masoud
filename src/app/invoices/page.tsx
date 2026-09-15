@@ -1,5 +1,6 @@
 "use client";
 import toast from 'react-hot-toast';
+import { showSystemToast } from '@/components/CustomToasts';
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
@@ -63,8 +64,8 @@ export default function InvoicesPage() {
   const handleDelete = async (id: string) => {
     if (confirm("حذف هذه البيعة؟")) {
       const { error } = await supabase.from('invoices').delete().eq('id', id);
-      if (!error) fetchInvoices();
-      else toast("خطأ أثناء الحذف");
+      if (!error) fetchInvoices(); showSystemToast("تم الحذف", "تم حذف الفاتورة بنجاح.", "delete");
+      else showSystemToast("خطأ", "حدث خطأ ما", "error");
     }
   };
 

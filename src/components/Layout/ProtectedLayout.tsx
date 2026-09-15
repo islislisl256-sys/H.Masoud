@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { showSystemToast } from "@/components/CustomToasts";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
@@ -65,9 +66,9 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
               onClick={async () => {
                 const res = await renewLicense();
                 if (res.success) {
-                  alert("✅ " + res.message);
+                  showSystemToast("نجاح", res.message, "db");
                 } else {
-                  alert(res.message);
+                  showSystemToast("خطأ", res.message, "error");
                 }
               }}
               className="shrink-0 bg-white text-amber-600 px-4 py-1.5 rounded-lg font-bold hover:bg-amber-50 transition-colors"
