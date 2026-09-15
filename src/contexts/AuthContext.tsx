@@ -207,8 +207,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (authError || !authData.user) {
-        return { success: false, message: "فشل تسجيل الدخول (تأكد من البريد الإلكتروني وكلمة المرور)" };
-      }
+          return { success: false, message: "تأكد من صحة البيانات: " + (authError?.message || "") };
+        }
 
       // 4. التأكد من أن الحساب ينتمي لنفس مساحة العمل التي تم إدخال رقم الاعتماد الخاص بها
       const { data: isValidWorkspace } = await mainSupabase.rpc("check_account_workspace", {

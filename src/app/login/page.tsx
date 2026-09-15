@@ -58,7 +58,7 @@ export default function LoginPage() {
     return () => clearInterval(interval);
   }, [step]);
 
-  const handleFailedAttempt = (failType: string) => {
+  const handleFailedAttempt = (failType: string, customMessage?: string) => {
     let fails = parseInt(localStorage.getItem(failType) || "0") + 1;
     let lockouts = parseInt(localStorage.getItem("total_lockouts") || "0");
     
@@ -82,7 +82,7 @@ export default function LoginPage() {
       }
     } else {
       localStorage.setItem(failType, fails.toString());
-      setError(`خطأ في البيانات. لديك ${3 - fails} محاولات متبقية قبل القفل المؤقت.`);
+      setError(customMessage || `بيانات غير صحيحة لديك ${3 - fails} محاولات متبقية قبل حظر مؤقت.`);
     }
   };
 
@@ -107,11 +107,11 @@ export default function LoginPage() {
     e.preventDefault();
     setError(""); setIsLoading(true);
     
-    const result = await login(email, password);
+    const result = await login(email.trim(), password);
     setIsLoading(false);
     
     if (!result.success) {
-      handleFailedAttempt("login_fails");
+      handleFailedAttempt("login_fails", result.message);
     } else {
       localStorage.setItem("login_fails", "0");
       localStorage.setItem("total_lockouts", "0"); // تصفير السجل الكامل عند الدخول الناجح
