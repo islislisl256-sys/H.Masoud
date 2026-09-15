@@ -205,7 +205,7 @@ const handleBackToStep2 = async () => {
           <form className="mt-8 space-y-4" onSubmit={handleAcceptanceSubmit}>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رقم القبول</label>
-              <input type="password" autoComplete="new-password" required value={acceptanceNumber} onChange={(e) => setAcceptanceNumber(e.target.value)}
+              <input type="text" style={{ WebkitTextSecurity: "disc" }} required value={acceptanceNumber} onChange={(e) => setAcceptanceNumber(e.target.value)}
                 className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:border-gray-600 dark:text-white dark:bg-gray-700 focus:outline-none focus:ring-primary focus:border-primary sm:text-sm text-center tracking-widest text-lg"
                 placeholder="••••••••" dir="ltr" />
             </div>
@@ -226,7 +226,7 @@ const handleBackToStep2 = async () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">كلمة المرور</label>
-              <input type="password" autoComplete="new-password" required value={password} onChange={(e) => setPassword(e.target.value)}
+              <input type="text" style={{ WebkitTextSecurity: "disc" }} required value={password} onChange={(e) => setPassword(e.target.value)}
                 className="appearance-none rounded-lg relative block w-full px-3 py-3 border border-gray-300 dark:bg-gray-700 dark:text-white focus:ring-primary sm:text-sm"
                 placeholder="••••••••" dir="ltr" />
             </div>
