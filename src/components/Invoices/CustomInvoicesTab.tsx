@@ -441,7 +441,7 @@ export default function CustomInvoicesTab() {
       {/* Hidden PDF Layout */}
       <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
         <div id="invoice-print-container">
-          <InvoicePrintLayout payload={buildPayload()} />
+          <InvoicePrintLayout payload={buildPayload()} pagesToPrint={pagesToPrint} />
         </div>
       </div>
     </div>

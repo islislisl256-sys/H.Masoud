@@ -2,9 +2,10 @@ import React, { forwardRef } from 'react';
 
 type InvoicePrintLayoutProps = {
   payload: any;
+  pagesToPrint?: 'receipt' | 'invoice' | 'both';
 };
 
-const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>(({ payload }, ref) => {
+const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>(({ payload, pagesToPrint = 'both' }, ref) => {
   if (!payload) return null;
 
   const {
@@ -59,9 +60,6 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
           {store_nif && <div>الرقم الجبائي: {store_nif}</div>}
           {store_art && <div>رقم المادة: {store_art}</div>}
         </div>
-      </div>
-      <div className="text-center font-bold text-lg mb-1">
-        التاريخ: {receipt_date}
       </div>
       <div className="text-center font-bold text-2xl mb-4">
         وصل تسليم رقم {invoice_number}
@@ -238,6 +236,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
     <div ref={ref} className="w-full" style={{ fontSize: '12pt', direction: 'rtl', backgroundColor: '#ffffff', color: '#000000', fontFamily: 'Arial, sans-serif' }}>
       
       {/* Page 1: Receipt (Image 2 Style) */}
+      {(pagesToPrint === 'both' || pagesToPrint === 'receipt') && (
       <div className="w-full" style={{ position: 'relative', minHeight: '100vh', paddingBottom: '80px' }}>
         {store_logo && <div style={watermarkStyle} />}
         <div style={{ position: 'relative', zIndex: 1 }}>
@@ -247,10 +246,11 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
           {renderReceiptFooter()}
         </div>
       </div>
+      )}
 
-      <div className="html2pdf__page-break"></div>
+      {pagesToPrint === 'both' && <div className="html2pdf__page-break"></div>}
 
-      {/* Page 2: Invoice (Image 1 Style) */}
+      {(pagesToPrint === 'both' || pagesToPrint === 'invoice') && (
       <div className="w-full pt-8" style={{ position: 'relative', minHeight: '100vh', paddingBottom: '80px' }}>
         {store_logo && <div style={watermarkStyle} />}
         <div style={{ position: 'relative', zIndex: 1 }}>
@@ -260,6 +260,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
           {renderInvoiceFooter()}
         </div>
       </div>
+      )}
 
     </div>
   );
