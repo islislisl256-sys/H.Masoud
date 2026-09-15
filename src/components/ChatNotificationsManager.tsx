@@ -4,11 +4,11 @@ import { useAuth } from '@/contexts/AuthContext';
 import { showSystemToast, sendPushNotification } from './CustomToasts';
 
 export default function ChatNotificationsManager() {
-  const { currentUser, authData } = useAuth();
+  const { currentUser } = useAuth();
   const processedMessageIds = useRef<Set<string>>(new Set());
   
   useEffect(() => {
-    if (!currentUser || !authData?.user?.id) return;
+    if (!currentUser || !currentUser.id) return;
 
     // Check for missed messages since last login (approximate based on last 5 minutes unread or similar, or just active subscription to new ones)
     // To not spam the user on login, we will only show notifications for NEW messages that arrive while the app is running.
@@ -37,7 +37,7 @@ export default function ChatNotificationsManager() {
         const count = data.length;
         if (count === 1) {
            const msg = data[0];
-           const senderName = msg.app_accounts?.full_name || 'زميل';
+           const senderName = (msg.app_accounts as any)?.full_name || (msg.app_accounts as any)?.[0]?.full_name || 'زميل';
            sendPushNotification(`رسالة جديدة من ${senderName}`, { body: msg.content });
            showSystemToast(`رسالة جديدة من ${senderName}`, msg.content, 'chat'); // using db icon as a placeholder, maybe add chat icon
         } else {
@@ -97,7 +97,7 @@ export default function ChatNotificationsManager() {
       isMounted = false;
       mainSupabase.removeChannel(channel);
     };
-  }, [currentUser, authData]);
+  }, [currentUser]);
 
   return null;
 }
