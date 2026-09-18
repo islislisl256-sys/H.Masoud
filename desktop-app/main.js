@@ -3,7 +3,7 @@ const path = require('path');
 
 // === رابط الموقع الخاص بك ===
 // قم بتغيير هذا الرابط إلى رابط الموقع الحقيقي بعد رفعه
-const APP_URL = "https://your-domain.com";
+const APP_URL = "https://h-masoud.vercel.app/";
 
 let mainWindow;
 
