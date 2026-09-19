@@ -30,9 +30,10 @@ export default function DownloadPage() {
               بعد التثبيت، سيتم مسح ملف التثبيت تلقائياً لتوفير مساحة جهازك.
             </p>
             <a 
-              href="/downloads/LibrarySystem-Setup.exe" 
+              href="https://www.mediafire.com/file/7wy33ega0xcd7bk/Library-System-Setup.exe/file"
+              target="_blank"
+              rel="noopener noreferrer" 
               className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition-colors relative z-10"
-              download
             >
               <Download className="w-5 h-5" />
               تحميل نسخة الويندوز
