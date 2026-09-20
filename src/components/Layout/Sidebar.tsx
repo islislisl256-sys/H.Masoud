@@ -48,7 +48,7 @@ export default function Sidebar() {
             <BookOpen className={cn("h-6 w-6 text-primary transition-all duration-300", !isCollapsed && "ml-2")} />
           )}
         </button>
-        {!isCollapsed && <span className="text-lg font-bold text-gray-900 dark:text-white whitespace-nowrap animate-in fade-in duration-300 truncate pr-2 max-w-[150px]">{currentUser?.store_name || "Ù…ÙƒØªØ¨Ø© Ø§Ù„Ø­Ø§Ø¬ Ù…Ø³Ø¹ÙˆØ¯"}</span>}
+        {!isCollapsed && <span className="text-lg font-bold text-gray-900 dark:text-white whitespace-nowrap animate-in fade-in duration-300 truncate pr-2 max-w-[150px]">{currentUser?.store_name || "حانوتك"}</span>}
       </div>
       <div className="flex-1 overflow-y-auto py-4">
         <nav className="px-2 space-y-1">

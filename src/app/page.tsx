@@ -137,7 +137,7 @@ export default function DashboardPage() {
             )}
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                {currentUser?.store_name || "الرئيسية"}
+                {currentUser?.store_name || "حانوتك"}
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">لوحة التحكم والمؤشرات</p>
             </div>

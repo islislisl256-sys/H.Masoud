@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Inter, Cairo } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
@@ -11,13 +11,13 @@ import { Toaster } from "react-hot-toast";
 const cairo = Cairo({ subsets: ["arabic"], variable: "--font-cairo" });
 
 export const metadata: Metadata = {
-  title: "مكتبة الحاج مسعود",
-  description: "نظام إدارة مكتبة الحاج مسعود",
+  title: "حانوتك",
+  description: "نظام إدارة حانوتك",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "مكتبة الحاج مسعود"
+    title: "حانوتك"
   }
 };
 
