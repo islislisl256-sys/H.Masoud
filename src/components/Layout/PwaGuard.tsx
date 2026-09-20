@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState } from "react";
 import { showSystemToast } from "@/components/CustomToasts";
@@ -89,7 +89,7 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
         </div>
         
         <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-2">
-          مكتبة الحاج مسعود
+          حانوتك
         </h1>
         
         <p className="text-gray-500 dark:text-gray-400 mb-8 leading-relaxed">
@@ -97,6 +97,17 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
         </p>
 
         <div className="space-y-3">
+                    {/* Windows Button */}
+          <a
+            href="https://www.mediafire.com/file/7wy33ega0xcd7bk/Library-System-Setup.exe/file"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-blue-600/25 transition-all active:scale-95"
+          >
+            <Download className="w-5 h-5" />
+            تحميل نسخة الويندوز (كمبيوتر)
+          </a>
+
           {/* Android Button */}
           <button
             onClick={handleInstallClick}
