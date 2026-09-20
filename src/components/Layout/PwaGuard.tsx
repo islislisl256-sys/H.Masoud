@@ -19,7 +19,7 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
       
       const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || 
                                (window.navigator as any).standalone === true ||
-                               isElectronProtocol || isElectronPreload || isElectronUrlParam;
+                               isElectronProtocol || isElectronPreload || isElectronUrlParam || (typeof navigator !== 'undefined' && navigator.userAgent.includes('Electron'));
       setIsStandalone(isStandaloneMode);
     };
 

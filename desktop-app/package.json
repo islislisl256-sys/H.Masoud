@@ -1,9 +1,9 @@
 {
-  "name": "library-system-desktop",
+  "name": "hanoutak-desktop",
   "version": "1.0.0",
   "description": "Desktop version of the Library System",
   "main": "main.js",
-  "productName": "Ù†Ø¸Ø§Ù… Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…ÙƒØªØ¨Ø©",
+  "productName": "حانوتك",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --win"
