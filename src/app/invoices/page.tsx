@@ -2,6 +2,8 @@
 import toast from 'react-hot-toast';
 import { showSystemToast, confirmDialog } from '@/components/CustomToasts';
 
+import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType } from "docx";
+import { saveAs } from "file-saver";
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
 import { Loader2, Eye, Share2, Trash2, X, Undo2, Receipt, Calendar as CalendarIcon, CircleDollarSign, TrendingUp as TrendingUpIcon, Package, FileText, FileEdit } from "lucide-react";
@@ -119,6 +121,74 @@ export default function InvoicesPage() {
     a.click();
     URL.revokeObjectURL(url);
   };
+  const handleShareDocx = async (invoice: Invoice) => {
+    let items = invoiceItems;
+    if (!selectedInvoice || selectedInvoice.id !== invoice.id) {
+      const { data } = await supabase
+        .from('invoice_items')
+        .select('*, products(name, product_number)')
+        .eq('invoice_id', invoice.id);
+      items = (data as InvoiceItem[]) || [];
+    }
+
+    const doc = new Document({
+      sections: [{
+        properties: {},
+        children: [
+          new Paragraph({
+            children: [
+              new TextRun({ text: "Invoice: " + invoice.invoice_number, bold: true, size: 36 }),
+            ],
+            alignment: "center",
+          }),
+          new Paragraph({
+            children: [
+              new TextRun({ text: "Date: " + formatDate(invoice.created_at), size: 24 }),
+            ],
+            alignment: "center",
+          }),
+          new Paragraph({ text: "" }),
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              new TableRow({
+                children: [
+                  new TableCell({ children: [new Paragraph({ text: "Product", alignment: "center" })] }),
+                  new TableCell({ children: [new Paragraph({ text: "Qty", alignment: "center" })] }),
+                  new TableCell({ children: [new Paragraph({ text: "Price", alignment: "center" })] }),
+                  new TableCell({ children: [new Paragraph({ text: "Total", alignment: "center" })] }),
+                ]
+              }),
+              ...items.map(item => new TableRow({
+                children: [
+                  new TableCell({ children: [new Paragraph({ text: item.products?.name || 'Unknown', alignment: "center" })] }),
+                  new TableCell({ children: [new Paragraph({ text: String(item.quantity), alignment: "center" })] }),
+                  new TableCell({ children: [new Paragraph({ text: String(item.unit_price) + " DA", alignment: "center" })] }),
+                  new TableCell({ children: [new Paragraph({ text: String(item.total_price) + " DA", alignment: "center" })] }),
+                ]
+              })),
+            ]
+          }),
+          new Paragraph({ text: "" }),
+          new Paragraph({
+            children: [
+              new TextRun({ text: "Total: " + invoice.total + " DA", bold: true, size: 28 })
+            ],
+            alignment: "right"
+          })
+        ],
+      }],
+    });
+
+    const blob = await Packer.toBlob(doc);
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = invoice.invoice_number + ".docx";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -228,8 +298,8 @@ export default function InvoicesPage() {
                       <Eye className="h-4 w-4" /> عرض
                     </button>
                     <button onClick={() => handleSharePDF(invoice)} className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-green-600 bg-green-50 dark:bg-green-900/20 rounded-lg hover:bg-green-100 transition-colors">
-                      <Share2 className="h-4 w-4" /> PDF
-                    </button>
+                      <Share2 className="h-4 w-4" /> PDF</button>
+<button onClick={() => handleShareDocx(invoice)} className="flex-1 flex items-center justify-center gap-2 py-2.5 text-sm font-bold text-blue-600 bg-blue-50 dark:bg-blue-900/20 rounded-lg hover:bg-blue-100 transition-colors"><FileText className="h-4 w-4" /> Word</button>
                     <button onClick={() => handleDelete(invoice.id)} className="flex items-center justify-center p-2.5 text-red-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors">
                       <Trash2 className="h-5 w-5" />
                     </button>
@@ -265,8 +335,8 @@ export default function InvoicesPage() {
                   onClick={() => handleSharePDF(selectedInvoice)}
                   className="flex items-center gap-1 px-3 py-1.5 text-sm bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
                 >
-                  <Share2 className="h-3.5 w-3.5" /> PDF
-                </button>
+                  <Share2 className="h-3.5 w-3.5" /> PDF</button>
+<button onClick={() => handleShareDocx(selectedInvoice)} className="flex items-center gap-1 px-3 py-1.5 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"><FileText className="h-3.5 w-3.5" /> Word</button>
                 <button onClick={() => { setSelectedInvoice(null); setInvoiceItems([]); }} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                   <X className="h-5 w-5" />
                 </button>
