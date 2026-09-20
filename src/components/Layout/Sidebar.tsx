@@ -24,13 +24,13 @@ function cn(...inputs: ClassValue[]) {
 }
 
 const navigation = [
-  { name: "Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…", href: "/", icon: LayoutDashboard },
-  { name: "Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª", href: "/products", icon: Package },
-  { name: "Ù†Ù‚Ø·Ø© Ø§Ù„Ø¨ÙŠØ¹", href: "/pos", icon: ShoppingCart },
-  { name: "Ø§Ù„Ù…Ø±ØªØ¬Ø¹Ø§Øª", href: "/returns", icon: Undo2 },
-  { name: "Ø§Ù„ÙÙˆØ§ØªÙŠØ±", href: "/invoices", icon: FileText },
-  { name: "Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª", href: "/settings", icon: Settings },
-  { name: "Ø§ØªØµÙ„ Ø¨Ù†Ø§", href: "/contact", icon: Mail },
+  { name: "لوحة التحكم", href: "/", icon: LayoutDashboard },
+  { name: "المنتجات", href: "/products", icon: Package },
+  { name: "نقطة البيع", href: "/pos", icon: ShoppingCart },
+  { name: "المرتجعات", href: "/returns", icon: Undo2 },
+  { name: "الفواتير", href: "/invoices", icon: FileText },
+  { name: "الإعدادات", href: "/settings", icon: Settings },
+  { name: "اتصل بنا", href: "/contact", icon: Mail },
 ];
 
 export default function Sidebar() {
@@ -54,7 +54,7 @@ export default function Sidebar() {
         <nav className="px-2 space-y-1">
           {navigation.filter(item => {
             if (currentUser?.role === 'SELLER') {
-              return ['Ø§Ù„Ù…Ù†ØªØ¬Ø§Øª', 'Ù†Ù‚Ø·Ø© Ø§Ù„Ø¨ÙŠØ¹', 'Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª'].includes(item.name);
+              return ['المنتجات', 'نقطة البيع', 'الإعدادات'].includes(item.name);
             }
             return true;
           }).map((item) => {
@@ -81,8 +81,7 @@ export default function Sidebar() {
               </Link>
             );
           })}
-        
-  </nav>
+        </nav>
       </div>
     </div>
   );

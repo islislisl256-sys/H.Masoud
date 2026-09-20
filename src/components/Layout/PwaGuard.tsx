@@ -13,13 +13,20 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     // Check if app is in standalone mode
     const checkStandalone = () => {
+      // Permanent memory for desktop app
+      if (typeof window !== 'undefined' && window.location.search.includes('electron=true')) {
+        localStorage.setItem('is_electron_app_forever', 'true');
+      }
+
       const isElectronProtocol = typeof window !== 'undefined' && (window.location.protocol === 'app:' || window.location.protocol === 'file:');
       const isElectronPreload = typeof window !== 'undefined' && (window as any).isElectronApp === true;
       const isElectronUrlParam = typeof window !== 'undefined' && window.location.search.includes('electron=true');
+      const isElectronUA = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().includes('electron');
+      const isElectronSaved = typeof window !== 'undefined' && localStorage.getItem('is_electron_app_forever') === 'true';
       
       const isStandaloneMode = window.matchMedia('(display-mode: standalone)').matches || 
                                (window.navigator as any).standalone === true ||
-                               isElectronProtocol || isElectronPreload || isElectronUrlParam || (typeof navigator !== 'undefined' && navigator.userAgent.includes('Electron'));
+                               isElectronProtocol || isElectronPreload || isElectronUrlParam || isElectronUA || isElectronSaved;
       setIsStandalone(isStandaloneMode);
     };
 
@@ -74,7 +81,6 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
   // If in browser, show the locked landing page
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-indigo-950 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden">
-      {/* Background decorations */}
       <div className="absolute top-[-10%] left-[-10%] w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
       <div className="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
       
@@ -97,7 +103,7 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
         </p>
 
         <div className="space-y-3">
-                    {/* Windows Button */}
+          {/* Windows Button */}
           <a
             href="https://www.mediafire.com/file/7wy33ega0xcd7bk/Library-System-Setup.exe/file"
             target="_blank"
