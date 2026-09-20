@@ -16,7 +16,7 @@ export default function DownloadPage() {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 mt-12">
+        <div className="grid md:grid-cols-1 lg:grid-cols-3 gap-8 mt-12">
           
           {/* Windows App */}
           <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl border border-gray-100 dark:border-gray-700 flex flex-col items-center text-center relative overflow-hidden">
@@ -38,6 +38,25 @@ export default function DownloadPage() {
               <Download className="w-5 h-5" />
               تحميل نسخة الويندوز
             </a>
+          </div>
+
+                    {/* Android App */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl border border-gray-100 dark:border-gray-700 flex flex-col items-center text-center relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-green-500/10 rounded-bl-full z-0" />
+            <Smartphone className="w-16 h-16 text-green-600 dark:text-green-400 mb-6 relative z-10" />
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2 relative z-10">
+              تطبيق الأندرويد (Android)
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-8 flex-grow relative z-10">
+              لتثبيت التطبيق على أجهزة الأندرويد، افتح هذا الموقع من متصفح (Chrome)، ثم اضغط على النقاط الثلاث في الأعلى واختر "تثبيت التطبيق" (Install app).
+            </p>
+            <div className="w-full bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-700 relative z-10">
+              <ol className="text-right text-sm text-gray-700 dark:text-gray-300 space-y-2 list-decimal list-inside font-medium">
+                <li>افتح الموقع عبر متصفح Chrome.</li>
+                <li>اضغط على القائمة (النقاط الثلاث &#8942;).</li>
+                <li>اختر "تثبيت التطبيق" (Install app).</li>
+              </ol>
+            </div>
           </div>
 
           {/* iOS App */}
