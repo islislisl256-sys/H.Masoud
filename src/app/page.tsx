@@ -1,11 +1,11 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState, useMemo } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
 import { showSystemToast, showPermissionToast } from '@/components/CustomToasts';
 
 import Link from 'next/link';
-import { TrendingUp, DollarSign, Loader2, Calendar, Trophy, LineChart as LineChartIcon, Cloud, Image as ImageIcon, Undo2, Mail } from "lucide-react";
+import { TrendingUp, DollarSign, Loader2, Calendar, Trophy, LineChart as LineChartIcon, Cloud, Image as ImageIcon, Undo2, Mail, Download } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import {
   ResponsiveContainer,
@@ -141,10 +141,28 @@ export default function DashboardPage() {
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">لوحة التحكم والمؤشرات</p>
             </div>
-          </div>
+        </div>
         </div>
 
-        {/* فلتر الفترة */}
+        {/* Download Banner */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 rounded-xl p-5 text-white shadow-md flex flex-col md:flex-row items-center justify-between gap-4">
+          <div>
+            <h3 className="font-bold text-lg flex items-center gap-2">
+              <Download className="w-5 h-5" />
+              قم بتحميل برنامج الكمبيوتر الآن
+            </h3>
+            <p className="text-blue-100 text-sm mt-1">احصل على تجربة أسرع وأفضل عبر تطبيق الويندوز المخصص، مع ميزة التحديث التلقائي.</p>
+          </div>
+          <a
+            href="https://www.mediafire.com/file/7wy33ega0xcd7bk/Library-System-Setup.exe/file"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="whitespace-nowrap bg-white text-blue-600 hover:bg-gray-50 font-semibold py-2.5 px-5 rounded-lg transition-colors shadow-sm"
+          >
+            تحميل البرنامج
+          </a>
+        </div>
+
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
