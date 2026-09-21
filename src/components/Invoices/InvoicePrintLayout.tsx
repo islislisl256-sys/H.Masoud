@@ -240,7 +240,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
       
       {/* Page 1: Receipt (Image 2 Style) */}
       {(pagesToPrint === 'both' || pagesToPrint === 'receipt') && (
-      <div className="w-full" style={{ position: 'relative', minHeight: '100vh', paddingBottom: '80px' }}>
+      <div className="w-full" style={{ position: 'relative', minHeight: 'auto', paddingBottom: '80px' }}>
         {store_logo && <div style={watermarkStyle} />}
         <div style={{ position: 'relative', zIndex: 1 }}>
           {renderReceiptHeader()}
@@ -251,10 +251,10 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
       </div>
       )}
 
-      {pagesToPrint === 'both' && <div style={{ pageBreakAfter: 'always', clear: 'both' }}></div>}
+      
 
       {(pagesToPrint === 'both' || pagesToPrint === 'invoice') && (
-      <div className="w-full pt-8" style={{ position: 'relative', minHeight: '100vh', paddingBottom: '80px' }}>
+      <div className="w-full pt-8" style={{ position: 'relative', minHeight: 'auto', paddingBottom: '80px' }}>
         {store_logo && <div style={watermarkStyle} />}
         <div style={{ position: 'relative', zIndex: 1 }}>
           {renderInvoiceHeader()}
