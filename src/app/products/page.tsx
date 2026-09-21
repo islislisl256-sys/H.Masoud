@@ -519,17 +519,19 @@ export default function ProductsPage() {
                           </label>
                         </div>
                       </div>
+                      {currentUser?.role !== 'seller' && (
+                          <input
+                            type="number"
+                            placeholder="سعر الشراء"
+                            className="px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none"
+                            value={p.purchase_price === 0 ? '' : p.purchase_price}
+                            onChange={e => updatePending(index, 'purchase_price', e.target.value)}
+                          />
+                        )}
                       <input
-                        type="number"
-                        placeholder="سعر الشراء"
-                        className="px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none"
-                        value={p.purchase_price === 0 ? '' : p.purchase_price}
-                        onChange={e => updatePending(index, 'purchase_price', e.target.value)}
-                      />
-                      <input
-                        type="number"
-                        placeholder="سعر البيع"
-                        className="px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none"
+                          type="number"
+                          placeholder="سعر البيع"
+                          className={`${currentUser?.role === 'seller' ? 'col-span-2 ' : ''}px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none`}
                         value={p.sale_price === 0 ? '' : p.sale_price}
                         onChange={e => updatePending(index, 'sale_price', e.target.value)}
                       />
@@ -633,10 +635,12 @@ export default function ProductsPage() {
 
                 {/* الأسعار والكمية */}
                 <div className={`grid gap-3 ${currentUser?.role === "seller" ? "grid-cols-2" : "grid-cols-3"}`}>
-                  <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
-                    <p className="text-xs text-gray-400 mb-1">الشراء</p>
-                    <p className="font-bold text-base text-gray-700 dark:text-gray-300">{product.purchase_price} د.ج</p>
-                  </div>
+                  {currentUser?.role !== 'seller' && (
+                    <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
+                      <p className="text-xs text-gray-400 mb-1">الشراء</p>
+                      <p className="font-bold text-base text-gray-700 dark:text-gray-300">{product.purchase_price} د.ج</p>
+                    </div>
+                  )}
                   <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
                     <p className="text-xs text-gray-400 mb-1">البيع</p>
                     {editingId === product.id && editField === 'sale_price' ? (
@@ -669,11 +673,15 @@ export default function ProductsPage() {
                   </div>
                 </div>
 
-                {/* الربح */}
-                <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
-                  <span className="text-sm text-gray-400">الربح:</span>
-                  <span className="font-bold text-green-600 dark:text-green-400 text-base">{product.sale_price - product.purchase_price} د.ج</span>
-                </div>
+                {currentUser?.role !== 'seller' && (
+                  <>
+                  {/* الربح */}
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
+                    <span className="text-sm text-gray-400">الربح:</span>
+                    <span className="font-bold text-green-600 dark:text-green-400 text-base">{product.sale_price - product.purchase_price} د.ج</span>
+                  </div>
+                  </>
+                )}
               </div>
             ))}
           </div>
