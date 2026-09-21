@@ -123,15 +123,13 @@ export default function InvoicesPage() {
 
       // Use html2pdf for perfect Arabic & CSS rendering
       const html2pdf = (await import('html2pdf.js')).default;
-      const opt = {
+      await html2pdf().from(element).set({
         margin:       10,
         filename:     `${invoice.invoice_number}.pdf`,
         image:        { type: 'jpeg', quality: 0.98 },
         html2canvas:  { scale: 2, useCORS: true },
         jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
-
-      await html2pdf().from(element).set(opt).save();
+      }).save();
       
     } catch (error) {
       console.error("Error generating PDF:", error);
