@@ -265,8 +265,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       } else {
         // الحساب مربوط مسبقاً بجهاز → نتحقق من التطابق
         if (data.device_uuid !== localDeviceUuid) {
-          await mainSupabase.auth.signOut();
-          return { success: false, message: "هذا الحساب مرتبط بجهاز آخر. يجب فك الارتباط أولاً من لوحة التحكم." };
+          // --- AUTO RECOVERY & LEADER OVERRIDE ---
+          const currentAgent = typeof navigator !== 'undefined' ? navigator.userAgent : 'Desktop/App';
+          
+          if (data.role === 'LEADER') {
+            // Leaders can never be permanently locked out. We auto-rebind their new device/session.
+            deviceUuid = localDeviceUuid || generateSafeUUID();
+            profileUpdates.device_uuid = deviceUuid;
+            profileUpdates.device_info = currentAgent;
+            localStorage.setItem("app_secure_uuid", encodeUUID(deviceUuid));
+          } 
+          else if (!localDeviceUuid && data.device_info === currentAgent) {
+            // Cache was cleared, but it's the exact same browser/device fingerprint. Auto-recover.
+            localStorage.setItem("app_secure_uuid", encodeUUID(data.device_uuid));
+            deviceUuid = data.device_uuid;
+          } 
+          else {
+            await mainSupabase.auth.signOut();
+            return { success: false, message: "هذا الحساب مرتبط بجهاز آخر. يجب فك الارتباط أولاً من لوحة التحكم." };
+          }
         }
       }
 
