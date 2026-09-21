@@ -211,24 +211,10 @@ export default function CustomInvoicesTab() {
         const { generateInvoiceDocx } = await import('@/lib/generateDocx');
         await generateInvoiceDocx(payload, pagesToPrint);
       } else {
-        const element = document.getElementById('invoice-print-container');
-        if (element) {
-          const html2pdfModule = await import('html2pdf.js');
-          const html2pdf = html2pdfModule.default || html2pdfModule;
-          
-          const opt: any = {
-            margin:       0.4,
-            pagebreak:    { mode: ['css', 'legacy'], avoid: 'tr' },
-            filename:     `Invoice_${payload.client_name}_${payload.invoice_number || Date.now()}_${payload.seller_name || "seller"}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-          };
-          
-          await html2pdf().set(opt).from(element).save();
-        } else {
-          throw new Error("لم يتم العثور على قالب الطباعة");
-        }
+        // Native browser printing for robust PDF generation
+          setTimeout(() => {
+            window.print();
+          }, 300);
       }
 
       if (!payloadOverride && typeof formatOrPayload !== 'object') {
