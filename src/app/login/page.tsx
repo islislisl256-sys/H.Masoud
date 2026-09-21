@@ -237,6 +237,16 @@ const handleBackToStep2 = async () => {
                 {isLoading ? 'جاري تسجيل الدخول...' : 'تسجيل الدخول'}
               </button>
               
+              <button type="button" onClick={() => {
+                localStorage.removeItem("acceptance_fails");
+                localStorage.removeItem("acceptance_verified");
+                localStorage.removeItem("verified_workspace_acceptance");
+                setStep(1);
+                setError("");
+              }} disabled={isLoading} className="w-full flex justify-center items-center gap-2 py-3 px-4 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-lg text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors">
+                <ArrowRight className="w-4 h-4" />
+                تسجيل الخروج من هذا المتجر
+              </button>
               </div>
           </form>
         )}
