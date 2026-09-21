@@ -74,7 +74,7 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
       }),
       ...items.map((item: any) => new TableRow({
         children: [
-          createCell(Number(item.item_total_price).toFixed(2).replace('.', ','), false, AlignmentType.CENTER, 1, 20),
+          createCell("0,00", false, AlignmentType.CENTER, 1, 20),
           createCell(Number(item.item_unit_price).toFixed(2).replace('.', ','), false, AlignmentType.CENTER, 1, 20),
           createCell(String(item.item_quantity).padStart(2, '0'), false, AlignmentType.CENTER, 1, 10),
           createCell(item.item_designation, false, AlignmentType.RIGHT, 1, 45),
@@ -83,7 +83,7 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
       })),
       new TableRow({
         children: [
-          createCell(Number(total_amount_receipt).toFixed(2).replace('.', ','), true, AlignmentType.CENTER, 1, 20),
+          createCell("0,00", true, AlignmentType.CENTER, 1, 20),
           createCell("المجموع", true, AlignmentType.CENTER, 1, 20),
           createEmptyCell(3, false),
         ]
