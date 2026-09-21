@@ -95,9 +95,6 @@ export default function InvoicesPage() {
           const origLeft = element.style.left;
           const origWidth = element.style.width;
           
-          element.style.display = 'block';
-          element.style.position = 'absolute';
-          element.style.left = '-9999px';
           element.style.width = '794px';
           
           try {
@@ -410,7 +407,7 @@ export default function InvoicesPage() {
     
       {/* Printable A4 Invoice (Hidden on screen, visible on print) */}
       {printInvoice && (
-        <div className="absolute top-0 left-[-9999px] bg-white z-[-1] p-8 rtl text-black">
+        <div className="absolute top-0 left-0 w-full bg-white z-[-9999] pointer-events-none p-8 rtl text-black" style={{ minHeight: "297mm" }}>
           <style dangerouslySetInnerHTML={{__html: `
             @media print {
               body * { visibility: hidden; }
