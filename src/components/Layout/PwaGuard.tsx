@@ -90,9 +90,9 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
         transition={{ duration: 0.5 }}
         className="max-w-md w-full bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl p-8 rounded-3xl shadow-2xl border border-white/20 dark:border-gray-700/50 relative z-10"
       >
-        <div className="w-24 h-24 bg-gradient-to-tr from-primary to-purple-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-primary/30 mb-6">
-          <Library className="w-12 h-12 text-white" />
-        </div>
+        <div className="w-24 h-24 bg-white dark:bg-gray-800 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-gray-200/50 dark:shadow-black/50 mb-6 p-3 border border-gray-100 dark:border-gray-700">
+            <img src="/logo.png" alt="Logo" className="w-full h-full object-contain drop-shadow-sm" />
+          </div>
         
         <h1 className="text-3xl font-black text-gray-900 dark:text-white mb-2">
           حانوتك

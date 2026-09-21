@@ -45,7 +45,7 @@ export default function Sidebar() {
           {currentUser?.store_logo ? (
             <img src={currentUser.store_logo} alt="Logo" className={cn("h-8 w-8 rounded-lg object-contain bg-white transition-all duration-300", !isCollapsed && "ml-2")} />
           ) : (
-            <BookOpen className={cn("h-6 w-6 text-primary transition-all duration-300", !isCollapsed && "ml-2")} />
+            <img src="/logo.png" alt="Logo" className={cn("h-8 w-8 rounded-lg object-contain bg-white transition-all duration-300", !isCollapsed && "ml-2")} />
           )}
         </button>
         {!isCollapsed && <span className="text-lg font-bold text-gray-900 dark:text-white whitespace-nowrap animate-in fade-in duration-300 truncate pr-2 max-w-[150px]">{currentUser?.store_name || "حانوتك"}</span>}
