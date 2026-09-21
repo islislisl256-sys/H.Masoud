@@ -632,7 +632,7 @@ export default function ProductsPage() {
                 </div>
 
                 {/* الأسعار والكمية */}
-                <div className="grid grid-cols-3 gap-3">
+                <div className={`grid gap-3 ${currentUser?.role === "seller" ? "grid-cols-2" : "grid-cols-3"}`}>
                   <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
                     <p className="text-xs text-gray-400 mb-1">الشراء</p>
                     <p className="font-bold text-base text-gray-700 dark:text-gray-300">{product.purchase_price} د.ج</p>
