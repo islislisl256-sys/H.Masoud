@@ -9,19 +9,39 @@ export const DEFAULT_CLOUDINARY_CONFIG = {
 };
 
 export function getCloudinaryCloudName(user: any): string {
-  return user?.cloudinary_cloud_name?.trim() || DEFAULT_CLOUDINARY_CONFIG.cloudName;
+  if (user?.cloudinary_cloud_name?.trim()) return user.cloudinary_cloud_name.trim();
+  if (typeof window !== 'undefined') {
+    const local = localStorage.getItem("cloudinary_cloud_name");
+    if (local) return local;
+  }
+  return DEFAULT_CLOUDINARY_CONFIG.cloudName;
 }
 
 export function getCloudinaryUploadPreset(user: any): string {
-  return user?.cloudinary_upload_preset?.trim() || DEFAULT_CLOUDINARY_CONFIG.uploadPreset;
+  if (user?.cloudinary_upload_preset?.trim()) return user.cloudinary_upload_preset.trim();
+  if (typeof window !== 'undefined') {
+    const local = localStorage.getItem("cloudinary_upload_preset");
+    if (local) return local;
+  }
+  return DEFAULT_CLOUDINARY_CONFIG.uploadPreset;
 }
 
 export function getCloudinaryApiKey(user: any): string {
-  return user?.cloudinary_api_key?.trim() || DEFAULT_CLOUDINARY_CONFIG.apiKey;
+  if (user?.cloudinary_api_key?.trim()) return user.cloudinary_api_key.trim();
+  if (typeof window !== 'undefined') {
+    const local = localStorage.getItem("cloudinary_api_key");
+    if (local) return local;
+  }
+  return DEFAULT_CLOUDINARY_CONFIG.apiKey;
 }
 
 export function getCloudinaryApiSecret(user: any): string {
-  return user?.cloudinary_api_secret?.trim() || DEFAULT_CLOUDINARY_CONFIG.apiSecret;
+  if (user?.cloudinary_api_secret?.trim()) return user.cloudinary_api_secret.trim();
+  if (typeof window !== 'undefined') {
+    const local = localStorage.getItem("cloudinary_api_secret");
+    if (local) return local;
+  }
+  return DEFAULT_CLOUDINARY_CONFIG.apiSecret;
 }
 
 export function getCloudinaryMaxImages(user: any): number {
