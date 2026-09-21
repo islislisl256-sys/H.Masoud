@@ -175,7 +175,7 @@ export default function ProductsPage() {
         quantity: Number(rawP.quantity) || 0,
         image_url: finalImageUrl,
         sale_type: rawP.sale_type,
-        owner_id: currentUser?.workspace_id
+        owner_id: (currentUser?.workspace_id || currentUser?.id)
       };
       
       const { data, error } = await supabase.from('products').insert([p]).select().single();
@@ -225,7 +225,7 @@ export default function ProductsPage() {
           quantity: Number(rawP.quantity) || 0,
           image_url: finalImageUrl,
           sale_type: rawP.sale_type,
-          owner_id: currentUser?.workspace_id
+          owner_id: (currentUser?.workspace_id || currentUser?.id)
         };
         
         const { error } = await supabase.from('products').insert([p]);
