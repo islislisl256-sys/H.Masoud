@@ -87,13 +87,63 @@ export default function InvoicesPage() {
       setPrintInvoice(invoice);
       setPrintItems(items);
       
-      setTimeout(() => {
-        window.print();
-        setTimeout(() => {
-          setPrintInvoice(null);
-          setPrintItems([]);
-        }, 500);
-      }, 500);
+      setTimeout(async () => {
+        const element = document.querySelector('.print-container') as HTMLElement;
+        if (element) {
+          const origDisplay = element.style.display;
+          const origPosition = element.style.position;
+          const origLeft = element.style.left;
+          const origWidth = element.style.width;
+          
+          element.style.display = 'block';
+          element.style.position = 'absolute';
+          element.style.left = '-9999px';
+          element.style.width = '794px';
+          
+          try {
+            const { toPng } = await import('html-to-image');
+            const jsPDFModule = await import('jspdf');
+            const jsPDF = jsPDFModule.default || jsPDFModule;
+            
+            await new Promise(r => setTimeout(r, 100));
+            
+            const dataUrl = await toPng(element, { quality: 1, backgroundColor: '#ffffff', pixelRatio: 2 });
+            
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            
+            const img = new Image();
+            img.src = dataUrl;
+            await new Promise(r => img.onload = r);
+            const pdfHeight = (img.height * pdfWidth) / img.width;
+            
+            let heightLeft = pdfHeight;
+            let position = 0;
+            
+            pdf.addImage(dataUrl, 'PNG', 0, position, pdfWidth, pdfHeight);
+            heightLeft -= pageHeight;
+            
+            while (heightLeft > 5) {
+                position -= pageHeight;
+                pdf.addPage();
+                pdf.addImage(dataUrl, 'PNG', 0, position, pdfWidth, pdfHeight);
+                heightLeft -= pageHeight;
+            }
+            
+            pdf.save(`Invoice_${invoice.invoice_number || Date.now()}.pdf`);
+          } catch (err) {
+            console.error("PDF generation failed:", err);
+          } finally {
+            element.style.display = origDisplay;
+            element.style.position = origPosition;
+            element.style.left = origLeft;
+            element.style.width = origWidth;
+            setPrintInvoice(null);
+            setPrintItems([]);
+          }
+        }
+      }, 1000);
       
     } catch (error) {
       console.error("Error setting up print:", error);

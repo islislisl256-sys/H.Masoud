@@ -25,6 +25,7 @@
     "electron-serve": "^3.0.1",
     "file-saver": "^2.0.5",
     "framer-motion": "^12.43.0",
+    "html-to-image": "^1.11.11",
     "html2pdf.js": "^0.14.0",
     "html5-qrcode": "^2.3.8",
     "jspdf": "^4.2.1",

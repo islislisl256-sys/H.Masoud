@@ -211,10 +211,64 @@ export default function CustomInvoicesTab() {
         const { generateInvoiceDocx } = await import('@/lib/generateDocx');
         await generateInvoiceDocx(payload, pagesToPrint);
       } else {
-        // Native browser printing for robust PDF generation
-          setTimeout(() => {
-            window.print();
-          }, 300);
+        // Direct download without print dialog using html-to-image
+          const element = document.getElementById('invoice-print-container');
+          if (element) {
+            // Un-hide the element briefly for html-to-image
+            const origDisplay = element.style.display;
+            const origPosition = element.style.position;
+            const origLeft = element.style.left;
+            const origWidth = element.style.width;
+            
+            element.style.display = 'block';
+            element.style.position = 'absolute';
+            element.style.left = '-9999px';
+            element.style.width = '794px'; // Exact A4 width at 96 DPI
+            
+            try {
+              const { toPng } = await import('html-to-image');
+              const jsPDFModule = await import('jspdf');
+              const jsPDF = jsPDFModule.default || jsPDFModule;
+              
+              // Wait a tiny bit for rendering
+              await new Promise(r => setTimeout(r, 100));
+              
+              const dataUrl = await toPng(element, { quality: 1, backgroundColor: '#ffffff', pixelRatio: 2 });
+              
+              const pdf = new jsPDF('p', 'mm', 'a4');
+              const pdfWidth = pdf.internal.pageSize.getWidth();
+              const pageHeight = pdf.internal.pageSize.getHeight();
+              
+              // Calculate image dimensions
+              const img = new Image();
+              img.src = dataUrl;
+              await new Promise(r => img.onload = r);
+              const pdfHeight = (img.height * pdfWidth) / img.width;
+              
+              let heightLeft = pdfHeight;
+              let position = 0;
+              
+              pdf.addImage(dataUrl, 'PNG', 0, position, pdfWidth, pdfHeight);
+              heightLeft -= pageHeight;
+              
+              while (heightLeft > 5) { // 5mm margin of error to avoid blank pages
+                  position -= pageHeight;
+                  pdf.addPage();
+                  pdf.addImage(dataUrl, 'PNG', 0, position, pdfWidth, pdfHeight);
+                  heightLeft -= pageHeight;
+              }
+              
+              pdf.save(`Invoice_${payload.client_name}_${payload.invoice_number || Date.now()}.pdf`);
+            } catch (err) {
+              console.error("PDF generation failed:", err);
+            } finally {
+              // Restore styles
+              element.style.display = origDisplay;
+              element.style.position = origPosition;
+              element.style.left = origLeft;
+              element.style.width = origWidth;
+            }
+          }
       }
 
       if (!payloadOverride && typeof formatOrPayload !== 'object') {
