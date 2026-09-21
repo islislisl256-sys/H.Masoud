@@ -51,7 +51,7 @@ export default function ProductsPage() {
   const [pendingProducts, setPendingProducts] = useState<PendingProduct[]>([]);
   const [saving, setSaving] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editField, setEditField] = useState<'name' | 'sale_price' | 'quantity' | null>(null);
+  const [editField, setEditField] = useState<'name' | 'sale_price' | 'purchase_price' | 'quantity' | null>(null);
   const [editValue, setEditValue] = useState<string>('');
   const [showLowStock, setShowLowStock] = useState(false);
   
@@ -272,7 +272,7 @@ export default function ProductsPage() {
     handleScanSuccess(fakeBarcode);
   };
 
-  const handleUpdateField = async (id: string, field: 'name' | 'sale_price' | 'quantity') => {
+  const handleUpdateField = async (id: string, field: 'name' | 'sale_price' | 'purchase_price' | 'quantity') => {
     const val = field === 'name' ? editValue : Number(editValue);
     const { error } = await supabase.from('products').update({ [field]: val }).eq('id', id);
     if (!error) {
@@ -352,7 +352,7 @@ export default function ProductsPage() {
     p.name.includes(searchTerm) || p.product_number.includes(searchTerm)
   );
 
-  const startEditField = (productId: string, field: 'name' | 'sale_price' | 'quantity', currentValue: string | number) => {
+  const startEditField = (productId: string, field: 'name' | 'sale_price' | 'purchase_price' | 'quantity', currentValue: string | number) => {
     setEditingId(productId);
     setEditField(field);
     setEditValue(String(currentValue));
@@ -636,11 +636,21 @@ export default function ProductsPage() {
                 {/* الأسعار والكمية */}
                 <div className={`grid gap-3 ${currentUser?.role === "seller" ? "grid-cols-2" : "grid-cols-3"}`}>
                   {currentUser?.role !== 'seller' && (
-                    <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
-                      <p className="text-xs text-gray-400 mb-1">الشراء</p>
-                      <p className="font-bold text-base text-gray-700 dark:text-gray-300">{product.purchase_price} د.ج</p>
-                    </div>
-                  )}
+                      <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
+                        <p className="text-xs text-gray-400 mb-1">الشراء</p>
+                        {editingId === product.id && editField === 'purchase_price' ? (
+                          <div className="flex items-center gap-1">
+                            <input autoFocus type="number" className="w-full px-2 py-1 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none text-center" value={editValue} onChange={e => setEditValue(e.target.value)} />
+                            <button onClick={() => handleUpdateField(product.id, 'purchase_price')} className="p-1 text-green-600"><Save className="h-3.5 w-3.5" /></button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center gap-1 group">
+                            <p className="font-bold text-base text-gray-700 dark:text-gray-300">{product.purchase_price} د.ج</p>
+                            <button onClick={() => startEditField(product.id, 'purchase_price', product.purchase_price)} className="p-1 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-primary"><Pencil className="h-3.5 w-3.5" /></button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
                     <p className="text-xs text-gray-400 mb-1">البيع</p>
                     {editingId === product.id && editField === 'sale_price' ? (
