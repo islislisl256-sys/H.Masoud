@@ -23,8 +23,8 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
     right: 0,
     bottom: 0,
     backgroundImage: `url(${store_logo})`,
-    backgroundRepeat: 'repeat',
-    backgroundSize: '150px 150px',
+    backgroundRepeat: 'no-repeat',
+      backgroundSize: 'contain',
     backgroundPosition: 'center',
     opacity: 0.08,
       WebkitPrintColorAdjust: 'exact',
@@ -117,8 +117,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
   const renderReceiptFooter = () => (
     <div style={{ paddingBottom: '60px' }}>
       <div className="text-right font-bold text-lg mt-4 pr-4 mb-4">
-          {receipt_date}
-          {seller_name && <div className="text-sm mt-2 text-gray-600">البائع: {seller_name}</div>}
+          
         </div>
       <div className="flex justify-between px-10">
         <div className="text-right font-bold text-xl">
@@ -165,8 +164,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
       </div>
       
       <div className="text-center font-bold text-lg mb-1">
-          {receipt_date}
-          {seller_name && <div className="text-sm mt-1 text-gray-600">البائع: {seller_name}</div>}
+          
         </div>
       <div className="text-center font-bold text-2xl mb-4">
         فاتورة رقم {invoice_number}
@@ -229,7 +227,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
     <div style={{ paddingBottom: '60px' }}>
       <div className="text-center font-bold text-lg mb-12 px-4">
           أوقفت هذه الفاتورة عند مبلغ: {amount_in_words_arabic}
-          {seller_name && <div className="text-sm mt-2 text-gray-600">البائع: {seller_name}</div>}
+          
         </div>
       <div className="text-left font-bold text-xl ml-20">
         الممون

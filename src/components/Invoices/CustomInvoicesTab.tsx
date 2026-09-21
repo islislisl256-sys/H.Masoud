@@ -179,7 +179,7 @@ export default function CustomInvoicesTab() {
       stamp_duty: Number(financials.stamp_duty),
       grand_total_invoice,
       amount_in_words_arabic: amountInWords,
-      seller_name: currentUser?.full_name || currentUser?.store_name || "البائع",
+      
     };
   };
 

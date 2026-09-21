@@ -190,14 +190,14 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
       }),
       
       new Paragraph({ text: "", spacing: { after: 200 } }),
-      new Paragraph({ children: [new TextRun({ text: receipt_date, bold: true, size: 28, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER, spacing: { after: 100 } }),
+      
       new Paragraph({ children: [new TextRun({ text: `وصل استلام رقم ${invoice_number}`, bold: true, size: 36, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER }),
       new Paragraph({ text: "", spacing: { after: 400 } }),
       
       receiptTable,
       
       new Paragraph({ text: "", spacing: { after: 400 } }),
-      new Paragraph({ children: [new TextRun({ text: receipt_date, bold: true, size: 28, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
+      
       ...(seller_name ? [new Paragraph({ children: [new TextRun({ text: `البائع: ${seller_name}`, bold: false, size: 20, rightToLeft: true, font: "Arial", color: "4B5563" })], alignment: AlignmentType.RIGHT })] : []),
       new Paragraph({ text: "", spacing: { after: 200 } }),
       
@@ -292,14 +292,14 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
     }),
     
     new Paragraph({ text: "", spacing: { after: 200 } }),
-    new Paragraph({ children: [new TextRun({ text: receipt_date, bold: true, size: 28, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER, spacing: { after: 100 } }),
+    
     new Paragraph({ children: [new TextRun({ text: `فاتورة رقم ${invoice_number}`, bold: true, size: 36, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.CENTER }),
     new Paragraph({ text: "", spacing: { after: 400 } }),
 
     invoiceTable,
 
     new Paragraph({ text: "", spacing: { after: 400 } }),
-    new Paragraph({ children: [new TextRun({ text: receipt_date, bold: true, size: 28, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
+    
     new Paragraph({ text: "", spacing: { after: 200 } }),
 
     new Paragraph({ children: [new TextRun({ text: `المبلغ الإجمالي بالحروف: ${amount_in_words_arabic}`, bold: true, size: 24, rightToLeft: true, font: "Arial" })], alignment: AlignmentType.RIGHT }),
@@ -396,5 +396,5 @@ export const generateInvoiceDocx = async (payload: any, pagesToPrint: 'receipt' 
   });
 
   const blob = await Packer.toBlob(doc);
-  saveAs(blob, `Invoice_${client_name}_${invoice_number}_${seller_name}.docx`);
+  saveAs(blob, `Invoice_${client_name}_${invoice_number}.docx`);
 };
