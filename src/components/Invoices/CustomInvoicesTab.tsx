@@ -254,7 +254,8 @@ export default function CustomInvoicesTab() {
       }
     } catch (error: any) {
       console.error(error);
-      showSystemToast("خطأ", "حدث خطأ غير متوقع.", "error");
+      showSystemToast("خطأ", error?.message || "حدث خطأ غير متوقع أثناء توليد الملف.", "error");
+      console.error(error);
     } finally {
       setGenerating(false);
     }
@@ -447,8 +448,15 @@ export default function CustomInvoicesTab() {
         )}
       </div>
 
-      {/* Hidden PDF Layout */}
-      <div style={{ position: 'absolute', left: '-9999px', top: 0 }}>
+      {/* Printable PDF Layout (Hidden on screen, visible on print) */}
+      <div className="hidden print:block fixed inset-0 bg-white z-[9999] rtl text-black">
+        <style dangerouslySetInnerHTML={{__html: `
+          @media print {
+            body * { visibility: hidden; }
+            #invoice-print-container, #invoice-print-container * { visibility: visible; }
+            #invoice-print-container { position: absolute; left: 0; top: 0; width: 100%; }
+          }
+        `}} />
         <div id="invoice-print-container">
           <InvoicePrintLayout payload={buildPayload()} pagesToPrint={pagesToPrint} />
         </div>
