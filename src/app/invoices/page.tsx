@@ -82,77 +82,93 @@ export default function InvoicesPage() {
         items = (data as InvoiceItem[]) || [];
       }
 
-      // Safely attach to DOM
-      const container = document.createElement('div');
-      container.style.position = 'absolute';
-      container.style.top = '0';
-      container.style.left = '0';
-      container.style.width = '100%';
-      container.style.zIndex = '-9999'; // hide it behind everything instead of off-screen
-      container.style.opacity = '0'; // invisible
-      
-      const element = document.createElement('div');
-      element.style.padding = '20px';
-      element.style.fontFamily = 'Arial, sans-serif';
-      element.style.color = '#000';
-      element.style.direction = 'rtl'; // Arabic support
-      element.style.backgroundColor = '#fff';
-      element.style.width = '800px';
-      
-      container.appendChild(element);
-      document.body.appendChild(container);
+      // NATIVE BROWSER PRINTING VIA IFRAME (100% Reliable for Arabic, Layout, and Electron App)
+      // We use an invisible iframe to print safely without popup blockers
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'absolute';
+      iframe.style.width = '0px';
+      iframe.style.height = '0px';
+      iframe.style.border = 'none';
+      document.body.appendChild(iframe);
 
       let itemsHtml = items.map(item => `
-        <tr style="border-bottom: 1px solid #ddd;">
-          <td style="padding: 8px;">${item.products?.name || 'منتج غير معروف'}</td>
-          <td style="padding: 8px; text-align: center;">${item.quantity}</td>
-          <td style="padding: 8px; text-align: center;">${item.unit_price}</td>
-          <td style="padding: 8px; text-align: left;">${item.total_price}</td>
+        <tr style="border-bottom: 1px solid #e5e7eb;">
+          <td style="padding: 12px; font-weight: bold; color: #1f2937;">${item.products?.name || 'منتج غير معروف'}</td>
+          <td style="padding: 12px; text-align: center; color: #4b5563;">${item.quantity}</td>
+          <td style="padding: 12px; text-align: center; color: #4b5563;">${item.unit_price}</td>
+          <td style="padding: 12px; text-align: left; font-weight: bold; color: #111827;">${item.total_price}</td>
         </tr>
       `).join('');
 
-      element.innerHTML = `
-        <div style="text-align: center; margin-bottom: 20px;">
-          <h1 style="margin: 0; font-size: 24px;">فاتورة رقم: ${invoice.invoice_number}</h1>
-          <p style="margin: 5px 0; color: #555;">التاريخ: ${formatDate(invoice.created_at)}</p>
-        </div>
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-          <thead>
-            <tr style="background-color: #f8f9fa; border-bottom: 2px solid #ddd;">
-              <th style="padding: 10px; text-align: right;">المنتج</th>
-              <th style="padding: 10px; text-align: center;">الكمية</th>
-              <th style="padding: 10px; text-align: center;">السعر</th>
-              <th style="padding: 10px; text-align: left;">المجموع</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${itemsHtml}
-          </tbody>
-        </table>
-        <div style="text-align: left; margin-top: 20px; font-weight: bold; font-size: 18px;">
-          <p>المبلغ الإجمالي: ${invoice.total} د.ج</p>
-        </div>
+      const htmlContent = `
+        <!DOCTYPE html>
+        <html lang="ar" dir="rtl">
+        <head>
+          <meta charset="UTF-8">
+          <title>فاتورة رقم ${invoice.invoice_number}</title>
+          <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #000; background: #fff; }
+            .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #3b82f6; padding-bottom: 20px; }
+            .header h1 { margin: 0; font-size: 28px; color: #1e3a8a; }
+            .header p { margin: 5px 0 0 0; color: #6b7280; font-size: 14px; }
+            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+            th { padding: 12px; background-color: #f3f4f6; color: #374151; font-size: 14px; border-bottom: 2px solid #d1d5db; }
+            th:first-child { text-align: right; }
+            th:last-child { text-align: left; }
+            .total-section { text-align: left; margin-top: 30px; font-size: 20px; font-weight: 900; color: #111827; background: #f9fafb; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; }
+            .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #9ca3af; }
+            @media print {
+              body { padding: 0; }
+              @page { margin: 1cm; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>فاتورة رقم: ${invoice.invoice_number}</h1>
+            <p>تاريخ الإصدار: ${formatDate(invoice.created_at)}</p>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>اسم المنتج</th>
+                <th style="text-align: center;">الكمية</th>
+                <th style="text-align: center;">سعر الوحدة</th>
+                <th>المجموع</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+            </tbody>
+          </table>
+          <div class="total-section">
+            المبلغ الإجمالي: ${invoice.total} د.ج
+          </div>
+          <div class="footer">
+            شكراً لتعاملكم معنا
+          </div>
+        </body>
+        </html>
       `;
 
-      try {
-        const html2pdfModule = await import('html2pdf.js');
-        const html2pdf = html2pdfModule.default || html2pdfModule;
+      const doc = iframe.contentWindow?.document || iframe.contentDocument;
+      if (doc) {
+        doc.open();
+        doc.write(htmlContent);
+        doc.close();
         
-        const opt = {
-          margin:       10,
-          filename:     `${invoice.invoice_number}.pdf`,
-          image:        { type: 'jpeg' as 'jpeg', quality: 0.98 },
-          html2canvas:  { scale: 2, logging: false },
-          jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as 'portrait' }
-        };
-
-        // We use .then() to ensure we clean up the DOM even if it fails
-        await html2pdf().from(element).set(opt).save();
-      } finally {
-        // ALWAYS clean up
-        if (document.body.contains(container)) {
-          document.body.removeChild(container);
-        }
+        // Wait for styles to load then print
+        setTimeout(() => {
+          iframe.contentWindow?.focus();
+          iframe.contentWindow?.print();
+          
+          // Cleanup iframe after print dialog is closed
+          setTimeout(() => {
+            if (document.body.contains(iframe)) {
+              document.body.removeChild(iframe);
+            }
+          }, 1000);
+        }, 250);
       }
       
     } catch (error) {
