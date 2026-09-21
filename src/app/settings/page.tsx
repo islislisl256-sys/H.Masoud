@@ -32,7 +32,7 @@ export default function SettingsPage() {
   const [apiKey, setApiKey] = useState("");
   const [apiSecret, setApiSecret] = useState("");
   const [compressionQuality, setCompressionQuality] = useState(0.7);
-  const [maxImages, setMaxImages] = useState(currentUser?.cloudinary_max_images ?? 100);
+  const [maxImages, setMaxImages] = useState((currentUser?.plan_tier === 'PREMIUM' ? 25000 : 200));
   const [showAdvancedCloud, setShowAdvancedCloud] = useState(false);
   const [showCloudModal, setShowCloudModal] = useState(false);
 
@@ -416,16 +416,16 @@ export default function SettingsPage() {
                     <p className="text-sm text-blue-100 mt-1">نسبة استهلاك الصور من الباقة المجانية</p>
                   </div>
                 <div className="mr-auto text-left">
-                  <span className="text-3xl font-black">{Math.min(((currentUser?.storage_used || 0) / (currentUser?.cloudinary_max_images ?? 100)) * 100, 100).toFixed(1)}%</span>
+                  <span className="text-3xl font-black">{Math.min(((currentUser?.storage_used || 0) / ((currentUser?.plan_tier === 'PREMIUM' ? 25000 : 200))) * 100, 100).toFixed(1)}%</span>
                 </div>
               </div>
               <div className="w-full h-3 bg-white/20 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-700 ${
-                    ((currentUser?.storage_used || 0) / (currentUser?.cloudinary_max_images ?? 100)) * 100 >= 100 ? 'bg-red-400' :
-                    ((currentUser?.storage_used || 0) / (currentUser?.cloudinary_max_images ?? 100)) * 100 >= 80 ? 'bg-amber-400' : 'bg-white/80'
+                    ((currentUser?.storage_used || 0) / ((currentUser?.plan_tier === 'PREMIUM' ? 25000 : 200))) * 100 >= 100 ? 'bg-red-400' :
+                    ((currentUser?.storage_used || 0) / ((currentUser?.plan_tier === 'PREMIUM' ? 25000 : 200))) * 100 >= 80 ? 'bg-amber-400' : 'bg-white/80'
                   }`}
-                  style={{ width: `${Math.min(((currentUser?.storage_used || 0) / (currentUser?.cloudinary_max_images ?? 100)) * 100, 100)}%` }}
+                  style={{ width: `${Math.min(((currentUser?.storage_used || 0) / ((currentUser?.plan_tier === 'PREMIUM' ? 25000 : 200))) * 100, 100)}%` }}
                 />
               </div>
             </Link>

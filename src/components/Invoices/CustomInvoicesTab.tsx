@@ -169,9 +169,11 @@ export default function CustomInvoicesTab() {
   const grand_total_invoice = total_amount_invoice + (includeTva ? computed_tva : 0) + Number(financials.stamp_duty);
 
   const buildPayload = () => {
+    const finalLogo = isPremium ? storeInfo.store_logo : '/icon.png';
     return {
       ...storeInfo,
       ...clientInfo,
+      store_logo: finalLogo,
       items: items,
       total_amount_receipt,
       total_amount_invoice,
