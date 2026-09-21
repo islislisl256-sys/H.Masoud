@@ -360,12 +360,12 @@ export default function InvoicesPage() {
     
       {/* Printable A4 Invoice (Hidden on screen, visible on print) */}
       {printInvoice && (
-        <div className="hidden print:block fixed inset-0 bg-white z-[9999] p-8 rtl text-black">
+        <div className="hidden print:block print:relative print:inset-auto bg-white z-[9999] p-8 rtl text-black">
           <style dangerouslySetInnerHTML={{__html: `
             @media print {
               body * { visibility: hidden; }
               .print-container, .print-container * { visibility: visible; }
-              .print-container { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+              .print-container { position: relative; width: 100%; padding: 20px; }
             }
           `}} />
           <div className="print-container w-full max-w-4xl mx-auto">

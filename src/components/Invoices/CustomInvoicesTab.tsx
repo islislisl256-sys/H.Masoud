@@ -218,17 +218,24 @@ export default function CustomInvoicesTab() {
       }
 
       if (!payloadOverride && typeof formatOrPayload !== 'object') {
-        const newEntry: HistoryEntry = {
-          id: Date.now().toString(),
-          date: new Date().toLocaleString('ar-DZ'),
-          client_name: payload.client_name,
-          invoice_number: payload.invoice_number,
-          grand_total_invoice: payload.grand_total_invoice,
-          payload
-        };
-        const newHistory = [newEntry, ...history];
-        setHistory(newHistory);
-        localStorage.setItem("custom_invoice_history_v2", JSON.stringify(newHistory));
+          const safePayload = { ...payload };
+          if (safePayload.store_logo) { delete safePayload.store_logo; }
+
+          const newEntry: HistoryEntry = {
+            id: Date.now().toString(),
+            date: new Date().toLocaleString('ar-DZ'),
+            client_name: safePayload.client_name,
+            invoice_number: safePayload.invoice_number,
+            grand_total_invoice: safePayload.grand_total_invoice,
+            payload: safePayload
+          };
+          const newHistory = [newEntry, ...history].slice(0, 20);
+          setHistory(newHistory);
+          try {
+            localStorage.setItem("custom_invoice_history_v2", JSON.stringify(newHistory));
+          } catch(e) {
+            console.error("Storage error:", e);
+          }
 
         setClientInfo({
           client_name: "",
@@ -240,7 +247,7 @@ export default function CustomInvoicesTab() {
       }
     } catch (error: any) {
       console.error(error);
-      showSystemToast("خطأ", error?.message || "حدث خطأ غير متوقع أثناء توليد الملف.", "error");
+      
       console.error(error);
     } finally {
       setGenerating(false);
@@ -435,12 +442,12 @@ export default function CustomInvoicesTab() {
       </div>
 
       {/* Printable PDF Layout (Hidden on screen, visible on print) */}
-      <div className="hidden print:block fixed inset-0 bg-white z-[9999] rtl text-black">
+      <div className="hidden print:block print:relative print:inset-auto bg-white z-[9999] rtl text-black">
         <style dangerouslySetInnerHTML={{__html: `
           @media print {
             body * { visibility: hidden; }
             #invoice-print-container, #invoice-print-container * { visibility: visible; }
-            #invoice-print-container { position: absolute; left: 0; top: 0; width: 100%; }
+            #invoice-print-container { position: relative; width: 100%; }
           }
         `}} />
         <div id="invoice-print-container">
