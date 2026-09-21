@@ -83,53 +83,61 @@ export default function InvoicesPage() {
       }
 
       // Create a temporary hidden container for the invoice HTML
-      const element = document.createElement('div');
-      element.style.padding = '20px';
-      element.style.fontFamily = 'Arial, sans-serif';
-      element.style.color = '#000';
-      element.style.direction = 'rtl'; // Arabic support
-      
-      let itemsHtml = items.map(item => `
-        <tr style="border-bottom: 1px solid #ddd;">
-          <td style="padding: 8px;">${item.products?.name || 'منتج غير معروف'}</td>
-          <td style="padding: 8px; text-align: center;">${item.quantity}</td>
-          <td style="padding: 8px; text-align: center;">${item.unit_price}</td>
-          <td style="padding: 8px; text-align: left;">${item.total_price}</td>
-        </tr>
-      `).join('');
-
-      element.innerHTML = `
-        <div style="text-align: center; margin-bottom: 20px;">
-          <h1 style="margin: 0; font-size: 24px;">فاتورة رقم: ${invoice.invoice_number}</h1>
-          <p style="margin: 5px 0; color: #555;">التاريخ: ${formatDate(invoice.created_at)}</p>
-        </div>
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
-          <thead>
-            <tr style="background-color: #f8f9fa; border-bottom: 2px solid #ddd;">
-              <th style="padding: 10px; text-align: right;">المنتج</th>
-              <th style="padding: 10px; text-align: center;">الكمية</th>
-              <th style="padding: 10px; text-align: center;">السعر</th>
-              <th style="padding: 10px; text-align: left;">المجموع</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${itemsHtml}
-          </tbody>
-        </table>
-        <div style="text-align: left; margin-top: 20px; font-weight: bold; font-size: 18px;">
-          <p>المبلغ الإجمالي: ${invoice.total} د.ج</p>
-        </div>
-      `;
-
-      // Use html2pdf for perfect Arabic & CSS rendering
-      const html2pdf = (await import('html2pdf.js')).default;
-      await html2pdf().from(element).set({
-        margin:       10,
-        filename:     `${invoice.invoice_number}.pdf`,
-        image:        { type: 'jpeg', quality: 0.98 },
-        html2canvas:  { scale: 2, useCORS: true },
-        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      }).save();
+        const element = document.createElement('div');
+        element.style.padding = '20px';
+        element.style.fontFamily = 'Arial, sans-serif';
+        element.style.color = '#000';
+        element.style.direction = 'rtl'; // Arabic support
+        element.style.position = 'absolute';
+        element.style.left = '-9999px';
+        element.style.top = '-9999px';
+        element.style.width = '800px'; // Give it a fixed width for consistent rendering
+        document.body.appendChild(element); // MUST APPEND TO DOM TO PREVENT FREEZE
+        
+        let itemsHtml = items.map(item => `
+          <tr style="border-bottom: 1px solid #ddd;">
+            <td style="padding: 8px;">${item.products?.name || 'منتج غير معروف'}</td>
+            <td style="padding: 8px; text-align: center;">${item.quantity}</td>
+            <td style="padding: 8px; text-align: center;">${item.unit_price}</td>
+            <td style="padding: 8px; text-align: left;">${item.total_price}</td>
+          </tr>
+        `).join('');
+  
+        element.innerHTML = `
+          <div style="text-align: center; margin-bottom: 20px;">
+            <h1 style="margin: 0; font-size: 24px;">فاتورة رقم: ${invoice.invoice_number}</h1>
+            <p style="margin: 5px 0; color: #555;">التاريخ: ${formatDate(invoice.created_at)}</p>
+          </div>
+          <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+            <thead>
+              <tr style="background-color: #f8f9fa; border-bottom: 2px solid #ddd;">
+                <th style="padding: 10px; text-align: right;">المنتج</th>
+                <th style="padding: 10px; text-align: center;">الكمية</th>
+                <th style="padding: 10px; text-align: center;">السعر</th>
+                <th style="padding: 10px; text-align: left;">المجموع</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+            </tbody>
+          </table>
+          <div style="text-align: left; margin-top: 20px; font-weight: bold; font-size: 18px;">
+            <p>المبلغ الإجمالي: ${invoice.total} د.ج</p>
+          </div>
+        `;
+  
+        // Use html2pdf for perfect Arabic & CSS rendering
+        const html2pdf = (await import('html2pdf.js')).default;
+        await html2pdf().from(element).set({
+          margin:       10,
+          filename:     `${invoice.invoice_number}.pdf`,
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 2, useCORS: true },
+          jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        }).save();
+        
+        // Cleanup to prevent memory leaks and DOM pollution
+        document.body.removeChild(element);
       
     } catch (error) {
       console.error("Error generating PDF:", error);
