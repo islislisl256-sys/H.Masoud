@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { BookOpen, AlertOctagon, Phone, Briefcase, ArrowRight } from "lucide-react";
+import { BookOpen, AlertOctagon, Phone, Briefcase, ArrowRight, Monitor, Smartphone, Apple } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { mainSupabase } from "@/lib/supabase";
 
@@ -309,6 +309,24 @@ const handleBackToStep2 = async () => {
           </form>
         )}
       
+
+        {step === 1 && (
+          <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700">
+            <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 text-center mb-4">تحميل التطبيقات</h3>
+            <div className="grid grid-cols-1 gap-3">
+              <a href="/downloads/setup.exe" download className="flex items-center justify-center gap-2 py-2 px-4 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-800 dark:text-white rounded-lg transition-colors text-sm font-medium border border-gray-200 dark:border-gray-700">
+                <Monitor className="w-4 h-4" /> برنامج الحاسوب (Windows)
+              </a>
+              <button type="button" onClick={() => alert("لتثبيت تطبيق الأندرويد: اضغط على زر قائمة المتصفح (ثلاث نقاط) ثم اختر 'تثبيت التطبيق' (Install app) أو 'إضافة للشاشة الرئيسية'")} className="flex items-center justify-center gap-2 py-2 px-4 bg-green-50 hover:bg-green-100 dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-700 dark:text-green-400 rounded-lg transition-colors text-sm font-medium border border-green-200 dark:border-green-800">
+                <Smartphone className="w-4 h-4" /> تطبيق الأندرويد
+              </button>
+              <button type="button" onClick={() => alert("لتثبيت تطبيق الآيفون: اضغط على زر المشاركة (Share) في متصفح سفاري ثم اختر 'إضافة للشاشة الرئيسية' (Add to Home Screen)")} className="flex items-center justify-center gap-2 py-2 px-4 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 text-blue-700 dark:text-blue-400 rounded-lg transition-colors text-sm font-medium border border-blue-200 dark:border-blue-800">
+                <Apple className="w-4 h-4" /> تطبيق الآيفون (iOS)
+              </button>
+            </div>
+          </div>
+        )}
+
         {step === "EXPIRED" && (
           <div className="text-center space-y-6">
             <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 dark:bg-yellow-900/30">
