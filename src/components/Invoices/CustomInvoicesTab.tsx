@@ -395,10 +395,9 @@ export default function CustomInvoicesTab() {
             </div>
           </div>
           <button onClick={saveStoreInfo} className="w-full flex items-center justify-center gap-2 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-lg transition-colors text-sm font-medium mt-4"><Save className="h-4 w-4" /> حفظ</button>
-          </div>
-        </div>
+            </div>
 
-        <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-6">
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 space-y-4">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-3"><User className="h-5 w-5 text-primary" /> الزبون والوثيقة</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
