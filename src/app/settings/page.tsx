@@ -429,7 +429,7 @@ export default function SettingsPage() {
                     ((currentUser?.storage_used || 0) / ((currentUser?.plan_tier === 'PREMIUM' ? 25000 : 200))) * 100 >= 100 ? 'bg-red-400' :
                     ((currentUser?.storage_used || 0) / ((currentUser?.plan_tier === 'PREMIUM' ? 25000 : 200))) * 100 >= 80 ? 'bg-amber-400' : 'bg-white/80'
                   }`}
-                  style={{ width: `${Math.min(((currentUser?.storage_used || 0) / ((currentUser?.plan_tier === 'PREMIUM' ? 25000 : 200))) * 100, 100)}%` }}
+                  style={{ width: `${Math.max(Math.min(((currentUser?.storage_used || 0) / ((currentUser?.plan_tier === 'PREMIUM' ? 25000 : 200))) * 100, 100), (currentUser?.storage_used || 0) > 0 ? 1.5 : 0)}%` }}
                 />
               </div>
             </Link>

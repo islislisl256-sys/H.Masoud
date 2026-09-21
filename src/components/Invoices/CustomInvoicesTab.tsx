@@ -6,6 +6,7 @@ import { Plus, Trash2, Save, FileText, Loader2, Download, History, Store, User, 
 import { motion } from "framer-motion";
 import InvoicePrintLayout from "./InvoicePrintLayout";
 import { useAuth } from "@/contexts/AuthContext";
+import PremiumLockOverlay from "@/components/UI/PremiumLockOverlay";
 
 type InvoiceItem = {
   item_index: number;
@@ -169,7 +170,7 @@ export default function CustomInvoicesTab() {
   const grand_total_invoice = total_amount_invoice + (includeTva ? computed_tva : 0) + Number(financials.stamp_duty);
 
   const buildPayload = () => {
-    const finalLogo = isPremium ? storeInfo.store_logo : '/icon.png';
+    const finalLogo = isPremium ? storeInfo.store_logo : '/logo.png';
     return {
       ...storeInfo,
       ...clientInfo,
@@ -353,21 +354,47 @@ export default function CustomInvoicesTab() {
             <div><label className="text-xs text-gray-500 font-bold">رقم_المادة</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_art} onChange={e => setStoreInfo({...storeInfo, store_art: e.target.value})} /></div>
             <div><label className="text-xs text-gray-500 font-bold">nff</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_nif} onChange={e => setStoreInfo({...storeInfo, store_nif: e.target.value})} /></div>
             <div>
-              <label className="text-xs text-gray-500 font-bold">شعار المتجر (اختياري - يظهر كعلامة مائية)</label>
-              <div className="flex items-center gap-3 mt-1">
-                {storeInfo.store_logo && <img src={storeInfo.store_logo} alt="شعار" className="w-12 h-12 rounded object-contain border" />}
-                <input type="file" accept="image/*" className="text-sm" onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onloadend = () => setStoreInfo({...storeInfo, store_logo: reader.result as string});
-                    reader.readAsDataURL(file);
-                  }
-                }} />
-                {storeInfo.store_logo && <button onClick={() => setStoreInfo({...storeInfo, store_logo: ""})} className="text-xs text-red-500 hover:text-red-700">إزالة</button>}
-              </div>
+              <label className="text-xs text-gray-500 font-bold flex justify-between items-center mb-2">
+                العلامة المائية المطبوعة
+              </label>
+              
+              <PremiumLockOverlay featureName="تخصيص العلامة المائية" isInline={true}>
+                <div className="relative group w-24 h-24 rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gray-50 dark:bg-gray-800 overflow-hidden transition-all hover:border-primary">
+                  {storeInfo.store_logo ? (
+                    <>
+                      <img src={storeInfo.store_logo} alt="شعار" className="w-full h-full object-contain p-1 bg-white" />
+                      <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                        <span className="text-white text-xs font-bold">تغيير</span>
+                        <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onloadend = () => setStoreInfo({...storeInfo, store_logo: reader.result as string});
+                            reader.readAsDataURL(file);
+                          }
+                        }} />
+                      </label>
+                      <button onClick={() => setStoreInfo({...storeInfo, store_logo: ""})} className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"><Trash2 className="w-3 h-3"/></button>
+                    </>
+                  ) : (
+                    <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                      <Plus className="h-6 w-6 text-gray-400 mb-1" />
+                      <span className="text-gray-500 dark:text-gray-400 text-[10px] font-medium">رفع شعار</span>
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onloadend = () => setStoreInfo({...storeInfo, store_logo: reader.result as string});
+                          reader.readAsDataURL(file);
+                        }
+                      }} />
+                    </label>
+                  )}
+                </div>
+              </PremiumLockOverlay>
             </div>
-            <button onClick={saveStoreInfo} className="w-full flex items-center justify-center gap-2 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-lg transition-colors text-sm font-medium mt-4"><Save className="h-4 w-4" /> حفظ</button>
+          </div>
+          <button onClick={saveStoreInfo} className="w-full flex items-center justify-center gap-2 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-lg transition-colors text-sm font-medium mt-4"><Save className="h-4 w-4" /> حفظ</button>
           </div>
         </div>
 
