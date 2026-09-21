@@ -35,6 +35,8 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Invoice[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
+  const [printInvoice, setPrintInvoice] = useState<Invoice | null>(null);
+  const [printItems, setPrintItems] = useState<any[]>([]);
   const [invoiceItems, setInvoiceItems] = useState<InvoiceItem[]>([]);
   const [loadingItems, setLoadingItems] = useState(false);
 
@@ -82,96 +84,22 @@ export default function InvoicesPage() {
         items = (data as InvoiceItem[]) || [];
       }
 
-      // NATIVE BROWSER PRINTING VIA IFRAME (100% Reliable for Arabic, Layout, and Electron App)
-      // We use an invisible iframe to print safely without popup blockers
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'absolute';
-      iframe.style.width = '0px';
-      iframe.style.height = '0px';
-      iframe.style.border = 'none';
-      document.body.appendChild(iframe);
-
-      let itemsHtml = items.map(item => `
-        <tr style="border-bottom: 1px solid #e5e7eb;">
-          <td style="padding: 12px; font-weight: bold; color: #1f2937;">${item.products?.name || 'منتج غير معروف'}</td>
-          <td style="padding: 12px; text-align: center; color: #4b5563;">${item.quantity}</td>
-          <td style="padding: 12px; text-align: center; color: #4b5563;">${item.unit_price}</td>
-          <td style="padding: 12px; text-align: left; font-weight: bold; color: #111827;">${item.total_price}</td>
-        </tr>
-      `).join('');
-
-      const htmlContent = `
-        <!DOCTYPE html>
-        <html lang="ar" dir="rtl">
-        <head>
-          <meta charset="UTF-8">
-          <title>فاتورة رقم ${invoice.invoice_number}</title>
-          <style>
-            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 40px; color: #000; background: #fff; }
-            .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #3b82f6; padding-bottom: 20px; }
-            .header h1 { margin: 0; font-size: 28px; color: #1e3a8a; }
-            .header p { margin: 5px 0 0 0; color: #6b7280; font-size: 14px; }
-            table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
-            th { padding: 12px; background-color: #f3f4f6; color: #374151; font-size: 14px; border-bottom: 2px solid #d1d5db; }
-            th:first-child { text-align: right; }
-            th:last-child { text-align: left; }
-            .total-section { text-align: left; margin-top: 30px; font-size: 20px; font-weight: 900; color: #111827; background: #f9fafb; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; }
-            .footer { margin-top: 50px; text-align: center; font-size: 12px; color: #9ca3af; }
-            @media print {
-              body { padding: 0; }
-              @page { margin: 1cm; }
-            }
-          </style>
-        </head>
-        <body>
-          <div class="header">
-            <h1>فاتورة رقم: ${invoice.invoice_number}</h1>
-            <p>تاريخ الإصدار: ${formatDate(invoice.created_at)}</p>
-          </div>
-          <table>
-            <thead>
-              <tr>
-                <th>اسم المنتج</th>
-                <th style="text-align: center;">الكمية</th>
-                <th style="text-align: center;">سعر الوحدة</th>
-                <th>المجموع</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${itemsHtml}
-            </tbody>
-          </table>
-          <div class="total-section">
-            المبلغ الإجمالي: ${invoice.total} د.ج
-          </div>
-          <div class="footer">
-            شكراً لتعاملكم معنا
-          </div>
-        </body>
-        </html>
-      `;
-
-      const doc = iframe.contentWindow?.document || iframe.contentDocument;
-      if (doc) {
-        doc.open();
-        doc.write(htmlContent);
-        doc.close();
-        
-        // Wait for styles to load then print
+      setPrintInvoice(invoice);
+      setPrintItems(items);
+      
+      setTimeout(() => {
+        window.print();
         setTimeout(() => {
-          iframe.contentWindow?.focus();
-          iframe.contentWindow?.print();
-          
-          // Cleanup iframe after print dialog is closed
-          setTimeout(() => {
-            if (document.body.contains(iframe)) {
-              document.body.removeChild(iframe);
-            }
-          }, 1000);
-        }, 250);
-      }
+          setPrintInvoice(null);
+          setPrintItems([]);
+        }, 500);
+      }, 500);
       
     } catch (error) {
+      console.error("Error setting up print:", error);
+      toast("حدث خطأ أثناء تجهيز الطباعة.");
+    }
+  }; catch (error) {
       console.error("Error generating PDF:", error);
       toast("حدث خطأ أثناء توليد الـ PDF.");
     }
@@ -432,6 +360,55 @@ export default function InvoicesPage() {
           </div>
         </div>
       )}
+    
+      {/* Printable A4 Invoice (Hidden on screen, visible on print) */}
+      {printInvoice && (
+        <div className="hidden print:block fixed inset-0 bg-white z-[9999] p-8 rtl text-black">
+          <style dangerouslySetInnerHTML={{__html: `
+            @media print {
+              body * { visibility: hidden; }
+              .print-container, .print-container * { visibility: visible; }
+              .print-container { position: absolute; left: 0; top: 0; width: 100%; padding: 20px; }
+            }
+          `}} />
+          <div className="print-container w-full max-w-4xl mx-auto">
+            <div className="text-center mb-10 border-b-2 border-blue-500 pb-5">
+              <h1 className="text-3xl font-bold text-blue-900 m-0">فاتورة رقم: {printInvoice.invoice_number}</h1>
+              <p className="text-gray-500 mt-2">تاريخ الإصدار: {formatDate(printInvoice.created_at)}</p>
+            </div>
+            
+            <table className="w-full mb-8 border-collapse">
+              <thead>
+                <tr className="bg-gray-100 border-b-2 border-gray-300">
+                  <th className="p-3 text-right text-gray-700 font-bold">المنتج</th>
+                  <th className="p-3 text-center text-gray-700 font-bold">الكمية</th>
+                  <th className="p-3 text-center text-gray-700 font-bold">سعر الوحدة</th>
+                  <th className="p-3 text-left text-gray-700 font-bold">المجموع</th>
+                </tr>
+              </thead>
+              <tbody>
+                {printItems.map((item, idx) => (
+                  <tr key={idx} className="border-b border-gray-200">
+                    <td className="p-3 font-bold text-gray-900">{item.products?.name || 'منتج غير معروف'}</td>
+                    <td className="p-3 text-center text-gray-600">{item.quantity}</td>
+                    <td className="p-3 text-center text-gray-600">{item.unit_price} د.ج</td>
+                    <td className="p-3 text-left font-bold text-gray-900">{item.total_price} د.ج</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            
+            <div className="mt-8 bg-gray-50 p-5 rounded-lg border border-gray-200">
+              <p className="text-2xl font-black text-gray-900">المبلغ الإجمالي: {printInvoice.total} د.ج</p>
+            </div>
+            
+            <div className="mt-16 text-center text-gray-400 text-sm">
+              <p>شكراً لتعاملكم معنا</p>
+            </div>
+          </div>
+        </div>
+      )}
+
     </ProtectedLayout>
   );
 }
