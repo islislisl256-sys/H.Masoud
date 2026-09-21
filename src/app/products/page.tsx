@@ -519,7 +519,7 @@ export default function ProductsPage() {
                           </label>
                         </div>
                       </div>
-                      {currentUser?.role !== 'seller' && (
+                      {currentUser?.role !== 'SELLER' && (
                           <input
                             type="number"
                             placeholder="سعر الشراء"
@@ -531,7 +531,7 @@ export default function ProductsPage() {
                       <input
                           type="number"
                           placeholder="سعر البيع"
-                          className={`${currentUser?.role === 'seller' ? 'col-span-2 ' : ''}px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none`}
+                          className={`${currentUser?.role === 'SELLER' ? 'col-span-2 ' : ''}px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none`}
                         value={p.sale_price === 0 ? '' : p.sale_price}
                         onChange={e => updatePending(index, 'sale_price', e.target.value)}
                       />
@@ -634,8 +634,8 @@ export default function ProductsPage() {
                 </div>
 
                 {/* الأسعار والكمية */}
-                <div className={`grid gap-3 ${currentUser?.role === "seller" ? "grid-cols-2" : "grid-cols-3"}`}>
-                  {currentUser?.role !== 'seller' && (
+                <div className={`grid gap-3 ${currentUser?.role === "SELLER" ? "grid-cols-2" : "grid-cols-3"}`}>
+                  {currentUser?.role !== 'SELLER' && (
                       <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
                         <p className="text-xs text-gray-400 mb-1">الشراء</p>
                         {editingId === product.id && editField === 'purchase_price' ? (
@@ -683,7 +683,7 @@ export default function ProductsPage() {
                   </div>
                 </div>
 
-                {currentUser?.role !== 'seller' && (
+                {currentUser?.role !== 'SELLER' && (
                   <>
                   {/* الربح */}
                   <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
