@@ -19,6 +19,15 @@ function createWindow() {
   });
 
   Menu.setApplicationMenu(null);
+  mainWindow.webContents.session.on('will-download', (event, item, webContents) => {
+    // This makes sure Electron prompts the user for where to save the file!
+    item.setSaveDialogOptions({
+      title: 'حفظ الفاتورة / الملف',
+      defaultPath: item.getFilename(),
+      buttonLabel: 'حفظ'
+    });
+  });
+
 
   // Clear cache before loading to ensure latest Vercel build is fetched
   mainWindow.webContents.session.clearCache().then(() => {
