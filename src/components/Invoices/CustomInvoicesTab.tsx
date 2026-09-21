@@ -242,7 +242,7 @@ export default function CustomInvoicesTab() {
               // Calculate image dimensions
               const img = new Image();
               img.src = dataUrl;
-              await new Promise(r => img.onload = r);
+              await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = () => reject(new Error("Image failed to load")); });
               const pdfHeight = (img.height * pdfWidth) / img.width;
               
               let heightLeft = pdfHeight;
@@ -496,7 +496,7 @@ export default function CustomInvoicesTab() {
       </div>
 
       {/* Printable PDF Layout (Hidden on screen, visible on print) */}
-      <div className="hidden print:block print:relative print:inset-auto bg-white z-[9999] rtl text-black">
+      <div className="absolute top-0 left-[-9999px] bg-white z-[-1] rtl text-black">
         <style dangerouslySetInnerHTML={{__html: `
           @media print {
             body * { visibility: hidden; }

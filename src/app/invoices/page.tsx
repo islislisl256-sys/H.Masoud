@@ -115,7 +115,7 @@ export default function InvoicesPage() {
             
             const img = new Image();
             img.src = dataUrl;
-            await new Promise(r => img.onload = r);
+            await new Promise((resolve, reject) => { img.onload = resolve; img.onerror = () => reject(new Error("Image failed to load")); });
             const pdfHeight = (img.height * pdfWidth) / img.width;
             
             let heightLeft = pdfHeight;
@@ -410,7 +410,7 @@ export default function InvoicesPage() {
     
       {/* Printable A4 Invoice (Hidden on screen, visible on print) */}
       {printInvoice && (
-        <div className="hidden print:block print:relative print:inset-auto bg-white z-[9999] p-8 rtl text-black">
+        <div className="absolute top-0 left-[-9999px] bg-white z-[-1] p-8 rtl text-black">
           <style dangerouslySetInnerHTML={{__html: `
             @media print {
               body * { visibility: hidden; }
