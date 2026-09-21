@@ -27,6 +27,8 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
     backgroundSize: '150px 150px',
     backgroundPosition: 'center',
     opacity: 0.08,
+      WebkitPrintColorAdjust: 'exact',
+      printColorAdjust: 'exact',
     pointerEvents: 'none',
     zIndex: 0,
   } : {};
@@ -251,7 +253,7 @@ const InvoicePrintLayout = forwardRef<HTMLDivElement, InvoicePrintLayoutProps>((
       </div>
       )}
 
-      {pagesToPrint === 'both' && <div className="html2pdf__page-break"></div>}
+      {pagesToPrint === 'both' && <div style={{ pageBreakAfter: 'always', clear: 'both' }}></div>}
 
       {(pagesToPrint === 'both' || pagesToPrint === 'invoice') && (
       <div className="w-full pt-8" style={{ position: 'relative', minHeight: '100vh', paddingBottom: '80px' }}>
