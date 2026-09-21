@@ -97,13 +97,10 @@ export default function InvoicesPage() {
       
     } catch (error) {
       console.error("Error setting up print:", error);
-      toast("حدث خطأ أثناء تجهيز الطباعة.");
-    }
-  }; catch (error) {
-      console.error("Error generating PDF:", error);
-      toast("حدث خطأ أثناء توليد الـ PDF.");
+      // toast("حدث خطأ أثناء تجهيز الطباعة.");
     }
   };
+
   const handleShareDocx = async (invoice: Invoice) => {
     let items = invoiceItems;
     if (!selectedInvoice || selectedInvoice.id !== invoice.id) {
