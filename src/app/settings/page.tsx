@@ -413,11 +413,15 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold">مساحة التخزين السحابية</h3>
-                    <p className="text-sm text-blue-100 mt-1">نسبة استهلاك الصور من الباقة المجانية</p>
+                      <p className="text-sm text-blue-100 mt-1">
+                        {currentUser?.plan_tier === 'PREMIUM' 
+                          ? `مستهلك: ${currentUser?.storage_used || 0} من 25,000 صورة (~25 جيجابايت)`
+                          : `مستهلك: ${currentUser?.storage_used || 0} من أصل 200 صورة (محدود)`}
+                      </p>
+                    </div>
+                  <div className="mr-auto text-left flex flex-col items-end">
+                    <span className="text-3xl font-black">{Math.min(((currentUser?.storage_used || 0) / ((currentUser?.plan_tier === 'PREMIUM' ? 25000 : 200))) * 100, 100).toFixed(1)}%</span>
                   </div>
-                <div className="mr-auto text-left">
-                  <span className="text-3xl font-black">{Math.min(((currentUser?.storage_used || 0) / ((currentUser?.plan_tier === 'PREMIUM' ? 25000 : 200))) * 100, 100).toFixed(1)}%</span>
-                </div>
               </div>
               <div className="w-full h-3 bg-white/20 rounded-full overflow-hidden">
                 <div
