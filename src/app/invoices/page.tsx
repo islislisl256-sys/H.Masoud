@@ -72,54 +72,71 @@ export default function InvoicesPage() {
   };
 
   const handleSharePDF = async (invoice: Invoice) => {
-    let items = invoiceItems;
-    if (!selectedInvoice || selectedInvoice.id !== invoice.id) {
-      const { data } = await supabase
-        .from('invoice_items')
-        .select('*, products(name, product_number)')
-        .eq('invoice_id', invoice.id);
-      items = (data as InvoiceItem[]) || [];
+    try {
+      let items = invoiceItems;
+      if (!selectedInvoice || selectedInvoice.id !== invoice.id) {
+        const { data } = await supabase
+          .from('invoice_items')
+          .select('*, products(name, product_number)')
+          .eq('invoice_id', invoice.id);
+        items = (data as InvoiceItem[]) || [];
+      }
+
+      // Create a temporary hidden container for the invoice HTML
+      const element = document.createElement('div');
+      element.style.padding = '20px';
+      element.style.fontFamily = 'Arial, sans-serif';
+      element.style.color = '#000';
+      element.style.direction = 'rtl'; // Arabic support
+      
+      let itemsHtml = items.map(item => `
+        <tr style="border-bottom: 1px solid #ddd;">
+          <td style="padding: 8px;">${item.products?.name || 'منتج غير معروف'}</td>
+          <td style="padding: 8px; text-align: center;">${item.quantity}</td>
+          <td style="padding: 8px; text-align: center;">${item.unit_price}</td>
+          <td style="padding: 8px; text-align: left;">${item.total_price}</td>
+        </tr>
+      `).join('');
+
+      element.innerHTML = `
+        <div style="text-align: center; margin-bottom: 20px;">
+          <h1 style="margin: 0; font-size: 24px;">فاتورة رقم: ${invoice.invoice_number}</h1>
+          <p style="margin: 5px 0; color: #555;">التاريخ: ${formatDate(invoice.created_at)}</p>
+        </div>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+          <thead>
+            <tr style="background-color: #f8f9fa; border-bottom: 2px solid #ddd;">
+              <th style="padding: 10px; text-align: right;">المنتج</th>
+              <th style="padding: 10px; text-align: center;">الكمية</th>
+              <th style="padding: 10px; text-align: center;">السعر</th>
+              <th style="padding: 10px; text-align: left;">المجموع</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHtml}
+          </tbody>
+        </table>
+        <div style="text-align: left; margin-top: 20px; font-weight: bold; font-size: 18px;">
+          <p>المبلغ الإجمالي: ${invoice.total} د.ج</p>
+        </div>
+      `;
+
+      // Use html2pdf for perfect Arabic & CSS rendering
+      const html2pdf = (await import('html2pdf.js')).default;
+      const opt = {
+        margin:       10,
+        filename:     `${invoice.invoice_number}.pdf`,
+        image:        { type: 'jpeg', quality: 0.98 },
+        html2canvas:  { scale: 2, useCORS: true },
+        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+
+      await html2pdf().from(element).set(opt).save();
+      
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      toast("حدث خطأ أثناء توليد الـ PDF.");
     }
-
-    const { default: jsPDF } = await import('jspdf');
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-
-    doc.setFontSize(18);
-    doc.text(`Invoice: ${invoice.invoice_number}`, 105, 20, { align: 'center' });
-    doc.setFontSize(11);
-    doc.text(`Date: ${formatDate(invoice.created_at)}`, 105, 30, { align: 'center' });
-
-    doc.setFontSize(10);
-    doc.text('Product', 20, 45);
-    doc.text('Qty', 100, 45);
-    doc.text('Unit Price', 120, 45);
-    doc.text('Total', 155, 45);
-    doc.line(20, 48, 190, 48);
-
-    let y = 55;
-    items.forEach(item => {
-      const name = item.products?.name || 'Unknown';
-      doc.text(name.substring(0, 30), 20, y);
-      doc.text(String(item.quantity), 100, y);
-      doc.text(`${item.unit_price} DA`, 120, y);
-      doc.text(`${item.total_price} DA`, 155, y);
-      y += 8;
-    });
-
-    doc.line(20, y, 190, y);
-    y += 6;
-    doc.setFontSize(12);
-    doc.text(`Total: ${invoice.total} DA`, 155, y, { align: 'right' });
-    y += 6;
-    doc.text(`Profit: ${invoice.profit} DA`, 155, y, { align: 'right' });
-
-    const blob = doc.output('blob');
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${invoice.invoice_number}.pdf`;
-    a.click();
-    URL.revokeObjectURL(url);
   };
   const handleShareDocx = async (invoice: Invoice) => {
     let items = invoiceItems;
