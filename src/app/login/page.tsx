@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { BookOpen, AlertOctagon, Phone, Briefcase, ArrowRight, Monitor, Smartphone, Apple } , Apple, Smartphone } from "lucide-react";
+import { BookOpen, AlertOctagon, Phone, Briefcase, ArrowRight, Monitor, Smartphone, Apple } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { mainSupabase } from "@/lib/supabase";
 
