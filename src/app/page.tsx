@@ -277,7 +277,7 @@ export default function DashboardPage() {
 
         {/* Footer */}
         <div className="pt-8 pb-4 text-center">
-          <p className="text-xs text-gray-400 dark:text-gray-500">®HERMA_LAISSAOUI_ISLAM_Developer</p>
+          <a href="/contact" className="inline-block text-sm font-bold text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary transition-colors cursor-pointer py-6 my-4 border-t border-gray-200 dark:border-gray-800 w-full">©LAISSAOUI-DEV-DZ</a>
         </div>
       </div>
     </ProtectedLayout>
