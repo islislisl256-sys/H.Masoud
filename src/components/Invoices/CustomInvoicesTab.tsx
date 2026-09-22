@@ -57,6 +57,7 @@ export default function CustomInvoicesTab() {
   
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [generating, setGenerating] = useState(false);
+  const [bulkInput, setBulkInput] = useState("");
 
   useEffect(() => {
     const savedStore = localStorage.getItem("custom_invoice_store_v2");
@@ -128,6 +129,39 @@ export default function CustomInvoicesTab() {
 
     e.preventDefault();
     focusInput(nextRow, nextCol);
+  };
+
+
+  const handleBulkInput = () => {
+    if (!bulkInput.trim()) return;
+    const rows = bulkInput.split(';');
+    const newItems = [];
+    let currentIndex = items.length + 1;
+    
+    for (const row of rows) {
+      if (!row.trim()) continue;
+      const cols = row.split(',');
+      const name = cols[0] ? cols[0].trim() : '';
+      const unit = cols[1] ? cols[1].trim() : '';
+      const qty = parseFloat(cols[2] ? cols[2].trim() : '1') || 1;
+      const price = parseFloat(cols[3] ? cols[3].trim() : '0') || 0;
+      
+      if (name) {
+        newItems.push({
+          item_index: currentIndex++,
+          item_designation: name,
+          item_unit: unit,
+          item_quantity: qty,
+          item_unit_price: price,
+          item_total_price: qty * price
+        });
+      }
+    }
+    
+    if (newItems.length > 0) {
+      setItems([...items, ...newItems]);
+      setBulkInput('');
+    }
   };
 
   const addItem = () => {
@@ -412,6 +446,27 @@ export default function CustomInvoicesTab() {
               <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2"><FileText className="h-5 w-5 text-primary" /> المشتريات</h2>
               <button onClick={addItem} className="flex items-center gap-1 text-sm bg-primary/10 text-primary px-3 py-1.5 rounded-lg hover:bg-primary/20"><Plus className="h-4 w-4" /> إضافة</button>
             </div>
+
+              <div className="flex flex-col mb-4 bg-gray-50 dark:bg-gray-700/50 p-4 rounded-xl border border-gray-100 dark:border-gray-600">
+                <label className="text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">إضافة سريعة متعددة الأسطر (نص)</label>
+                <p className="text-xs text-gray-500 mb-2">الصيغة: <code className="bg-gray-200 dark:bg-gray-600 px-1 rounded">اسم السلعة , الوحدة , الكمية , السعر ;</code> (فاصلة للخانة، وفاصلة منقوطة لسطر جديد)</p>
+                <div className="flex gap-3">
+                  <textarea 
+                    className="flex-1 px-3 py-2 border rounded-lg text-sm resize-none dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" 
+                    rows={2}
+                    placeholder="سكر , كغ , 5 , 100 ; شاي , علبة , 2 , 50 ;"
+                    value={bulkInput}
+                    onChange={(e) => setBulkInput(e.target.value)}
+                  />
+                  <button 
+                    onClick={handleBulkInput} 
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center justify-center min-w-[100px]"
+                  >
+                    إضافة للجدول
+                  </button>
+                </div>
+              </div>
+
             <div className="space-y-2">
               {items.length === 0 ? (
                 <p className="text-center text-sm text-gray-400 py-4 border border-dashed rounded-lg">أضف منتجاً للبدء</p>
