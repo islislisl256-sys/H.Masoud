@@ -17,6 +17,7 @@ export default function LoginPage() {
   const [businessType, setBusinessType] = useState("مكتبة");
   
   const [error, setError] = useState("");
+  const [showIosInstructions, setShowIosInstructions] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [lockoutTimeLeft, setLockoutTimeLeft] = useState(0);
   
