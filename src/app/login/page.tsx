@@ -233,7 +233,9 @@ const handleBackToStep2 = async () => {
               
               <a 
                 href="/hanutak.apk" 
-                download
+                download="hanutak.apk"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex-1 flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
               >
                 <Smartphone className="w-6 h-6 mb-2 text-green-600" />
