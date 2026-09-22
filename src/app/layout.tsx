@@ -1,6 +1,7 @@
 ﻿import type { Metadata } from "next";
 import { Inter, Cairo } from "next/font/google";
 import "./globals.css";
+import PwaRegister from "@/components/PwaRegister";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { BarcodeProvider } from "@/contexts/BarcodeContext";
 import { ThemeProvider } from "@/components/ThemeProvider";
