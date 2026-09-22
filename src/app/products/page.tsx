@@ -597,13 +597,7 @@ export default function ProductsPage() {
               <div key={product.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 space-y-3">
                 {/* اسم المنتج + الرقم */}
                 <div className="flex items-start gap-3">
-                  {product.image_url ? (
-                    <img src={product.image_url} alt="" className="w-14 h-14 rounded-lg object-cover bg-gray-100 dark:bg-gray-700 shrink-0 border border-gray-200 dark:border-gray-600" />
-                  ) : (
-                    <div className="w-14 h-14 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center shrink-0 border border-gray-200 dark:border-gray-600">
-                      <Package className="h-6 w-6 text-gray-400" />
-                    </div>
-                  )}
+                  <img src={product.image_url || currentUser?.store_logo || '/logo.png'} alt="" className="w-14 h-14 rounded-lg object-cover bg-gray-100 dark:bg-gray-700 shrink-0 border border-gray-200 dark:border-gray-600" />
                   <div className="flex-1 min-w-0 flex justify-between items-start">
                     <div className="flex-1 min-w-0 pr-2">
                       {editingId === product.id && editField === 'name' ? (

@@ -61,8 +61,8 @@ export default function Header() {
             <span className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[120px]">{currentUser?.full_name || currentUser?.store_name || "مستخدم"}</span>
             <span className="text-xs text-primary">{getRoleLabel(currentUser?.role)}</span>
           </div>
-          <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shadow-sm">
-            <User className="h-5 w-5" />
+          <div className="h-9 w-9 rounded-full bg-primary/10 text-primary flex items-center justify-center border border-primary/20 shadow-sm overflow-hidden">
+            <img src={currentUser?.store_logo || '/logo.png'} alt="Profile" className="h-full w-full object-cover" />
           </div>
         </Link>
 

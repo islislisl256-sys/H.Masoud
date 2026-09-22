@@ -212,29 +212,44 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رابط الشعار (URL) أو رفع صورة</label>
-                  <div className="flex gap-2">
-                    <input
-                      type="url"
-                      placeholder="https://example.com/logo.png"
-                      dir="ltr"
-                      value={storeLogo}
-                      onChange={(e) => setStoreLogo(e.target.value)}
-                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm"
-                    />
-                    <label className="flex items-center justify-center gap-2 px-3 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 border border-gray-300 dark:border-gray-600 rounded-lg cursor-pointer transition-colors text-sm font-medium shrink-0">
-                      {uploadingLogo ? <Loader2 className="h-4 w-4 animate-spin text-gray-500" /> : <UploadCloud className="h-4 w-4 text-gray-500 dark:text-gray-400" />}
-                      <span className="hidden sm:inline text-gray-700 dark:text-gray-300">رفع صورة</span>
-                      <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={uploadingLogo} />
-                    </label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">شعار المتجر</label>
+                  <div className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 mb-6">
+                    {storeLogo ? (
+                      <>
+                        <div className="h-16 w-16 rounded border border-gray-200 p-1 flex items-center justify-center bg-white shrink-0 shadow-sm">
+                          <img src={storeLogo} alt="Logo preview" className="max-h-full max-w-full object-contain" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">الشعار الحالي</p>
+                          <button type="button" onClick={() => setStoreLogo('')} className="text-xs text-red-600 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 px-3 py-1.5 rounded-lg transition-colors font-bold">
+                            مسح الشعار (لرفع جديد)
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex-1 w-full space-y-3">
+                        <label className="flex items-center justify-center gap-2 w-full py-3 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 border-dashed rounded-xl cursor-pointer transition-colors text-sm font-bold">
+                          {uploadingLogo ? <Loader2 className="h-5 w-5 animate-spin" /> : <UploadCloud className="h-5 w-5" />}
+                          <span>رفع صورة جديدة من الجهاز</span>
+                          <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={uploadingLogo} />
+                        </label>
+                        <div className="flex items-center gap-2 text-xs text-gray-400">
+                          <hr className="flex-1 border-gray-200 dark:border-gray-600" />
+                          <span>أو</span>
+                          <hr className="flex-1 border-gray-200 dark:border-gray-600" />
+                        </div>
+                        <input
+                          type="url"
+                          placeholder="أو ضع رابط صورة جاهز هنا (مثال: https://...)"
+                          dir="rtl"
+                          value={storeLogo}
+                          onChange={(e) => setStoreLogo(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm text-right"
+                        />
+                      </div>
+                    )}
                   </div>
-                  {storeLogo && (
-                    <div className="mt-2 h-16 w-16 rounded border border-gray-200 p-1 flex items-center justify-center bg-white">
-                      <img src={storeLogo} alt="Logo preview" className="max-h-full max-w-full object-contain" />
-                    </div>
-                  )}
                 </div>
-
                 <div className="pt-4 flex items-center justify-between border-t border-gray-100 dark:border-gray-700">
                   <div>
                     <h3 className="text-sm font-medium text-gray-900 dark:text-white">الوضع الليلي</h3>

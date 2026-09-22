@@ -156,7 +156,10 @@ export default function ChatPage() {
   if (!currentUser) return null;
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900">
+    <div className="flex flex-col h-screen bg-gray-50 dark:bg-gray-900 relative">
+      <div className="absolute inset-0 z-0 pointer-events-none flex items-center justify-center opacity-[0.03] dark:opacity-5 overflow-hidden">
+        <img src="/logo.png" alt="" className="w-[400px] h-[400px] object-contain grayscale" />
+      </div>
       <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 flex items-center px-4 sm:px-6 z-10 shadow-sm shrink-0">
         <button 
           onClick={() => router.push('/settings')}

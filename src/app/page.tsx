@@ -128,13 +128,7 @@ export default function DashboardPage() {
       <div className="space-y-6 pb-12">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-4">
-            {currentUser?.store_logo ? (
-              <img src={currentUser.store_logo} alt="Logo" className="w-12 h-12 rounded-lg object-contain bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700" />
-            ) : (
-              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary font-bold text-xl">
-                {currentUser?.store_name?.charAt(0) || "م"}
-              </div>
-            )}
+              <img src={currentUser?.store_logo || '/logo.png'} alt="Logo" className="w-12 h-12 rounded-lg object-contain bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700" />
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
                 {currentUser?.store_name || "حانوتك"}
