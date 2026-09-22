@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import toast from 'react-hot-toast';
 import { showSystemToast, confirmDialog } from '@/components/CustomToasts';
 
@@ -402,66 +402,59 @@ export default function ProductsPage() {
              )}
           </div>
 
-          {/* Pending Products & Add Buttons Row */}
-          <div className="flex gap-3 bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm shrink-0 items-center overflow-x-auto scrollbar-hide">
-             {/* The "Add Method" Button Dropdown */}
-             <div className="relative shrink-0">
-                <button onClick={() => setShowScanMenu(!showScanMenu)} className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-sm">
-                   <Plus className="h-4 w-4" />
-                   إضافة منتج
+          {/* Pending Products & Add Circle */}
+          <div className="flex gap-2 bg-white dark:bg-gray-800 p-2 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm shrink-0 items-center overflow-x-auto scrollbar-hide">
+             {/* Pending Products List - inline single row per product */}
+             <div className="flex-1 flex gap-2 items-center overflow-x-auto scrollbar-hide">
+                {pendingProducts.length > 0 ? (
+                   <>
+                      {pendingProducts.map((p, index) => (
+                         <div key={index} className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 shrink-0 shadow-sm">
+                            <span className="text-[10px] font-mono bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-gray-600 dark:text-gray-300 shrink-0">{p.product_number.length > 8 ? p.product_number.slice(-8) : p.product_number}</span>
+                            <input type="text" placeholder="الاسم" value={p.name} onChange={e => updatePending(index, 'name', e.target.value)} className="w-24 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary" dir="rtl" />
+                            <input type="number" placeholder="شراء" value={p.purchase_price || ''} onChange={e => updatePending(index, 'purchase_price', Number(e.target.value))} className="w-14 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary text-center" dir="ltr" />
+                            <input type="number" placeholder="بيع" value={p.sale_price || ''} onChange={e => updatePending(index, 'sale_price', Number(e.target.value))} className="w-14 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary text-center" dir="ltr" />
+                            <input type="number" placeholder="كمية" value={p.quantity || ''} onChange={e => updatePending(index, 'quantity', Number(e.target.value))} className="w-14 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary text-center" dir="ltr" />
+                            <button onClick={() => removePending(index)} className="text-gray-400 hover:text-red-500 shrink-0"><X className="h-3.5 w-3.5" /></button>
+                         </div>
+                      ))}
+                      <button onClick={saveAll} disabled={saving} className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-lg font-bold text-xs shrink-0 shadow-sm">
+                         {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
+                         حفظ ({pendingProducts.length})
+                      </button>
+                   </>
+                ) : (
+                   <div className="text-xs text-gray-400 dark:text-gray-500 italic pr-2">المنتجات التي ستضاف ستظهر هنا...</div>
+                )}
+             </div>
+
+             {/* Fixed Add Circle on the left */}
+             <div className="relative shrink-0 mr-1">
+                <button onClick={() => setShowScanMenu(!showScanMenu)} className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 shadow-md ${showScanMenu ? 'bg-red-500 hover:bg-red-600 rotate-45' : 'bg-primary hover:bg-primary-hover'} text-white`}>
+                   <Plus className="h-5 w-5" />
                 </button>
                 {showScanMenu && (
-                   <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-2 flex flex-col gap-1 z-50">
-                      <button onClick={handleAddWithoutBarcode} className="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right w-full text-sm">
-                         <div className="bg-amber-100 p-1.5 rounded-full text-amber-600"><Package className="h-4 w-4" /></div>
+                   <div className="absolute top-full left-0 mt-2 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-1.5 flex flex-col gap-0.5 z-50">
+                      <button onClick={handleAddWithoutBarcode} className="flex items-center gap-2.5 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right w-full text-xs">
+                         <div className="bg-amber-100 p-1 rounded-full text-amber-600"><Package className="h-3.5 w-3.5" /></div>
                          <span className="font-medium text-gray-700 dark:text-gray-200">بدون باركود</span>
                       </button>
-                      <button onClick={handleManualBarcode} className="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right w-full text-sm">
-                         <div className="bg-purple-100 p-1.5 rounded-full text-purple-600"><Pencil className="h-4 w-4" /></div>
+                      <button onClick={handleManualBarcode} className="flex items-center gap-2.5 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right w-full text-xs">
+                         <div className="bg-purple-100 p-1 rounded-full text-purple-600"><Pencil className="h-3.5 w-3.5" /></div>
                          <span className="font-medium text-gray-700 dark:text-gray-200">إدخال يدوياً</span>
                       </button>
-                      <label className="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors w-full text-sm">
-                         <div className="bg-blue-100 p-1.5 rounded-full text-blue-600"><ImagePlus className="h-4 w-4" /></div>
+                      <label className="flex items-center gap-2.5 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors w-full text-xs">
+                         <div className="bg-blue-100 p-1 rounded-full text-blue-600"><ImagePlus className="h-3.5 w-3.5" /></div>
                          <span className="font-medium text-gray-700 dark:text-gray-200">مسح من صورة</span>
                          <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
                       </label>
-                      <button onClick={() => { setIsScanning(true); setShowScanMenu(false); }} className="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right w-full text-sm">
-                         <div className="bg-green-100 p-1.5 rounded-full text-green-600"><Camera className="h-4 w-4" /></div>
+                      <button onClick={() => { setIsScanning(true); setShowScanMenu(false); }} className="flex items-center gap-2.5 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right w-full text-xs">
+                         <div className="bg-green-100 p-1 rounded-full text-green-600"><Camera className="h-3.5 w-3.5" /></div>
                          <span className="font-medium text-gray-700 dark:text-gray-200">كاميرا الجهاز</span>
                       </button>
                    </div>
                 )}
              </div>
-
-             {/* Pending Products List */}
-             {pendingProducts.length > 0 && (
-                <div className="flex gap-2 items-center shrink-0 border-r border-gray-200 dark:border-gray-700 pr-3 mr-1">
-                   {pendingProducts.map((p, index) => (
-                      <div key={index} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-2 min-w-[200px] shadow-sm">
-                         <div className="flex flex-col gap-1 w-full">
-                           <div className="flex justify-between items-center">
-                             <span className="text-xs font-mono bg-gray-200 dark:bg-gray-700 px-1 rounded">{p.product_number}</span>
-                             <button onClick={() => removePending(index)} className="text-gray-400 hover:text-red-500"><X className="h-3 w-3" /></button>
-                           </div>
-                           <input type="text" placeholder="الاسم" value={p.name} onChange={e => updatePending(index, 'name', e.target.value)} className="w-full text-xs p-1.5 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary" dir="rtl" />
-                           <div className="flex gap-1">
-                             <input type="number" placeholder="شراء" value={p.purchase_price || ''} onChange={e => updatePending(index, 'purchase_price', Number(e.target.value))} className="w-1/3 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary" dir="ltr" />
-                             <input type="number" placeholder="بيع" value={p.sale_price || ''} onChange={e => updatePending(index, 'sale_price', Number(e.target.value))} className="w-1/3 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary" dir="ltr" />
-                             <input type="number" placeholder="كمية" value={p.quantity || ''} onChange={e => updatePending(index, 'quantity', Number(e.target.value))} className="w-1/3 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary" dir="ltr" />
-                           </div>
-                         </div>
-                      </div>
-                   ))}
-                   <button onClick={saveAll} disabled={saving} className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-bold text-sm shrink-0 shadow-sm mx-2">
-                      {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                      حفظ ({pendingProducts.length})
-                   </button>
-                </div>
-             )}
-             
-             {pendingProducts.length === 0 && (
-                <div className="text-sm text-gray-400 dark:text-gray-500 italic pr-2">المنتجات التي ستضاف ستظهر هنا...</div>
-             )}
           </div>
 
           {/* Barcode Scanner UI (if active) */}
