@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { showSystemToast, confirmDialog } from "@/components/CustomToasts";
-import { Plus, Trash2, Save, FileText, Loader2, Download, History, Store, User, Edit, Calculator, Lock } from "lucide-react";
+import { Plus, Trash2, Save, FileText, Loader2, Download, History, Store, User, Edit, Calculator, Lock, Copy } from "lucide-react";
 import { motion } from "framer-motion";
 import InvoicePrintLayout from "./InvoicePrintLayout";
 import { useAuth } from "@/contexts/AuthContext";
@@ -58,6 +58,7 @@ export default function CustomInvoicesTab() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [generating, setGenerating] = useState(false);
   const [bulkInput, setBulkInput] = useState("");
+  const [copiedPrompt, setCopiedPrompt] = useState(false);
 
   useEffect(() => {
     const savedStore = localStorage.getItem("custom_invoice_store_v2");
@@ -162,6 +163,24 @@ export default function CustomInvoicesTab() {
       setItems([...items, ...newItems]);
       setBulkInput('');
     }
+  };
+
+  const handleCopyPrompt = () => {
+    const promptText = `لدي بيانات منتجات/مشتريات. أريدك أن تقوم بتحويل هذه البيانات إلى سطر نصي واحد فقط، متوافق مع الصيغة البرمجية التالية:
+[اسم السلعة] , [الوحدة] , [الكمية] , [السعر] ;
+
+القواعد التي يجب الالتزام بها بصرامة:
+1. افصل بين كل خانة وأخرى بفاصلة (,).
+2. افصل بين كل سطر (منتج) وآخر بفاصلة منقوطة (;).
+3. الترتيب إجباري: الاسم، ثم الوحدة، ثم الكمية، ثم السعر.
+4. نصيحة مهمة: إذا كانت هناك معلومة مفقودة (مثلاً لا توجد وحدة أو كمية)، اترك مكانها فارغاً مع الإبقاء على الفاصلة (مثال: شاي , , , 50 ;). هذا يضمن نزول البيانات في أعمدتها الصحيحة!
+5. لا تكتب أي مقدمات أو شروحات، أعطني النص المفرمت فقط لكي أقوم بنسخه مباشرة.
+
+إليك بيانات الجدول:
+[ضع جدولك أو النص هنا]`;
+    navigator.clipboard.writeText(promptText);
+    setCopiedPrompt(true);
+    setTimeout(() => setCopiedPrompt(false), 2000);
   };
 
   const addItem = () => {
@@ -463,6 +482,12 @@ export default function CustomInvoicesTab() {
                     className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold transition-colors flex items-center justify-center min-w-[100px]"
                   >
                     إضافة للجدول
+                  </button>
+                </div>
+                <div className="mt-3 flex justify-start">
+                  <button onClick={handleCopyPrompt} className="text-sm flex items-center gap-1.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 hover:bg-purple-200 dark:hover:bg-purple-900/50 px-4 py-2 rounded-lg transition-colors font-bold shadow-sm">
+                    <Copy className="h-4 w-4" />
+                    {copiedPrompt ? "تم نسخ البرومبت بنجاح!" : "توليد جداول و نسخ برومت"}
                   </button>
                 </div>
               </div>
