@@ -64,8 +64,10 @@ export default function ProductsPage() {
 
   useEffect(() => {
     if (scannedBarcode) {
-      if (pendingProducts.length > 0 || isAdding) {
-        // في وضع الإضافة، أضف المنتج للقائمة
+      const existing = products.find(p => p.product_number === scannedBarcode);
+      if (existing) {
+        setSearchTerm(scannedBarcode);
+      } else {
         if (!pendingProducts.some(p => p.product_number === scannedBarcode)) {
           setPendingProducts(prev => [...prev, {
             product_number: scannedBarcode,
@@ -76,14 +78,12 @@ export default function ProductsPage() {
             image_url: '',
             sale_type: 'unit'
           }]);
+          toast.success("باركود جديد! تم فتح نافذة الإضافة.");
         }
-      } else {
-        // في الوضع العادي، ابحث عن المنتج
-        setSearchTerm(scannedBarcode);
       }
       clearBarcode();
     }
-  }, [scannedBarcode, pendingProducts, isAdding]);
+  }, [scannedBarcode, products, pendingProducts]);
 
   const fetchProducts = async () => {
     setLoading(true);
@@ -95,6 +95,12 @@ export default function ProductsPage() {
   };
 
   const handleScanSuccess = (decodedText: string) => {
+    const existing = products.find(p => p.product_number === decodedText);
+    if (existing) {
+      toast.error("هذا المنتج موجود مسبقاً في النظام!");
+      setSearchTerm(decodedText);
+      return;
+    }
     if (pendingProducts.some(p => p.product_number === decodedText)) return;
     setPendingProducts(prev => [...prev, {
       product_number: decodedText,
@@ -105,7 +111,6 @@ export default function ProductsPage() {
       image_url: '',
       sale_type: 'unit'
     }]);
-    // Removed setIsScanning(false) so it keeps scanning
   };
 
   const updatePending = (index: number, field: keyof PendingProduct, value: string | number) => {
