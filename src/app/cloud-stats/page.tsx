@@ -129,7 +129,7 @@ export default function CloudStatsPage() {
   if (!mounted || !currentUser) return null;
 
   const maxImages = getCloudinaryMaxImages(currentUser);
-  const currentImages = images.length;
+  const currentImages = currentUser?.storage_used || 0;
   const percentage = Math.min((currentImages / maxImages) * 100, 100);
   const isNearLimit = percentage >= 80;
   const isLimitReached = percentage >= 100;

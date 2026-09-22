@@ -79,10 +79,18 @@ export default function SettingsPage() {
         body: formData
       });
       const data = await res.json();
-      if (data.secure_url) {
-        setStoreLogo(data.secure_url);
-        showSystemToast("تحديث بيانات", "تم رفع الشعار بنجاح.", "edit_user");
-      }
+        if (data.secure_url) {
+          const newLogoUrl = data.secure_url + "?v=" + new Date().getTime();
+          setStoreLogo(newLogoUrl);
+          
+          if (currentUser) {
+            await mainSupabase.from('app_accounts').update({ store_logo: newLogoUrl }).eq('id', currentUser.id);
+            const updatedUser = { ...currentUser, store_logo: newLogoUrl };
+            sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
+          }
+          
+          showSystemToast("تم رفع الشعار", "تم تحديث شعار المتجر بنجاح.", "edit_user");
+        }
     } catch (e) {
       toast.error("فشل رفع الشعار");
     } finally {
@@ -221,7 +229,14 @@ export default function SettingsPage() {
                         </div>
                         <div className="flex-1">
                           <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">الشعار الحالي</p>
-                          <button type="button" onClick={() => setStoreLogo('')} className="text-xs text-red-600 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 px-3 py-1.5 rounded-lg transition-colors font-bold">
+                          <button type="button" onClick={async () => {
+                              setStoreLogo('');
+                              if (currentUser) {
+                                await mainSupabase.from('app_accounts').update({ store_logo: null }).eq('id', currentUser.id);
+                                const updatedUser = { ...currentUser, store_logo: null };
+                                sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
+                              }
+                            }} className="text-xs text-red-600 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 px-3 py-1.5 rounded-lg transition-colors font-bold">
                             مسح الشعار (لرفع جديد)
                           </button>
                         </div>
@@ -428,23 +443,21 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <h3 className="text-lg font-bold">مساحة التخزين السحابية</h3>
-                      <p className="text-sm text-blue-100 mt-1">
-                        {currentUser?.plan_tier === 'PREMIUM' 
-                          ? `مستهلك: ${currentUser?.storage_used || 0} من 25,000 صورة (~25 جيجابايت)`
-                          : `مستهلك: ${currentUser?.storage_used || 0} من أصل 200 صورة (محدود)`}
+<p className="text-sm text-blue-100 mt-1">
+                        المستهلك: {currentUser?.storage_used || 0} صورة من أصل {getCloudinaryMaxImages(currentUser).toLocaleString()} صورة
                       </p>
                     </div>
                   <div className="mr-auto text-left flex flex-col items-end">
-                    <span className="text-3xl font-black">{Math.min(((currentUser?.storage_used || 0) / ((currentUser?.plan_tier === 'PREMIUM' ? 25000 : 200))) * 100, 100).toFixed(1)}%</span>
+                    <span className="text-3xl font-black">{Math.min(((currentUser?.storage_used || 0) / getCloudinaryMaxImages(currentUser)) * 100, 100).toFixed(1)}%</span>
                   </div>
               </div>
               <div className="w-full h-3 bg-white/20 rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all duration-700 ${
-                    ((currentUser?.storage_used || 0) / ((currentUser?.plan_tier === 'PREMIUM' ? 25000 : 200))) * 100 >= 100 ? 'bg-red-400' :
-                    ((currentUser?.storage_used || 0) / ((currentUser?.plan_tier === 'PREMIUM' ? 25000 : 200))) * 100 >= 80 ? 'bg-amber-400' : 'bg-white/80'
+                    ((currentUser?.storage_used || 0) / getCloudinaryMaxImages(currentUser)) * 100 >= 100 ? 'bg-red-400' :
+                    ((currentUser?.storage_used || 0) / getCloudinaryMaxImages(currentUser)) * 100 >= 80 ? 'bg-amber-400' : 'bg-white/80'
                   }`}
-                  style={{ width: `${Math.max(Math.min(((currentUser?.storage_used || 0) / ((currentUser?.plan_tier === 'PREMIUM' ? 25000 : 200))) * 100, 100), (currentUser?.storage_used || 0) > 0 ? 1.5 : 0)}%` }}
+                  style={{ width: `${Math.max(Math.min(((currentUser?.storage_used || 0) / getCloudinaryMaxImages(currentUser)) * 100, 100), (currentUser?.storage_used || 0) > 0 ? 1.5 : 0)}%` }}
                 />
               </div>
             </Link>
