@@ -4,7 +4,7 @@ import { showSystemToast } from '@/components/CustomToasts';
 
 import React, { useState, useEffect, useMemo } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { QrCode, Search, Trash2, Plus, Minus, Save, ShoppingCart, Loader2, X, ImagePlus, Camera, Package, Weight, Printer, ScanLine, Settings } from "lucide-react";
+import { QrCode, Search, Trash2, Pencil, Plus, Minus, Save, ShoppingCart, Loader2, X, ImagePlus, Camera, Package, Weight, Printer, ScanLine, Settings } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import ReceiptTemplate from "@/components/POS/ReceiptTemplate";

@@ -29,13 +29,13 @@ export function BarcodeProvider({ children }: { children: ReactNode }) {
       const currentTime = Date.now();
       
       // إذا كان الوقت بين الضغطات كبيراً، فهذه كتابة يدوية (نصفر المخزن)
-      if (currentTime - lastKeyTime > 50) {
+      if (currentTime - lastKeyTime > 300) {
         barcodeBuffer = "";
       }
       
       if (e.key === 'Enter') {
         // ماسح الباركود سريع جداً مقارنة بالكتابة اليدوية (أقل من 50 مللي ثانية بين الحروف)
-        if (barcodeBuffer.length >= 3 && (!isInput || currentTime - lastKeyTime <= 50)) {
+        if (barcodeBuffer.length >= 3 && (!isInput || currentTime - lastKeyTime <= 300)) {
           e.preventDefault(); // منع الإرسال التلقائي للنماذج إذا كنا داخل Input
           setScannedBarcode(barcodeBuffer);
           barcodeBuffer = "";

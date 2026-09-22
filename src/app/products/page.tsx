@@ -253,6 +253,14 @@ export default function ProductsPage() {
     setSaving(false);
   };
 
+  const handleManualBarcode = () => {
+    const code = window.prompt("أدخل الباركود يدوياً:");
+    if (code && code.trim() !== '') {
+      handleScanSuccess(code.trim());
+    }
+    setShowScanMenu(false);
+  };
+  
   const handleImageScan = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
