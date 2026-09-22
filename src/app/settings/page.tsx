@@ -61,12 +61,36 @@ export default function SettingsPage() {
   }, [currentUser]);
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
-    const file = e.target.files[0];
-    
-    setUploadingLogo(true);
-    try {
-      const cloudNameUsed = getCloudinaryCloudName(currentUser);
+      if (!e.target.files || e.target.files.length === 0) return;
+      const file = e.target.files[0];
+      
+      setUploadingLogo(true);
+      try {
+        const cloudNameUsed = getCloudinaryCloudName(currentUser);
+        const apiKeyUsed = getCloudinaryApiKey(currentUser);
+        const apiSecretUsed = getCloudinaryApiSecret(currentUser);
+        
+        // 1. Delete old logo first if it exists
+        if (storeLogo && storeLogo.includes('cloudinary.com')) {
+           try {
+              const parts = storeLogo.split('/upload/');
+              if (parts.length >= 2) {
+                 const withoutVersion = parts[1].replace(/^v\d+\//, '');
+                 const oldPublicId = withoutVersion.split('.')[0];
+                 await fetch('/api/cloudinary/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                       public_id: oldPublicId,
+                       cloud_name: cloudNameUsed,
+                       api_key: apiKeyUsed,
+                       api_secret: apiSecretUsed
+                    })
+                 });
+              }
+           } catch(err) { console.error('Failed to delete old logo before upload', err); }
+        }
+        
       const presetUsed = getCloudinaryUploadPreset(currentUser);
       const compressedFile = await compressImage(file, 500, compressionQuality);
       const formData = new FormData();
@@ -230,11 +254,41 @@ export default function SettingsPage() {
                         <div className="flex-1">
                           <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">الشعار الحالي</p>
                           <button type="button" onClick={async () => {
+                              const oldLogo = storeLogo;
                               setStoreLogo('');
                               if (currentUser) {
                                 await mainSupabase.from('app_accounts').update({ store_logo: null }).eq('id', currentUser.id);
                                 const updatedUser = { ...currentUser, store_logo: null };
                                 sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
+                                
+                                // Delete from Cloudinary if it's a cloudinary URL
+                                if (oldLogo && oldLogo.includes('cloudinary.com')) {
+                                  try {
+                                    const parts = oldLogo.split('/upload/');
+                                    if (parts.length >= 2) {
+                                      const path = parts[1];
+                                      const withoutVersion = path.replace(/^v\d+\//, '');
+                                      let publicId = withoutVersion.split('.')[0]; // remove extension
+                                      // Fix publicId extraction just in case
+                                      
+                                      const cloudName = getCloudinaryCloudName(currentUser);
+                                      const apiKey = getCloudinaryApiKey(currentUser);
+                                      const apiSecret = getCloudinaryApiSecret(currentUser);
+                                      
+                                      await fetch('/api/cloudinary/delete', {
+                                        method: 'POST',
+                                        headers: { 'Content-Type': 'application/json' },
+                                        body: JSON.stringify({
+                                          public_id: publicId,
+                                          cloud_name: cloudName,
+                                          api_key: apiKey,
+                                          api_secret: apiSecret
+                                        })
+                                      });
+                                    }
+                                  } catch(e) { console.error('Failed to delete logo from cloud', e); }
+                                }
+                                showSystemToast("تم مسح الشعار", "تم مسح الشعار القديم بنجاح.", "edit_user");
                               }
                             }} className="text-xs text-red-600 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 px-3 py-1.5 rounded-lg transition-colors font-bold">
                             مسح الشعار (لرفع جديد)
