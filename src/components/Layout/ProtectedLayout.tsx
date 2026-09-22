@@ -78,7 +78,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
           </div>
         )}
         <ChatNotificationsManager />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto p-4 md:p-6 lg:p-8 pb-20 md:pb-8">
+        <main className={`flex-1 overflow-x-hidden ${['/pos', '/products'].includes(pathname) ? 'overflow-y-hidden p-2 md:p-4' : 'overflow-y-auto p-4 md:p-6 lg:p-8'} pb-20 md:pb-8`}>
           <AnimatePresence mode="wait">
             <motion.div
               key={pathname}
@@ -86,7 +86,7 @@ export default function ProtectedLayout({ children }: { children: React.ReactNod
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
-              className="h-full"
+              className={`h-full ${['/pos', '/products'].includes(pathname) ? 'flex flex-col' : ''}`}
             >
               {children}
             </motion.div>

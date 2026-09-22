@@ -39,7 +39,7 @@ export default function Sidebar() {
   const { currentUser } = useAuth();
 
   return (
-    <div className={cn("hidden md:flex flex-col bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 h-full shadow-sm transition-all duration-300 relative", isCollapsed ? "w-20" : "w-64")}>
+    <div className={cn("hidden md:flex flex-col bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 h-full shadow-sm transition-all duration-300 relative", isCollapsed ? "w-20" : "w-52")}>
       <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200 dark:border-gray-700 overflow-hidden">
         <button onClick={() => setIsCollapsed(!isCollapsed)} className="focus:outline-none p-1 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex-shrink-0">
           {currentUser?.store_logo ? (

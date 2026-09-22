@@ -371,353 +371,186 @@ export default function ProductsPage() {
     setEditValue(String(currentValue));
   };
 
-  return (
-    <ProtectedLayout>
-      <div className="space-y-4 pb-12">
-
-        {/* العنوان وزر الإضافة */}
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">المنتجات</h1>
-          <motion.button
-            whileTap={{ scale: 0.95 }}
-            onClick={handleToggleAdding}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-colors font-bold text-base ${
-              isAdding
-                ? 'bg-red-500 hover:bg-red-600 text-white'
-                : 'bg-primary text-white hover:bg-primary/90'
-            }`}
-          >
-            {isAdding ? <X className="h-5 w-5" /> : <Plus className="h-5 w-5" />}
-            <span>{isAdding ? "إلغاء" : "إضافة"}</span>
-          </motion.button>
-        </div>
-
-        {/* تنبيه المخزون المنخفض */}
-        {lowStockProducts.length > 0 && (
-          <button
-            onClick={() => setShowLowStock(!showLowStock)}
-            className="w-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 flex items-center justify-between"
-          >
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-100 dark:bg-red-900/40 rounded-lg">
-                <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
-              </div>
-              <div className="text-right">
-                <p className="font-bold text-red-700 dark:text-red-400 text-base">{lowStockProducts.length} منتج مخزون منخفض</p>
-                <p className="text-xs text-red-500">اضغط للعرض</p>
-              </div>
-            </div>
-          </button>
-        )}
-
-        {showLowStock && lowStockProducts.length > 0 && (
-          <div className="space-y-2">
-            {lowStockProducts.map(p => (
-              <div key={p.id} className="bg-red-50 dark:bg-red-900/10 border border-red-100 dark:border-red-900/30 rounded-xl p-3 flex items-center justify-between">
-                <div>
-                  <p className="font-bold text-gray-900 dark:text-white text-base">{p.name}</p>
-                  <p className="text-sm text-gray-500">{p.product_number}</p>
+  ﻿return (
+      <ProtectedLayout>
+        <div className="flex flex-col h-full gap-4 pb-2">
+          
+          {/* Header Row: Title & Low Stock Alert in one compact line if possible, or just Search Bar */}
+          <div className="flex flex-col md:flex-row gap-3 justify-between items-center bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm shrink-0">
+             <div className="relative w-full md:w-1/2">
+                <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                  <Search className="h-4 w-4 text-gray-400" />
                 </div>
-                <span className="bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400 px-3 py-1 rounded-full text-sm font-bold">{p.quantity}</span>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* قسم الإضافة */}
-        {isAdding && (
-          <div className="space-y-3">
-            <div className="flex items-center gap-2 relative flex-wrap">
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={() => isScanning ? setIsScanning(false) : setShowScanMenu(!showScanMenu)}
-                className={`flex items-center gap-2 px-4 py-2.5 rounded-lg font-bold text-base transition-colors ${
-                  isScanning
-                    ? 'bg-red-500 hover:bg-red-600 text-white'
-                    : 'bg-primary/10 text-primary hover:bg-primary/20'
-                }`}
-              >
-                {isScanning ? <X className="h-5 w-5" /> : <QrCode className="h-5 w-5" />}
-                {isScanning ? "إيقاف" : "مسح"}
-              </motion.button>
-              
-              <motion.button
-                whileTap={{ scale: 0.95 }}
-                onClick={handleAddWithoutBarcode}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-lg font-bold text-base bg-amber-100 text-amber-700 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-400 dark:hover:bg-amber-900/50 transition-colors"
-              >
-                <Package className="h-5 w-5" />
-                إضافة بدون باركود
-              </motion.button>
-
-              {pendingProducts.length > 0 && (
-                <motion.button
-                  whileTap={{ scale: 0.95 }}
-                  onClick={saveAll}
-                  disabled={saving}
-                  className="flex items-center gap-2 px-4 py-2.5 rounded-lg font-bold text-base bg-green-600 hover:bg-green-700 text-white transition-colors disabled:opacity-50"
-                >
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
-                  حفظ الكل ({pendingProducts.length})
-                </motion.button>
-              )}
-
-              {showScanMenu && !isScanning && (
-                <div className="absolute top-full mt-2 left-0 w-64 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-2 flex flex-col gap-1">
-                  <label className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors">
-                    <div className="bg-blue-100 dark:bg-blue-900/50 p-2 rounded-full text-blue-600 dark:text-blue-400">
-                      <ImagePlus className="h-5 w-5" />
-                    </div>
-                    <span className="font-medium text-base text-gray-700 dark:text-gray-200">مسح من صورة</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
-                  </label>
-                  <button
-                    onClick={() => { setIsScanning(true); setShowScanMenu(false); }}
-                    className="flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right w-full"
-                  >
-                    <div className="bg-green-100 dark:bg-green-900/50 p-2 rounded-full text-green-600 dark:text-green-400">
-                      <Camera className="h-5 w-5" />
-                    </div>
-                    <span className="font-medium text-base text-gray-700 dark:text-gray-200">كاميرا المسح</span>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {isScanning && (
-              <div className="w-full bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden p-2 shadow-sm">
-                <BarcodeScanner
-                  onScanSuccess={handleScanSuccess}
-                  continuous={true}
+                <input
+                  type="text"
+                  placeholder="بحث عن منتج بالاسم أو الباركود..."
+                  className="w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white sm:text-sm text-right"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  dir="rtl"
                 />
-              </div>
-            )}
+             </div>
+             
+             {lowStockProducts.length > 0 && (
+                <button
+                  onClick={() => setShowLowStock(!showLowStock)}
+                  className="flex items-center gap-2 px-3 py-2 bg-red-50 text-red-600 rounded-lg border border-red-200 hover:bg-red-100 transition-colors text-sm font-bold shrink-0"
+                >
+                  <AlertTriangle className="h-4 w-4" />
+                  <span>تنبيه المخزون ({lowStockProducts.length})</span>
+                </button>
+             )}
+          </div>
 
-            {pendingProducts.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-base font-bold text-gray-500 dark:text-gray-400">
-                  منتجات جديدة ({pendingProducts.length})
-                </p>
-                {pendingProducts.map((p, index) => (
-                  <div key={index} className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
-                    <div className="flex justify-between items-center mb-3">
-                      <span className="text-sm font-mono bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-1 rounded flex items-center gap-1.5">
-                        <Package className="h-3.5 w-3.5" /> {p.product_number}
-                      </span>
-                      <button onClick={() => removePending(index)} className="text-gray-400 hover:text-red-500 transition-colors">
-                        <X className="h-5 w-5" />
+          {/* Pending Products & Add Buttons Row */}
+          <div className="flex gap-3 bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm shrink-0 items-center overflow-x-auto scrollbar-hide">
+             {/* The "Add Method" Button Dropdown */}
+             <div className="relative shrink-0">
+                <button onClick={() => setShowScanMenu(!showScanMenu)} className="flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-bold text-sm transition-colors shadow-sm">
+                   <Plus className="h-4 w-4" />
+                   إضافة منتج
+                </button>
+                {showScanMenu && (
+                   <div className="absolute top-full right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl p-2 flex flex-col gap-1 z-50">
+                      <button onClick={handleAddWithoutBarcode} className="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right w-full text-sm">
+                         <div className="bg-amber-100 p-1.5 rounded-full text-amber-600"><Package className="h-4 w-4" /></div>
+                         <span className="font-medium text-gray-700 dark:text-gray-200">بدون باركود</span>
                       </button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-2 mb-3">
-                      <div className="col-span-2 flex gap-3 mb-2">
-                        <div className="flex-1">
-                          <input
-                            type="text"
-                            placeholder="اسم المنتج *"
-                            className="w-full px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none"
-                            value={p.name}
-                            onChange={e => updatePending(index, 'name', e.target.value)}
-                          />
-                        </div>
-                        <div className="w-24 shrink-0">
-                          <label className="w-full h-full min-h-[48px] bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 border-dashed rounded-lg flex items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors overflow-hidden relative">
-                            {p.image_preview || p.image_url ? (
-                              <img src={p.image_preview || p.image_url} alt="" className="w-full h-full object-cover" />
-                            ) : uploadingImageIndex === index ? (
-                              <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
-                            ) : (
-                              <ImagePlus className="h-5 w-5 text-gray-400" />
-                            )}
-                            <input type="file" accept="image/*" className="hidden" onChange={(e) => { if (e.target.files?.[0]) handleImageSelectForProduct(e.target.files[0], index) }} />
-                          </label>
-                        </div>
-                      </div>
-                      {currentUser?.role !== 'SELLER' && (
-                          <input
-                            type="number"
-                            placeholder="سعر الشراء"
-                            className="px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none"
-                            value={p.purchase_price === 0 ? '' : p.purchase_price}
-                            onChange={e => updatePending(index, 'purchase_price', e.target.value)}
-                          />
-                        )}
-                      <input
-                          type="number"
-                          placeholder="سعر البيع"
-                          className={`${currentUser?.role === 'SELLER' ? 'col-span-2 ' : ''}px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none`}
-                        value={p.sale_price === 0 ? '' : p.sale_price}
-                        onChange={e => updatePending(index, 'sale_price', e.target.value)}
-                      />
-                      <input
-                        type="number"
-                        placeholder="الكمية / المخزون"
-                        className="px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none"
-                        value={p.quantity === 0 ? '' : p.quantity}
-                        onChange={e => updatePending(index, 'quantity', e.target.value)}
-                      />
-                      <select
-                        value={p.sale_type}
-                        onChange={e => updatePending(index, 'sale_type', e.target.value)}
-                        className="px-3 py-3 border rounded-lg text-base dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none"
-                      >
-                        <option value="unit">بالقطعة</option>
-                        <option value="weight">بالميزان (كغ)</option>
-                        <option value="volume">باللتر</option>
-                      </select>
-                    </div>
-                    <div className="flex justify-end">
-                      <motion.button
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => saveSingle(index)}
-                        disabled={saving}
-                        className="flex items-center gap-1 px-4 py-2.5 text-base bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 font-bold"
-                      >
-                        {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-                        حفظ
-                      </motion.button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* بحث */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4">
-          <div className="relative">
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="بحث عن منتج..."
-              className="w-full pl-3 pr-10 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* المنتجات على شكل بطاقات */}
-        {loading ? (
-          <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
-        ) : filteredProducts.length === 0 ? (
-          <div className="text-center py-12 text-gray-400 text-lg">لا توجد منتجات</div>
-        ) : (
-          <div className="space-y-3">
-            {filteredProducts.map(product => (
-              <div key={product.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-4 space-y-3">
-                {/* اسم المنتج + الرقم */}
-                <div className="flex items-start gap-3">
-                  <img src={product.image_url || currentUser?.store_logo || '/logo.png'} alt="" className="w-14 h-14 rounded-lg object-cover bg-gray-100 dark:bg-gray-700 shrink-0 border border-gray-200 dark:border-gray-600" />
-                  <div className="flex-1 min-w-0 flex justify-between items-start">
-                    <div className="flex-1 min-w-0 pr-2">
-                      {editingId === product.id && editField === 'name' ? (
-                        <div className="flex items-center gap-1 mb-1">
-                          <input autoFocus type="text" className="flex-1 px-3 py-1 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white focus:ring-1 focus:ring-primary outline-none" value={editValue} onChange={e => setEditValue(e.target.value)} />
-                          <button onClick={() => handleUpdateField(product.id, 'name')} className="p-1.5 text-green-600 hover:bg-green-50 rounded-lg"><Save className="h-4 w-4" /></button>
-                          <button onClick={() => { setEditingId(null); setEditField(null); }} className="p-1.5 text-gray-400 hover:bg-gray-100 rounded-lg"><X className="h-4 w-4" /></button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center gap-2 mb-1">
-                          <p className="font-bold text-lg text-gray-900 dark:text-white truncate">{product.name}</p>
-                          <button onClick={() => startEditField(product.id, 'name', product.name)} className="p-1 text-gray-300 hover:text-primary"><Pencil className="h-4 w-4" /></button>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-2 text-sm text-gray-400 font-mono">
-                        <span>{product.product_number.startsWith('NOBC') ? 'بدون باركود' : product.product_number}</span>
-                        {product.sale_type && (
-                          <span className="text-xs bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-0.5 rounded-full font-sans">
-                            {product.sale_type === 'weight' ? 'بالميزان' : product.sale_type === 'volume' ? 'باللتر' : 'بالقطعة'}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <button onClick={() => handleDelete(product.id)} className="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
-                      <Trash2 className="h-5 w-5" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* الأسعار والكمية */}
-                <div className={`grid gap-3 ${currentUser?.role === "SELLER" ? "grid-cols-2" : "grid-cols-3"}`}>
-                  {currentUser?.role !== 'SELLER' && (
-                      <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
-                        <p className="text-xs text-gray-400 mb-1">الشراء</p>
-                        {editingId === product.id && editField === 'purchase_price' ? (
-                          <div className="flex items-center gap-1">
-                            <input autoFocus type="number" className="w-full px-2 py-1 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none text-center" value={editValue} onChange={e => setEditValue(e.target.value)} />
-                            <button onClick={() => handleUpdateField(product.id, 'purchase_price')} className="p-1 text-green-600"><Save className="h-3.5 w-3.5" /></button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-center gap-1 group">
-                            <p className="font-bold text-base text-gray-700 dark:text-gray-300">{product.purchase_price} د.ج</p>
-                            <button onClick={() => startEditField(product.id, 'purchase_price', product.purchase_price)} className="p-1 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-primary"><Pencil className="h-3.5 w-3.5" /></button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
-                    <p className="text-xs text-gray-400 mb-1">البيع</p>
-                    {editingId === product.id && editField === 'sale_price' ? (
-                      <div className="flex items-center gap-1">
-                        <input autoFocus type="number" className="w-full px-2 py-1 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none text-center" value={editValue} onChange={e => setEditValue(e.target.value)} />
-                        <button onClick={() => handleUpdateField(product.id, 'sale_price')} className="p-1 text-green-600"><Save className="h-3.5 w-3.5" /></button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center gap-1">
-                        <p className="font-bold text-base text-gray-900 dark:text-white">{product.sale_price} د.ج</p>
-                        <button onClick={() => startEditField(product.id, 'sale_price', product.sale_price)} className="p-0.5 text-gray-300 hover:text-primary"><Pencil className="h-3 w-3" /></button>
-                      </div>
-                    )}
-                  </div>
-                  <div className="bg-gray-50 dark:bg-gray-700/30 rounded-lg p-3 text-center">
-                    <p className="text-xs text-gray-400 mb-1">الكمية</p>
-                    {editingId === product.id && editField === 'quantity' ? (
-                      <div className="flex items-center gap-1">
-                        <input autoFocus type="number" className="w-full px-2 py-1 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none text-center" value={editValue} onChange={e => setEditValue(e.target.value)} />
-                        <button onClick={() => handleUpdateField(product.id, 'quantity')} className="p-1 text-green-600"><Save className="h-3.5 w-3.5" /></button>
-                      </div>
-                    ) : (
-                      <div className="flex items-center justify-center gap-1">
-                        <span className={`px-2 py-0.5 rounded-full text-sm font-bold ${product.quantity > 10 ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'}`}>
-                          {product.quantity}
-                        </span>
-                        <button onClick={() => startEditField(product.id, 'quantity', product.quantity)} className="p-0.5 text-gray-300 hover:text-primary"><Pencil className="h-3 w-3" /></button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {currentUser?.role !== 'SELLER' && (
-                  <>
-                  {/* الربح */}
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
-                    <span className="text-sm text-gray-400">الربح:</span>
-                    <span className="font-bold text-green-600 dark:text-green-400 text-base">{product.sale_price - product.purchase_price} د.ج</span>
-                  </div>
-                  </>
+                      <button onClick={handleManualBarcode} className="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right w-full text-sm">
+                         <div className="bg-purple-100 p-1.5 rounded-full text-purple-600"><Pencil className="h-4 w-4" /></div>
+                         <span className="font-medium text-gray-700 dark:text-gray-200">إدخال يدوياً</span>
+                      </button>
+                      <label className="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors w-full text-sm">
+                         <div className="bg-blue-100 p-1.5 rounded-full text-blue-600"><ImagePlus className="h-4 w-4" /></div>
+                         <span className="font-medium text-gray-700 dark:text-gray-200">مسح من صورة</span>
+                         <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
+                      </label>
+                      <button onClick={() => { setIsScanning(true); setShowScanMenu(false); }} className="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right w-full text-sm">
+                         <div className="bg-green-100 p-1.5 rounded-full text-green-600"><Camera className="h-4 w-4" /></div>
+                         <span className="font-medium text-gray-700 dark:text-gray-200">كاميرا الجهاز</span>
+                      </button>
+                   </div>
                 )}
-              </div>
-            ))}
+             </div>
+
+             {/* Pending Products List */}
+             {pendingProducts.length > 0 && (
+                <div className="flex gap-2 items-center shrink-0 border-r border-gray-200 dark:border-gray-700 pr-3 mr-1">
+                   {pendingProducts.map((p, index) => (
+                      <div key={index} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-2 min-w-[200px] shadow-sm">
+                         <div className="flex flex-col gap-1 w-full">
+                           <div className="flex justify-between items-center">
+                             <span className="text-xs font-mono bg-gray-200 dark:bg-gray-700 px-1 rounded">{p.product_number}</span>
+                             <button onClick={() => removePending(index)} className="text-gray-400 hover:text-red-500"><X className="h-3 w-3" /></button>
+                           </div>
+                           <input type="text" placeholder="الاسم" value={p.name} onChange={e => updatePending(index, 'name', e.target.value)} className="w-full text-xs p-1.5 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary" dir="rtl" />
+                           <div className="flex gap-1">
+                             <input type="number" placeholder="شراء" value={p.purchase_price || ''} onChange={e => updatePending(index, 'purchase_price', Number(e.target.value))} className="w-1/3 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary" dir="ltr" />
+                             <input type="number" placeholder="بيع" value={p.sale_price || ''} onChange={e => updatePending(index, 'sale_price', Number(e.target.value))} className="w-1/3 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary" dir="ltr" />
+                             <input type="number" placeholder="كمية" value={p.quantity || ''} onChange={e => updatePending(index, 'quantity', Number(e.target.value))} className="w-1/3 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary" dir="ltr" />
+                           </div>
+                         </div>
+                      </div>
+                   ))}
+                   <button onClick={saveAll} disabled={saving} className="flex items-center gap-1 bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg font-bold text-sm shrink-0 shadow-sm mx-2">
+                      {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                      حفظ ({pendingProducts.length})
+                   </button>
+                </div>
+             )}
+             
+             {pendingProducts.length === 0 && (
+                <div className="text-sm text-gray-400 dark:text-gray-500 italic pr-2">المنتجات التي ستضاف ستظهر هنا...</div>
+             )}
           </div>
-        )}
 
-        {/* Footer */}
-        <div className="pt-8 pb-4 text-center">
-          <a href="/contact" className="inline-block text-sm font-bold text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary transition-colors cursor-pointer py-6 my-4 border-t border-gray-200 dark:border-gray-800 w-full">©LAISSAOUI-DEV-DZ</a>
+          {/* Barcode Scanner UI (if active) */}
+          {isScanning && (
+            <div className="w-full bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden p-2 shadow-sm shrink-0 flex flex-col items-center justify-center relative">
+              <button onClick={() => setIsScanning(false)} className="absolute top-2 left-2 bg-red-50 hover:bg-red-100 text-red-500 p-1.5 rounded-lg transition-colors z-10"><X className="h-5 w-5" /></button>
+              <BarcodeScanner onScanSuccess={handleScanSuccess} continuous={true} />
+            </div>
+          )}
+
+          {/* Main Table Area */}
+          <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col">
+             {loading ? (
+                <div className="flex-1 flex justify-center items-center"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+             ) : (
+                <div className="flex-1 overflow-y-auto">
+                   <table className="w-full text-right border-collapse">
+                      <thead className="bg-gray-50 dark:bg-gray-900/50 sticky top-0 z-10 shadow-sm">
+                         <tr>
+                            <th className="p-2 text-xs font-bold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700 w-12 text-center">صورة</th>
+                            <th className="p-2 text-xs font-bold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">الباركود</th>
+                            <th className="p-2 text-xs font-bold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">الاسم</th>
+                            <th className="p-2 text-xs font-bold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700 w-16 text-center">الكمية</th>
+                            <th className="p-2 text-xs font-bold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700 w-24">شراء</th>
+                            <th className="p-2 text-xs font-bold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700 w-24">بيع</th>
+                            <th className="p-2 text-xs font-bold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700 w-20 text-center">نوع</th>
+                            <th className="p-2 text-xs font-bold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700 w-16 text-center">إجراء</th>
+                         </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                         {(showLowStock ? lowStockProducts : filteredProducts).map(p => (
+                            <tr key={p.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                               <td className="p-1 border-b border-gray-100 dark:border-gray-800 text-center">
+                                  {p.image_url ? <img src={p.image_url} alt={p.name} className="w-8 h-8 object-cover rounded bg-white border inline-block" /> : <div className="w-8 h-8 rounded bg-gray-100 dark:bg-gray-800 inline-flex items-center justify-center border border-gray-200 dark:border-gray-700"><Package className="h-4 w-4 text-gray-400" /></div>}
+                               </td>
+                               <td className="p-2 border-b border-gray-100 dark:border-gray-800 text-xs font-mono text-gray-600 dark:text-gray-400">{p.product_number}</td>
+                               <td className="p-2 border-b border-gray-100 dark:border-gray-800 text-sm font-bold text-gray-900 dark:text-white">
+                                  {editingId === p.id && editField === 'name' ? (
+                                    <input type="text" autoFocus value={editValue} onChange={e=>setEditValue(e.target.value)} onBlur={()=>handleUpdateField(p.id, 'name')} onKeyDown={e=>{if(e.key==='Enter') handleUpdateField(p.id, 'name')}} className="w-full text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" dir="rtl" />
+                                  ) : (
+                                    <span onClick={()=>startEditField(p.id, 'name', p.name)} className="cursor-pointer border-b border-dashed border-gray-300 hover:border-primary">{p.name}</span>
+                                  )}
+                               </td>
+                               <td className="p-2 border-b border-gray-100 dark:border-gray-800 text-sm text-center">
+                                  {editingId === p.id && editField === 'quantity' ? (
+                                    <input type="number" autoFocus value={editValue} onChange={e=>setEditValue(e.target.value)} onBlur={()=>handleUpdateField(p.id, 'quantity')} onKeyDown={e=>{if(e.key==='Enter') handleUpdateField(p.id, 'quantity')}} className="w-full text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center" dir="ltr" />
+                                  ) : (
+                                    <span onClick={()=>startEditField(p.id, 'quantity', p.quantity)} className={`cursor-pointer font-bold px-2 py-0.5 rounded text-xs ${p.quantity < 10 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>{p.quantity}</span>
+                                  )}
+                               </td>
+                               <td className="p-2 border-b border-gray-100 dark:border-gray-800 text-sm text-gray-600 dark:text-gray-300 font-mono">
+                                  {editingId === p.id && editField === 'purchase_price' ? (
+                                    <input type="number" autoFocus value={editValue} onChange={e=>setEditValue(e.target.value)} onBlur={()=>handleUpdateField(p.id, 'purchase_price')} onKeyDown={e=>{if(e.key==='Enter') handleUpdateField(p.id, 'purchase_price')}} className="w-full text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center" dir="ltr" />
+                                  ) : (
+                                    <span onClick={()=>startEditField(p.id, 'purchase_price', p.purchase_price)} className="cursor-pointer border-b border-dashed border-gray-300 hover:border-primary">{p.purchase_price} د.ج</span>
+                                  )}
+                               </td>
+                               <td className="p-2 border-b border-gray-100 dark:border-gray-800 text-sm text-primary font-bold font-mono">
+                                  {editingId === p.id && editField === 'sale_price' ? (
+                                    <input type="number" autoFocus value={editValue} onChange={e=>setEditValue(e.target.value)} onBlur={()=>handleUpdateField(p.id, 'sale_price')} onKeyDown={e=>{if(e.key==='Enter') handleUpdateField(p.id, 'sale_price')}} className="w-full text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center" dir="ltr" />
+                                  ) : (
+                                    <span onClick={()=>startEditField(p.id, 'sale_price', p.sale_price)} className="cursor-pointer border-b border-dashed border-primary hover:text-primary-hover">{p.sale_price} د.ج</span>
+                                  )}
+                               </td>
+                               <td className="p-2 border-b border-gray-100 dark:border-gray-800 text-xs text-gray-500 text-center">
+                                  {p.sale_type === 'weight' ? 'ميزان' : 'وحدة'}
+                               </td>
+                               <td className="p-2 border-b border-gray-100 dark:border-gray-800 text-center">
+                                  <button onClick={() => handleDelete(p.id)} className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 className="h-4 w-4" /></button>
+                               </td>
+                            </tr>
+                         ))}
+                         {(showLowStock ? lowStockProducts : filteredProducts).length === 0 && (
+                            <tr>
+                              <td colSpan={8} className="p-8 text-center text-gray-400 text-sm">
+                                لا توجد منتجات مطابقة للبحث.
+                              </td>
+                            </tr>
+                         )}
+                      </tbody>
+                   </table>
+                </div>
+             )}
+          </div>
+          
+          <div id="hidden-qr-reader" className="hidden"></div>
         </div>
-
-        <div id="hidden-qr-reader" className="hidden"></div>
-      </div>
-      
-      <CloudinarySetupModal 
-        isOpen={showCloudinaryModal} 
-        onClose={() => setShowCloudinaryModal(false)} 
-        onSuccess={() => setShowCloudinaryModal(false)} 
-      />
-    </ProtectedLayout>
-  );
+        
+        <CloudinarySetupModal isOpen={showCloudinaryModal} onClose={() => setShowCloudinaryModal(false)} onSuccess={() => setShowCloudinaryModal(false)} />
+      </ProtectedLayout>
+    );
 }
-

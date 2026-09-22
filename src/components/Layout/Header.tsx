@@ -30,7 +30,7 @@ export default function Header() {
   };
 
   return (
-    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-16 flex items-center justify-end px-4 sm:px-6 z-10 shadow-sm">
+    <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 h-14 flex items-center justify-end px-4 sm:px-6 z-10 shadow-sm">
       <div className="flex-1 flex justify-end items-center gap-2 sm:gap-4">
         <div className="flex items-center gap-1">
           <button
