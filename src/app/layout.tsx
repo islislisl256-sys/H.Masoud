@@ -40,6 +40,7 @@ export default function RootLayout({
             </AuthProvider>
           </PwaGuard>
         </ThemeProvider>
+        <PwaRegister />
       </body>
     </html>
   );
