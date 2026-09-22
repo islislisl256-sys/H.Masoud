@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { BookOpen, AlertOctagon, Phone, Briefcase, ArrowRight, Monitor, Smartphone, Apple } from "lucide-react";
+import { BookOpen, AlertOctagon, Phone, Briefcase, ArrowRight, Monitor, Smartphone, Apple } , Apple, Smartphone } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { mainSupabase } from "@/lib/supabase";
 
@@ -215,6 +215,32 @@ const handleBackToStep2 = async () => {
               {isLoading ? 'جاري التحقق...' : 'متابعة'}
             </button>
           </form>
+        )}
+
+        
+        {step === 1 && (
+          <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800">
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 text-center mb-4">تطبيقات الهواتف</h3>
+            <div className="flex gap-3">
+              <a 
+                href="/hanutak.ipa" 
+                download
+                className="flex-1 flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
+              >
+                <Apple className="w-6 h-6 mb-2 text-gray-900 dark:text-gray-100" />
+                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">تطبيق الآيفون</span>
+              </a>
+              
+              <a 
+                href="/hanutak.apk" 
+                download
+                className="flex-1 flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
+              >
+                <Smartphone className="w-6 h-6 mb-2 text-green-600" />
+                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">تطبيق الأندرويد</span>
+              </a>
+            </div>
+          </div>
         )}
 
         {step === 2 && (
