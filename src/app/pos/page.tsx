@@ -4,7 +4,7 @@ import { showSystemToast } from '@/components/CustomToasts';
 
 import React, { useState, useEffect, useMemo } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { QrCode, Search, Trash2, Pencil, Plus, Minus, Save, ShoppingCart, Loader2, X, ImagePlus, Camera, Package, Weight, Printer, ScanLine, Settings } from "lucide-react";
+import { QrCode, Search, Trash2, Pencil, Plus, Minus, Save, ShoppingCart, Loader2, X, ImagePlus, Camera, Package, Weight, Printer, ScanLine, Settings, ChevronLeft, ChevronRight } from "lucide-react";
 import { Html5Qrcode } from "html5-qrcode";
 import BarcodeScanner from "@/components/Scanner/BarcodeScanner";
 import ReceiptTemplate from "@/components/POS/ReceiptTemplate";
@@ -273,212 +273,215 @@ export default function POSPage() {
     );
   }
 
-  const quickProducts = products.filter(p => p.image_url || p.product_number.startsWith('NOBC'));
-  const weightProducts = products.filter(p => p.sale_type === 'weight' || p.sale_type === 'volume');
-
   return (
     <ProtectedLayout>
-      <div className="space-y-4 pb-24 transition-colors duration-500">
-        
-        <div className="flex flex-wrap items-center justify-end gap-3 bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-          <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900/50 p-1.5 rounded-lg border border-gray-200 dark:border-gray-700">
-            <Settings className="h-4 w-4 text-gray-500 ml-1" />
-            <span className="text-xs font-bold text-gray-600 dark:text-gray-400">حجم الطابعة:</span>
-            <button onClick={() => setPrinterSize('58mm')} className={`px-3 py-1 text-xs font-bold rounded-md ${printerSize === '58mm' ? 'bg-primary text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800'}`}>58mm</button>
-            <button onClick={() => setPrinterSize('80mm')} className={`px-3 py-1 text-xs font-bold rounded-md ${printerSize === '80mm' ? 'bg-primary text-white' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-800'}`}>80mm</button>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+      <div className="flex flex-col h-full gap-2 pb-2">
+        {/* Row 1: Carts Navigation */}
+        <div className="flex gap-2 bg-white dark:bg-gray-800 p-2 rounded-xl border border-gray-200 dark:border-gray-700 overflow-x-auto scrollbar-hide shadow-sm shrink-0">
           {carts.map(cart => (
             <button
               key={cart.id}
               onClick={() => setActiveCartId(cart.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold whitespace-nowrap transition-colors ${
-                activeCartId === cart.id 
-                  ? 'bg-primary text-white shadow-md' 
-                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700'
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm whitespace-nowrap transition-colors ${
+                activeCartId === cart.id
+                  ? 'bg-primary text-white shadow-md'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
               }`}
             >
               <ShoppingCart className="h-4 w-4" />
               {cart.name}
-              {cart.items.length > 0 && (
-                <span className={`px-2 py-0.5 rounded-full text-xs ${activeCartId === cart.id ? 'bg-white/20' : 'bg-gray-200 dark:bg-gray-600'}`}>
-                  {cart.items.length}
-                </span>
-              )}
+              {cart.items.length > 0 && <span className="bg-white/30 text-[10px] px-1.5 rounded-full">{cart.items.length}</span>}
               {carts.length > 1 && (
-                <div onClick={(e) => { e.stopPropagation(); closeCart(cart.id); }} className="p-0.5 hover:bg-red-500 hover:text-white rounded-full ml-1">
+                <span
+                  onClick={(e) => { e.stopPropagation(); closeCart(cart.id); }}
+                  className={`ml-1 p-0.5 rounded-full hover:bg-black/20 ${activeCartId === cart.id ? 'text-white/70' : 'text-gray-400'}`}
+                >
                   <X className="h-3 w-3" />
-                </div>
+                </span>
               )}
             </button>
           ))}
-          <button onClick={createNewCart} className="flex items-center gap-1 px-3 py-2.5 rounded-xl font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 hover:bg-green-200 dark:hover:bg-green-900/50 transition-colors whitespace-nowrap border border-green-200 dark:border-green-900/50">
-            <Plus className="h-4 w-4" /> فاتورة جديدة
+          <button
+            onClick={createNewCart}
+            className="flex items-center gap-1 px-3 py-2 rounded-lg font-bold text-sm bg-green-50 text-green-600 hover:bg-green-100 border border-green-200 transition-colors shrink-0"
+          >
+            <Plus className="h-4 w-4" /> جديد
           </button>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-3 relative">
-          <div className="relative z-10">
-            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-gray-400" />
-            </div>
-            <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="بحث سريع بالاسم أو الباركود يدوياً..." className="w-full pl-3 pr-10 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white" onKeyDown={handleManualSearch} />
-          </div>
-          {searchQuery.trim() && searchResults.length > 0 && (
-            <div className="absolute top-full right-0 left-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-20 max-h-60 overflow-y-auto">
-              {searchResults.map(p => (
-                <button key={p.id} onClick={() => { addProduct(p); setSearchQuery(""); }} className="w-full text-right px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-0 flex justify-between items-center">
-                  <div>
-                    <p className="font-bold text-gray-900 dark:text-white">{p.name}</p>
-                    <p className="text-xs text-gray-500">{p.product_number}</p>
-                  </div>
-                  <span className="font-bold text-primary">{p.sale_price} د.ج</span>
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {quickProducts.length > 0 && (
-          <div>
-            <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-2 px-1">المنتجات السريعة</h3>
-            <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-hide">
-              {quickProducts.map(p => (
-                <button key={p.id} onClick={() => addProduct(p)} className="relative flex-shrink-0 w-28 h-32 flex flex-col items-center justify-end p-2 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:border-primary transition-colors active:scale-95 overflow-hidden bg-white dark:bg-gray-800">
-                  {p.image_url ? (
-                    <>
-                      <img src={p.image_url} alt={p.name} className="absolute inset-0 w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                      <div className="relative z-10 w-full text-center">
-                        <p className="font-bold text-white text-sm truncate">{p.name}</p>
-                        <p className="text-xs text-blue-300 font-bold mt-0.5">{p.sale_price} د.ج</p>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="w-full flex-1 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center mb-2"><Package className="h-8 w-8 text-gray-400" /></div>
-                      <div className="w-full text-center"><p className="font-bold text-gray-900 dark:text-white text-sm truncate">{p.name}</p><p className="text-xs text-primary font-bold mt-0.5">{p.sale_price} د.ج</p></div>
-                    </>
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {weightProducts.length > 0 && (
-          <div>
-            <h3 className="text-sm font-bold text-gray-500 dark:text-gray-400 mb-2 px-1">الميزان واللتر</h3>
-            <div className="flex overflow-x-auto gap-3 pb-2 scrollbar-hide">
-              {weightProducts.map(p => (
-                <button key={p.id} onClick={() => addProduct(p)} className="flex-shrink-0 flex items-center gap-3 bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm hover:border-amber-500 transition-colors active:scale-95 pr-4 pl-6">
-                  <div className="bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 p-2 rounded-lg"><Weight className="h-6 w-6" /></div>
-                  <div className="text-right"><p className="font-bold text-gray-900 dark:text-white text-base">{p.name}</p><p className="text-xs text-gray-500">{p.sale_type === 'weight' ? 'بالكيلوغرام' : 'باللتر'} • <span className="text-primary font-bold">{p.sale_price} د.ج</span></p></div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        <div className={`w-full flex flex-col bg-white dark:bg-gray-800 rounded-xl shadow-sm border overflow-hidden mt-4 border-gray-200 dark:border-gray-700`}>
-          {isScanning && (
-            <div className="w-full border-b border-gray-200 dark:border-gray-700 bg-black/5 dark:bg-white/5 py-4 px-4">
-              <BarcodeScanner onScanSuccess={handleScanSuccess} continuous={true} />
-            </div>
-          )}
-          
-          <div className="overflow-y-auto p-4 space-y-3 min-h-[200px] max-h-[50vh]">
-            {invoiceItems.length === 0 ? (
-              <div className="h-48 flex flex-col items-center justify-center text-gray-400 dark:text-gray-500">
-                <ShoppingCart className="h-16 w-16 mb-3 opacity-20" />
-                <p className="text-lg">السلة فارغة</p>
-                <p className="text-sm mt-1">امسح منتج أو اختر من القائمة للبدء</p>
+        {/* Row 2: Search Bar & Total Price */}
+        <div className="flex flex-col md:flex-row gap-3 items-center bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm shrink-0">
+          <div className="flex-1 flex items-center gap-2 w-full md:w-auto">
+            <div className="relative flex-1">
+              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-gray-400" />
               </div>
-            ) : (
-              invoiceItems.map(item => (
-                <div key={item.id} className="flex flex-col gap-2 p-4 border rounded-lg border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-700/20">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="font-bold text-gray-900 dark:text-white text-lg">{item.name}</span>
-                      {item.sale_type === 'weight' || item.sale_type === 'volume' ? <span className="inline-block mx-2 text-xs bg-amber-100 text-amber-700 px-2 rounded-full">ميزان</span> : null}
-                    </div>
-                    <button onClick={() => removeItem(item.id)} className="text-gray-400 hover:text-red-500 p-1"><Trash2 className="h-5 w-5" /></button>
-                  </div>
-                  <div className="flex justify-between items-center mt-1">
-                    <span className="text-primary font-bold text-xl">{item.sale_price} د.ج</span>
-                    <div className="flex items-center gap-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg px-4 py-2">
-                      <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"><Minus className="h-5 w-5" /></button>
-                      <input type="number" step={item.sale_type === 'weight' || item.sale_type === 'volume' ? "0.01" : "1"} value={item.quantity} onChange={(e) => updateQuantity(item.id, parseFloat(e.target.value) || 0)} className="w-16 text-center text-lg font-bold text-gray-900 dark:text-white bg-transparent outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" />
-                      <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"><Plus className="h-5 w-5" /></button>
-                    </div>
-                  </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400 text-left mt-1 border-t border-dashed border-gray-200 dark:border-gray-600 pt-2">
-                    المجموع: <span className="font-bold text-gray-900 dark:text-white">{(item.sale_price * item.quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} د.ج</span>
-                  </div>
+              <input
+                type="text"
+                placeholder="ابحث عن منتج..."
+                className="w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white sm:text-sm text-right font-mono"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={handleManualSearch}
+                dir="rtl"
+              />
+              {searchResults.length > 0 && searchQuery && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 max-h-40 overflow-y-auto">
+                  {searchResults.map(p => (
+                    <button key={p.id} onClick={() => { addProduct(p); setSearchQuery(''); }} className="w-full flex items-center gap-2 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 text-right text-sm border-b last:border-b-0 border-gray-100 dark:border-gray-700">
+                      {p.image_url ? <img src={p.image_url} className="w-6 h-6 rounded object-cover" /> : <Package className="h-4 w-4 text-gray-400" />}
+                      <span className="flex-1 font-bold text-gray-800 dark:text-gray-200 truncate">{p.name}</span>
+                      <span className="text-primary font-bold text-xs">{p.sale_price} د.ج</span>
+                    </button>
+                  ))}
                 </div>
-              ))
-            )}
-          </div>
-
-          <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 space-y-4">
-            <div className="flex justify-between items-center text-xl font-bold text-gray-900 dark:text-white">
-              <span>الإجمالي:</span>
-              <div className="flex items-center gap-2">
-                <input type="number" value={customTotal !== "" ? customTotal : calculatedTotal} onChange={(e) => setCustomTotal(e.target.value)} className="w-32 text-left text-xl font-bold bg-transparent border-b-2 outline-none px-1 py-0.5 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-primary border-primary/30 focus:border-primary" />
-                <span className="text-primary text-base">د.ج</span>
-              </div>
+              )}
             </div>
-            
-            <div className="flex justify-between items-center text-lg font-bold border-b border-dashed border-gray-300 dark:border-gray-600 pb-3">
-              <span className="text-green-600 dark:text-green-400">الربح:</span>
-              <span className="text-green-600 dark:text-green-400">{activeProfit.toLocaleString(undefined, { maximumFractionDigits: 2 })} د.ج</span>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-3 mt-4">
-              <motion.button whileTap={{ scale: 0.95 }} onClick={() => saveInvoice(true)} disabled={invoiceItems.length === 0 || saving} className="w-full flex items-center justify-center gap-2 text-white py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-lg shadow-md bg-primary hover:bg-primary-hover">
-                {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Printer className="h-5 w-5" />}
-                {saving ? "جاري..." : "بيع وطباعة فاتورة"}
-              </motion.button>
-              <motion.button whileTap={{ scale: 0.95 }} onClick={() => saveInvoice(false)} disabled={invoiceItems.length === 0 || saving} className="w-full flex items-center justify-center gap-2 text-white py-4 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-bold text-base shadow-md bg-gray-800 dark:bg-gray-700 hover:bg-gray-900 dark:hover:bg-gray-600">
-                {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <Save className="h-5 w-5" />}
-                {saving ? "جاري..." : "تسجيل بيع من غير طباعة"}
-              </motion.button>
-            </div>
-          </div>
-        </div>
-
-        <div className="pt-8 pb-4 text-center">
-          <a href="/contact" className="inline-block text-sm font-bold text-gray-500 hover:text-primary dark:text-gray-400 dark:hover:text-primary transition-colors cursor-pointer py-6 my-4 border-t border-gray-200 dark:border-gray-800 w-full">©LAISSAOUI-DEV-DZ</a>
-        </div>
-      </div>
-
-      <div className="fixed bottom-20 md:bottom-6 right-6 z-50 flex flex-col items-center">
-        {showScanMenu && !isScanning && (
-          <div className="mb-4 flex flex-col gap-3 origin-bottom animate-in fade-in slide-in-from-bottom-4 items-center">
-            <button onClick={() => { setHardwareScannerActive(!hardwareScannerActive); setShowScanMenu(false); }} className={`flex items-center justify-center w-12 h-12 rounded-full shadow-lg transition-transform hover:scale-110 ${hardwareScannerActive ? 'bg-primary text-white' : 'bg-gray-500 text-white'}`} title={hardwareScannerActive ? "إيقاف استشعار الماسح اليدوي (USB)" : "تفعيل استشعار الماسح اليدوي (USB)"}>
+            <button onClick={() => setHardwareScannerActive(!hardwareScannerActive)} className={`p-2 rounded-lg transition-colors ${hardwareScannerActive ? 'bg-primary text-white' : 'bg-gray-200 text-gray-600 dark:bg-gray-700 dark:text-gray-400'}`} title="USB Scanner">
                <ScanLine className="h-5 w-5" />
             </button>
-            <label className="flex items-center justify-center w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg cursor-pointer transition-transform hover:scale-110" title="رفع صورة فيها باركود">
+            <button onClick={() => setIsScanning(!isScanning)} className={`p-2 rounded-lg transition-colors ${isScanning ? 'bg-red-500 text-white' : 'bg-green-500 text-white hover:bg-green-600'}`}>
+               {isScanning ? <X className="h-5 w-5" /> : <Camera className="h-5 w-5" />}
+            </button>
+            <label className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 cursor-pointer">
                <ImagePlus className="h-5 w-5" />
                <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
             </label>
-            <button onClick={() => { setIsScanning(true); setShowScanMenu(false); }} className="flex items-center justify-center w-12 h-12 bg-green-500 hover:bg-green-600 text-white rounded-full shadow-lg transition-transform hover:scale-110" title="تشغيل الكاميرا للمسح">
-               <Camera className="h-5 w-5" />
-            </button>
+          </div>
+          <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 shrink-0">
+            <span className="text-sm font-bold text-gray-500 dark:text-gray-400">الإجمالي:</span>
+            <input 
+               type="number" 
+               value={customTotal !== "" ? customTotal : calculatedTotal} 
+               onChange={(e) => setCustomTotal(e.target.value)} 
+               className="w-24 bg-transparent border-b-2 border-primary outline-none text-xl font-bold text-primary text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+               dir="ltr"
+            />
+            <span className="text-primary font-bold text-sm">د.ج</span>
+          </div>
+        </div>
+
+        {/* Scanner view */}
+        {isScanning && (
+          <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden p-2 shadow-sm shrink-0 flex items-center justify-center">
+            <BarcodeScanner onScanSuccess={handleScanSuccess} continuous={true} />
           </div>
         )}
-        <motion.button whileTap={{ scale: 0.95 }} onClick={() => isScanning ? setIsScanning(false) : setShowScanMenu(!showScanMenu)} className={`w-16 h-16 rounded-full shadow-2xl flex items-center justify-center transition-all duration-300 active:scale-90 ${isScanning ? "bg-red-500 hover:bg-red-600 shadow-red-500/30" : "bg-primary hover:bg-primary-hover shadow-primary/30"}`}>
-          {isScanning ? <X className="h-7 w-7 text-white" /> : <QrCode className="h-7 w-7 text-white" />}
-        </motion.button>
+
+        {/* Row 3: Quick Products Horizontal Slider */}
+        <div className="bg-white dark:bg-gray-800 p-2 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm shrink-0 flex items-center">
+           <button onClick={() => document.getElementById('quick-products')?.scrollBy({ left: -200, behavior: 'smooth' })} className="p-1.5 text-gray-400 hover:text-primary bg-white/80 dark:bg-gray-800/80 rounded-full shrink-0">
+              <ChevronRight className="h-5 w-5" />
+           </button>
+           <div id="quick-products" className="flex-1 flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth px-1">
+              {products.filter(p => !p.product_number || p.product_number.trim() === '' || p.product_number.startsWith('NOBC') || p.image_url).map(p => (
+                 <button key={p.id} onClick={() => addProduct(p)} className="flex items-center gap-2 bg-gray-50 hover:bg-primary/10 dark:bg-gray-700 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-lg p-1.5 min-w-[130px] max-w-[150px] transition-colors shrink-0">
+                    {p.image_url ? (
+                       <img src={p.image_url} alt={p.name} className="w-8 h-8 rounded object-cover border bg-white shrink-0" />
+                    ) : (
+                       <div className="w-8 h-8 rounded bg-gray-200 dark:bg-gray-800 flex items-center justify-center shrink-0 border">
+                          <Package className="h-4 w-4 text-gray-400" />
+                       </div>
+                    )}
+                    <div className="flex flex-col text-right overflow-hidden">
+                       <span className="text-xs font-bold truncate text-gray-800 dark:text-gray-200">{p.name}</span>
+                       <span className="text-[10px] text-primary font-bold">{p.sale_price} د.ج</span>
+                    </div>
+                 </button>
+              ))}
+              {products.length === 0 && <span className="text-xs text-gray-400 p-2">لا توجد منتجات...</span>}
+           </div>
+           <button onClick={() => document.getElementById('quick-products')?.scrollBy({ left: 200, behavior: 'smooth' })} className="p-1.5 text-gray-400 hover:text-primary bg-white/80 dark:bg-gray-800/80 rounded-full shrink-0">
+              <ChevronLeft className="h-5 w-5" />
+           </button>
+        </div>
+
+        {/* Row 4: Cart Items Table */}
+        <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col min-h-0">
+          <div className="flex-1 overflow-y-auto">
+             <table className="w-full text-right border-collapse">
+                <thead className="bg-gray-50 dark:bg-gray-900/50 sticky top-0 z-10 shadow-sm">
+                   <tr>
+                      <th className="p-1.5 text-[11px] font-bold text-gray-500 border-b w-10 text-center">صورة</th>
+                      <th className="p-1.5 text-[11px] font-bold text-gray-500 border-b">المنتج</th>
+                      <th className="p-1.5 text-[11px] font-bold text-gray-500 border-b w-16 text-center">السعر</th>
+                      <th className="p-1.5 text-[11px] font-bold text-gray-500 border-b w-24 text-center">الكمية</th>
+                      <th className="p-1.5 text-[11px] font-bold text-gray-500 border-b w-20 text-center">المجموع</th>
+                      <th className="p-1.5 text-[11px] font-bold text-gray-500 border-b w-10"></th>
+                   </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                   {invoiceItems.map(item => (
+                      <tr key={item.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                         <td className="p-1 text-center align-middle">
+                            <div className="w-7 h-7 rounded bg-gray-100 dark:bg-gray-700 mx-auto flex items-center justify-center border"><Package className="h-3 w-3 text-gray-400" /></div>
+                         </td>
+                         <td className="p-1.5 text-xs font-bold text-gray-800 dark:text-gray-200">
+                            <div className="leading-tight">{item.name}</div>
+                            {(item.sale_type === 'weight' || item.sale_type === 'volume') && <span className="text-[9px] text-amber-600 bg-amber-50 px-1 rounded">ميزان</span>}
+                         </td>
+                         <td className="p-1.5 text-xs font-mono text-center text-gray-600 dark:text-gray-400">{item.sale_price}</td>
+                         <td className="p-1.5 text-center">
+                            <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded overflow-hidden border border-gray-200 dark:border-gray-600 mx-auto w-fit">
+                               <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="px-1.5 py-0.5 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300"><Minus className="h-3 w-3" /></button>
+                               <input 
+                                  type="number" 
+                                  step={(item.sale_type === 'weight' || item.sale_type === 'volume') ? "0.01" : "1"}
+                                  value={item.quantity} 
+                                  onChange={(e) => updateQuantity(item.id, parseFloat(e.target.value) || 0)} 
+                                  className="w-10 text-center text-xs font-bold bg-white dark:bg-gray-800 outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none py-0.5" 
+                               />
+                               <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="px-1.5 py-0.5 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300"><Plus className="h-3 w-3" /></button>
+                            </div>
+                         </td>
+                         <td className="p-1.5 text-xs font-bold font-mono text-center text-primary">{(item.sale_price * item.quantity).toFixed(2)}</td>
+                         <td className="p-1 text-center">
+                            <button onClick={() => removeItem(item.id)} className="p-1 text-gray-400 hover:text-red-500 rounded hover:bg-red-50"><Trash2 className="h-3 w-3" /></button>
+                         </td>
+                      </tr>
+                   ))}
+                   {invoiceItems.length === 0 && (
+                      <tr><td colSpan={6} className="p-6 text-center text-xs text-gray-400">السلة فارغة، قم بمسح منتج للبدء.</td></tr>
+                   )}
+                </tbody>
+             </table>
+          </div>
+        </div>
+
+        {/* Row 5: Footer Actions */}
+        <div className="bg-white dark:bg-gray-800 p-3 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm shrink-0 flex items-center justify-between">
+           <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-gray-500 dark:text-gray-400">الورق:</span>
+              <div className="flex bg-gray-100 dark:bg-gray-900 rounded-lg p-0.5 border border-gray-200 dark:border-gray-700">
+                 <button onClick={() => setPrinterSize("80mm")} className={`px-2 py-1 rounded text-xs font-bold transition-colors ${printerSize === "80mm" ? 'bg-white dark:bg-gray-700 shadow text-primary' : 'text-gray-500 hover:text-gray-700'}`}>80mm</button>
+                 <button onClick={() => setPrinterSize("58mm")} className={`px-2 py-1 rounded text-xs font-bold transition-colors ${printerSize === "58mm" ? 'bg-white dark:bg-gray-700 shadow text-primary' : 'text-gray-500 hover:text-gray-700'}`}>58mm</button>
+              </div>
+           </div>
+           <div className="flex gap-2">
+              <motion.button whileTap={{ scale: 0.95 }}
+                 onClick={() => saveInvoice(false)} 
+                 disabled={invoiceItems.length === 0 || saving} 
+                 className="flex items-center gap-2 bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white px-5 py-2 rounded-lg font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+              >
+                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                 بيع بدون تذكرة
+              </motion.button>
+              <motion.button whileTap={{ scale: 0.95 }}
+                 onClick={() => saveInvoice(true)} 
+                 disabled={invoiceItems.length === 0 || saving} 
+                 className="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-5 py-2 rounded-lg font-bold text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+              >
+                 {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Printer className="h-4 w-4" />}
+                 بيع وطباعة
+              </motion.button>
+           </div>
+        </div>
+
+        <div id="hidden-qr-reader-pos" className="hidden"></div>
+        {lastSavedInvoice && (
+          <ReceiptTemplate invoiceNumber={lastSavedInvoice.number} items={lastSavedInvoice.items} total={lastSavedInvoice.total} date={lastSavedInvoice.date} size={printerSize} />
+        )}
       </div>
-
-      <div id="hidden-qr-reader-pos" className="hidden"></div>
-
-      {lastSavedInvoice && (
-        <ReceiptTemplate invoiceNumber={lastSavedInvoice.number} items={lastSavedInvoice.items} total={lastSavedInvoice.total} date={lastSavedInvoice.date} size={printerSize} />
-      )}
     </ProtectedLayout>
   );
 }
