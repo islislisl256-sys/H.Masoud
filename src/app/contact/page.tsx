@@ -2,7 +2,7 @@
 
 import React from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
-import { Mail, Phone, MessageCircle, ExternalLink, Facebook, Instagram, Users } from "lucide-react";
+import { Mail, Phone, MessageCircle, ExternalLink, Users } from "lucide-react";
 
 export default function ContactPage() {
   return (
@@ -43,7 +43,7 @@ export default function ContactPage() {
             <a href="https://www.facebook.com/share/17yFJQbTTz/" target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors border border-blue-100 dark:border-blue-800">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-blue-100 dark:bg-blue-800 rounded-full text-blue-600 dark:text-blue-300">
-                  <Facebook className="w-6 h-6" />
+                  <ExternalLink className="w-6 h-6" />
                 </div>
                 <div className="text-right">
                   <h3 className="font-bold text-gray-900 dark:text-white">صفحة الفيسبوك الخاصة بالشركة المنتجة</h3>
@@ -57,7 +57,7 @@ export default function ContactPage() {
             <a href="https://www.instagram.com/laissaoui_dev_dz?stkn=MW02a2h1cHVuN2F0dA==" target="_blank" rel="noreferrer" className="flex items-center justify-between p-4 bg-pink-50 dark:bg-pink-900/20 rounded-xl hover:bg-pink-100 dark:hover:bg-pink-900/40 transition-colors border border-pink-100 dark:border-pink-800">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-pink-100 dark:bg-pink-800 rounded-full text-pink-600 dark:text-pink-300">
-                  <Instagram className="w-6 h-6" />
+                  <ExternalLink className="w-6 h-6" />
                 </div>
                 <div className="text-right">
                   <h3 className="font-bold text-gray-900 dark:text-white">صفحة الانستقرام الخاصة بالشركة المنتجة</h3>
