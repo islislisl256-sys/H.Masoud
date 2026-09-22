@@ -45,3 +45,7 @@ Windows_App_Release/
 Windows_App_Release/
 
 Windows_App_Release/
+
+desktop-app/dist/
+
+public/downloads/

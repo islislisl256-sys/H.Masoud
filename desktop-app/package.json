@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Desktop version of the Library System",
   "main": "main.js",
-  "productName": "حانوتك",
+  "productName": "Hanoutak",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --win"
@@ -17,12 +17,18 @@
   "build": {
     "appId": "com.masoud.library",
     "win": {
-      "target": "nsis"
+      "target": [
+        "nsis",
+        "portable"
+      ]
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "include": "build/installer.nsh"
+    },
+    "mac": {
+      "target": "default"
     }
   }
 }
