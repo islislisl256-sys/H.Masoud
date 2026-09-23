@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -41,51 +41,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [licenseWarning, setLicenseWarning] = useState<string | null>(null);
   const router = useRouter();
 
-  // === دالة تجديد الرخصة اليومية ===
-  // تتصل بالسيرفر → تفحص مدة الشحن → إذا سارية تمنح رخصة 24 ساعة محلية
+  // === Ø¯Ø§Ù„Ø© ØªØ¬Ø¯ÙŠØ¯ Ø§Ù„Ø±Ø®ØµØ© Ø§Ù„ÙŠÙˆÙ…ÙŠØ© ===
+  // ØªØªØµÙ„ Ø¨Ø§Ù„Ø³ÙŠØ±ÙØ± â†’ ØªÙØ­Øµ Ù…Ø¯Ø© Ø§Ù„Ø´Ø­Ù† â†’ Ø¥Ø°Ø§ Ø³Ø§Ø±ÙŠØ© ØªÙ…Ù†Ø­ Ø±Ø®ØµØ© 24 Ø³Ø§Ø¹Ø© Ù…Ø­Ù„ÙŠØ©
   const renewLicense = async (): Promise<{ success: boolean; message: string }> => {
     const storedUser = sessionStorage.getItem("currentUser");
-    if (!storedUser) return { success: false, message: "لا يوجد مستخدم مسجّل." };
+    if (!storedUser) return { success: false, message: "Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ù…Ø³ØªØ®Ø¯Ù… Ù…Ø³Ø¬Ù‘Ù„." };
 
     const user = JSON.parse(storedUser);
     try {
-      // جلب بيانات الاشتراك الحقيقية من السيرفر
+      // Ø¬Ù„Ø¨ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ Ø§Ù„Ø­Ù‚ÙŠÙ‚ÙŠØ© Ù…Ù† Ø§Ù„Ø³ÙŠØ±ÙØ±
       const { data, error } = await mainSupabase
         .from("app_accounts")
         .select("subscription_end_date, is_banned")
         .eq("id", user.id)
         .single();
 
-      if (error || !data) throw new Error("فشل الاتصال");
+      if (error || !data) throw new Error("ÙØ´Ù„ Ø§Ù„Ø§ØªØµØ§Ù„");
 
       if (data.is_banned) {
         sessionStorage.clear();
         setIsAuthenticated(false);
         setCurrentUser(null);
-        return { success: false, message: "🚫 تم حظر هذا الحساب نهائياً." };
+        return { success: false, message: "ðŸš« ØªÙ… Ø­Ø¸Ø± Ù‡Ø°Ø§ Ø§Ù„Ø­Ø³Ø§Ø¨ Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹." };
       }
 
-      // فحص مدة الشحن (الاشتراك الرئيسي)
+      // ÙØ­Øµ Ù…Ø¯Ø© Ø§Ù„Ø´Ø­Ù† (Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ)
       if (!data.subscription_end_date || new Date() > new Date(data.subscription_end_date)) {
-        return { success: false, message: "🚫 انتهت مدة اشتراكك. يرجى التواصل مع الإدارة لتجديد الشحن." };
+        return { success: false, message: "ðŸš« Ø§Ù†ØªÙ‡Øª Ù…Ø¯Ø© Ø§Ø´ØªØ±Ø§ÙƒÙƒ. ÙŠØ±Ø¬Ù‰ Ø§Ù„ØªÙˆØ§ØµÙ„ Ù…Ø¹ Ø§Ù„Ø¥Ø¯Ø§Ø±Ø© Ù„ØªØ¬Ø¯ÙŠØ¯ Ø§Ù„Ø´Ø­Ù†." };
       }
 
-      // مدة الشحن سارية → منح رخصة يومية 24 ساعة محلياً
+      // Ù…Ø¯Ø© Ø§Ù„Ø´Ø­Ù† Ø³Ø§Ø±ÙŠØ© â†’ Ù…Ù†Ø­ Ø±Ø®ØµØ© ÙŠÙˆÙ…ÙŠØ© 24 Ø³Ø§Ø¹Ø© Ù…Ø­Ù„ÙŠØ§Ù‹
       const dailyEnd = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       localStorage.setItem("daily_license", JSON.stringify({ end: dailyEnd, updated: new Date().toISOString() }));
       
-      // تحديث بيانات الاشتراك محلياً
+      // ØªØ­Ø¯ÙŠØ« Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ Ù…Ø­Ù„ÙŠØ§Ù‹
       user.subscription_end_date = data.subscription_end_date;
       sessionStorage.setItem("currentUser", JSON.stringify(user));
       setCurrentUser(user);
       setLicenseWarning(null);
-      return { success: true, message: "✅ تم تجديد الرخصة بنجاح لمدة 24 ساعة." };
+      return { success: true, message: "âœ… ØªÙ… ØªØ¬Ø¯ÙŠØ¯ Ø§Ù„Ø±Ø®ØµØ© Ø¨Ù†Ø¬Ø§Ø­ Ù„Ù…Ø¯Ø© 24 Ø³Ø§Ø¹Ø©." };
     } catch (err) {
-      return { success: false, message: "⚠️ لا يوجد اتصال بالإنترنت. يرجى الاتصال بالشبكة لتجديد الرخصة." };
+      return { success: false, message: "âš ï¸ Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ø¥Ù†ØªØ±Ù†Øª. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ø´Ø¨ÙƒØ© Ù„ØªØ¬Ø¯ÙŠØ¯ Ø§Ù„Ø±Ø®ØµØ©." };
     }
   };
 
-  // === عند فتح التطبيق: فحص الرخصة اليومية ومحاولة التجديد ===
+  // === Ø¹Ù†Ø¯ ÙØªØ­ Ø§Ù„ØªØ·Ø¨ÙŠÙ‚: ÙØ­Øµ Ø§Ù„Ø±Ø®ØµØ© Ø§Ù„ÙŠÙˆÙ…ÙŠØ© ÙˆÙ…Ø­Ø§ÙˆÙ„Ø© Ø§Ù„ØªØ¬Ø¯ÙŠØ¯ ===
   useEffect(() => {
     const checkAndRenew = async () => {
       try {
@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const dailyEnd = cachedDaily ? JSON.parse(cachedDaily).end : null;
           const now = new Date();
 
-          // محاولة التجديد من السيرفر تلقائياً
+          // Ù…Ø­Ø§ÙˆÙ„Ø© Ø§Ù„ØªØ¬Ø¯ÙŠØ¯ Ù…Ù† Ø§Ù„Ø³ÙŠØ±ÙØ± ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹
           try {
             const { data, error } = await mainSupabase
               .from("app_accounts")
@@ -113,22 +113,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               localStorage.removeItem("daily_license");
               setIsAuthenticated(false);
               setCurrentUser(null);
-              setLicenseWarning("🚫 تم حظر هذا الحساب.");
+              setLicenseWarning("ðŸš« ØªÙ… Ø­Ø¸Ø± Ù‡Ø°Ø§ Ø§Ù„Ø­Ø³Ø§Ø¨.");
               return;
             }
 
-            // فحص مدة الشحن على السيرفر
+            // ÙØ­Øµ Ù…Ø¯Ø© Ø§Ù„Ø´Ø­Ù† Ø¹Ù„Ù‰ Ø§Ù„Ø³ÙŠØ±ÙØ±
             if (!data.subscription_end_date || now > new Date(data.subscription_end_date)) {
-              // مدة الشحن انتهت
+              // Ù…Ø¯Ø© Ø§Ù„Ø´Ø­Ù† Ø§Ù†ØªÙ‡Øª
               sessionStorage.clear();
               localStorage.removeItem("daily_license");
               setIsAuthenticated(false);
               setCurrentUser(null);
-              setLicenseWarning("🚫 انتهت مدة اشتراكك. يرجى التواصل مع الإدارة لتجديد الشحن.");
+              setLicenseWarning("ðŸš« Ø§Ù†ØªÙ‡Øª Ù…Ø¯Ø© Ø§Ø´ØªØ±Ø§ÙƒÙƒ. ÙŠØ±Ø¬Ù‰ Ø§Ù„ØªÙˆØ§ØµÙ„ Ù…Ø¹ Ø§Ù„Ø¥Ø¯Ø§Ø±Ø© Ù„ØªØ¬Ø¯ÙŠØ¯ Ø§Ù„Ø´Ø­Ù†.");
               return;
             }
 
-            // مدة الشحن سارية → تجديد الرخصة اليومية
+            // Ù…Ø¯Ø© Ø§Ù„Ø´Ø­Ù† Ø³Ø§Ø±ÙŠØ© â†’ ØªØ¬Ø¯ÙŠØ¯ Ø§Ù„Ø±Ø®ØµØ© Ø§Ù„ÙŠÙˆÙ…ÙŠØ©
             const newDailyEnd = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
             localStorage.setItem("daily_license", JSON.stringify({ end: newDailyEnd, updated: now.toISOString() }));
             parsedUser.subscription_end_date = data.subscription_end_date;
@@ -138,18 +138,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setLicenseWarning(null);
 
           } catch (networkErr) {
-            // لا يوجد اتصال — فحص الرخصة اليومية المحلية
+            // Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø§ØªØµØ§Ù„ â€” ÙØ­Øµ Ø§Ù„Ø±Ø®ØµØ© Ø§Ù„ÙŠÙˆÙ…ÙŠØ© Ø§Ù„Ù…Ø­Ù„ÙŠØ©
             if (dailyEnd && now < new Date(dailyEnd)) {
               setIsAuthenticated(true);
               setCurrentUser(parsedUser);
               const hoursLeft = Math.ceil((new Date(dailyEnd).getTime() - now.getTime()) / (1000 * 60 * 60));
-              setLicenseWarning(`⚠️ لا يوجد اتصال بالإنترنت. الرخصة المؤقتة صالحة لـ ${hoursLeft} ساعة. اتصل بالشبكة لتجديدها.`);
+              setLicenseWarning(`âš ï¸ Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ø¥Ù†ØªØ±Ù†Øª. Ø§Ù„Ø±Ø®ØµØ© Ø§Ù„Ù…Ø¤Ù‚ØªØ© ØµØ§Ù„Ø­Ø© Ù„Ù€ ${hoursLeft} Ø³Ø§Ø¹Ø©. Ø§ØªØµÙ„ Ø¨Ø§Ù„Ø´Ø¨ÙƒØ© Ù„ØªØ¬Ø¯ÙŠØ¯Ù‡Ø§.`);
             } else {
               sessionStorage.removeItem("isAuthenticated");
               sessionStorage.removeItem("currentUser");
               setIsAuthenticated(false);
               setCurrentUser(null);
-              setLicenseWarning("🚫 انتهت الرخصة اليومية ولا يوجد اتصال بالإنترنت. يرجى الاتصال بالشبكة.");
+              setLicenseWarning("ðŸš« Ø§Ù†ØªÙ‡Øª Ø§Ù„Ø±Ø®ØµØ© Ø§Ù„ÙŠÙˆÙ…ÙŠØ© ÙˆÙ„Ø§ ÙŠÙˆØ¬Ø¯ Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ø¥Ù†ØªØ±Ù†Øª. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ø´Ø¨ÙƒØ©.");
             }
           }
         }
@@ -160,7 +160,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     checkAndRenew();
   }, []);
 
-  // === نظام "الأونلاين" (Heartbeat) لمراقبة النشاط ===
+  // === Ù†Ø¸Ø§Ù… "Ø§Ù„Ø£ÙˆÙ†Ù„Ø§ÙŠÙ†" (Heartbeat) Ù„Ù…Ø±Ø§Ù‚Ø¨Ø© Ø§Ù„Ù†Ø´Ø§Ø· ===
   useEffect(() => {
     if (!isAuthenticated || !currentUser) return;
 
@@ -168,14 +168,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         await mainSupabase.rpc('update_last_active');
       } catch (e) {
-        // تجاهل الخطأ إذا لم يكن هناك إنترنت (ليعمل بصمت)
+        // ØªØ¬Ø§Ù‡Ù„ Ø§Ù„Ø®Ø·Ø£ Ø¥Ø°Ø§ Ù„Ù… ÙŠÙƒÙ† Ù‡Ù†Ø§Ùƒ Ø¥Ù†ØªØ±Ù†Øª (Ù„ÙŠØ¹Ù…Ù„ Ø¨ØµÙ…Øª)
       }
     };
 
-    // إرسال أول نبضة فور تسجيل الدخول أو فتح التطبيق
+    // Ø¥Ø±Ø³Ø§Ù„ Ø£ÙˆÙ„ Ù†Ø¨Ø¶Ø© ÙÙˆØ± ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø£Ùˆ ÙØªØ­ Ø§Ù„ØªØ·Ø¨ÙŠÙ‚
     pingOnlineStatus();
 
-    // إرسال نبضة كل 3 دقائق (180,000 ملي ثانية)
+    // Ø¥Ø±Ø³Ø§Ù„ Ù†Ø¨Ø¶Ø© ÙƒÙ„ 3 Ø¯Ù‚Ø§Ø¦Ù‚ (180,000 Ù…Ù„ÙŠ Ø«Ø§Ù†ÙŠØ©)
     const intervalId = setInterval(pingOnlineStatus, 3 * 60 * 1000);
 
     return () => clearInterval(intervalId);
@@ -198,7 +198,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const verifiedAcceptance = localStorage.getItem("verified_workspace_acceptance");
 
       if (!verifiedAcceptance) {
-        return { success: false, message: "لم يتم التحقق من رقم الاعتماد في هذه الجلسة. يرجى الرجوع وتأكيد رقم الاعتماد أولاً." };
+        return { success: false, message: "Ù„Ù… ÙŠØªÙ… Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø±Ù‚Ù… Ø§Ù„Ø§Ø¹ØªÙ…Ø§Ø¯ ÙÙŠ Ù‡Ø°Ù‡ Ø§Ù„Ø¬Ù„Ø³Ø©. ÙŠØ±Ø¬Ù‰ Ø§Ù„Ø±Ø¬ÙˆØ¹ ÙˆØªØ£ÙƒÙŠØ¯ Ø±Ù‚Ù… Ø§Ù„Ø§Ø¹ØªÙ…Ø§Ø¯ Ø£ÙˆÙ„Ø§Ù‹." };
       }
 
       const { data: authData, error: authError } = await mainSupabase.auth.signInWithPassword({
@@ -207,10 +207,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       if (authError || !authData.user) {
-          return { success: false, message: "تأكد من صحة البيانات: " + (authError?.message || "") };
+          return { success: false, message: "ØªØ£ÙƒØ¯ Ù…Ù† ØµØ­Ø© Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª: " + (authError?.message || "") };
         }
 
-      // 4. التأكد من أن الحساب ينتمي لنفس مساحة العمل التي تم إدخال رقم الاعتماد الخاص بها
+      // 4. Ø§Ù„ØªØ£ÙƒØ¯ Ù…Ù† Ø£Ù† Ø§Ù„Ø­Ø³Ø§Ø¨ ÙŠÙ†ØªÙ…ÙŠ Ù„Ù†ÙØ³ Ù…Ø³Ø§Ø­Ø© Ø§Ù„Ø¹Ù…Ù„ Ø§Ù„ØªÙŠ ØªÙ… Ø¥Ø¯Ø®Ø§Ù„ Ø±Ù‚Ù… Ø§Ù„Ø§Ø¹ØªÙ…Ø§Ø¯ Ø§Ù„Ø®Ø§Øµ Ø¨Ù‡Ø§
       const { data: isValidWorkspace } = await mainSupabase.rpc("check_account_workspace", {
         p_auth_id: authData.user.id,
         p_acceptance_number: verifiedAcceptance
@@ -218,71 +218,64 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!isValidWorkspace) {
         await mainSupabase.auth.signOut();
-        return { success: false, message: "الحساب غير مسجل في المؤسسة المحددة برقم الاعتماد هذا. هذه ثغرة أمنية تم إحباطها." };
+        return { success: false, message: "Ø§Ù„Ø­Ø³Ø§Ø¨ ØºÙŠØ± Ù…Ø³Ø¬Ù„ ÙÙŠ Ø§Ù„Ù…Ø¤Ø³Ø³Ø© Ø§Ù„Ù…Ø­Ø¯Ø¯Ø© Ø¨Ø±Ù‚Ù… Ø§Ù„Ø§Ø¹ØªÙ…Ø§Ø¯ Ù‡Ø°Ø§. Ù‡Ø°Ù‡ Ø«ØºØ±Ø© Ø£Ù…Ù†ÙŠØ© ØªÙ… Ø¥Ø­Ø¨Ø§Ø·Ù‡Ø§." };
       }
 
-      // جلب بيانات الحساب بعد التحقق الأمني
+      // Ø¬Ù„Ø¨ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ø­Ø³Ø§Ø¨ Ø¨Ø¹Ø¯ Ø§Ù„ØªØ­Ù‚Ù‚ Ø§Ù„Ø£Ù…Ù†ÙŠ
       const { data, error } = await mainSupabase.from("app_accounts").select("*")
         .eq("auth_id", authData.user.id)
         .single();
       
       if (error || !data) {
         await mainSupabase.auth.signOut();
-        return { success: false, message: "الحساب غير مسجل في المؤسسة أو المتجر المحدد برقم الاعتماد هذا. هذه ثغرة أمنية تم إحباطها." };
+        return { success: false, message: "Ø§Ù„Ø­Ø³Ø§Ø¨ ØºÙŠØ± Ù…Ø³Ø¬Ù„ ÙÙŠ Ø§Ù„Ù…Ø¤Ø³Ø³Ø© Ø£Ùˆ Ø§Ù„Ù…ØªØ¬Ø± Ø§Ù„Ù…Ø­Ø¯Ø¯ Ø¨Ø±Ù‚Ù… Ø§Ù„Ø§Ø¹ØªÙ…Ø§Ø¯ Ù‡Ø°Ø§. Ù‡Ø°Ù‡ Ø«ØºØ±Ø© Ø£Ù…Ù†ÙŠØ© ØªÙ… Ø¥Ø­Ø¨Ø§Ø·Ù‡Ø§." };
       }
       
       if (data.is_banned) {
         await mainSupabase.auth.signOut();
-        return { success: false, message: "تم حظر هذا الحساب نهائياً من استخدام التطبيق." };
+        return { success: false, message: "ØªÙ… Ø­Ø¸Ø± Ù‡Ø°Ø§ Ø§Ù„Ø­Ø³Ø§Ø¨ Ù†Ù‡Ø§Ø¦ÙŠØ§Ù‹ Ù…Ù† Ø§Ø³ØªØ®Ø¯Ø§Ù… Ø§Ù„ØªØ·Ø¨ÙŠÙ‚." };
       }
 
-      // فحص مدة الشحن (الاشتراك الرئيسي) عند تسجيل الدخول
+      // ÙØ­Øµ Ù…Ø¯Ø© Ø§Ù„Ø´Ø­Ù† (Ø§Ù„Ø§Ø´ØªØ±Ø§Ùƒ Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠ) Ø¹Ù†Ø¯ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„
       if (!data.subscription_end_date || new Date() > new Date(data.subscription_end_date)) {
         await mainSupabase.auth.signOut();
-        return { success: false, message: "انتهت مدة اشتراكك. يرجى التواصل مع الإدارة لتجديد الشحن." };
+        return { success: false, message: "Ø§Ù†ØªÙ‡Øª Ù…Ø¯Ø© Ø§Ø´ØªØ±Ø§ÙƒÙƒ. ÙŠØ±Ø¬Ù‰ Ø§Ù„ØªÙˆØ§ØµÙ„ Ù…Ø¹ Ø§Ù„Ø¥Ø¯Ø§Ø±Ø© Ù„ØªØ¬Ø¯ÙŠØ¯ Ø§Ù„Ø´Ø­Ù†." };
       }
 
       const profileUpdates: any = {};
 
-      // منح رخصة يومية 24 ساعة محلياً (لأن مدة الشحن سارية)
+      // Ù…Ù†Ø­ Ø±Ø®ØµØ© ÙŠÙˆÙ…ÙŠØ© 24 Ø³Ø§Ø¹Ø© Ù…Ø­Ù„ÙŠØ§Ù‹ (Ù„Ø£Ù† Ù…Ø¯Ø© Ø§Ù„Ø´Ø­Ù† Ø³Ø§Ø±ÙŠØ©)
       const dailyEnd = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
       localStorage.setItem("daily_license", JSON.stringify({ end: dailyEnd, updated: new Date().toISOString() }));
 
       let deviceUuid = localDeviceUuid;
 
       if (!data.device_uuid) {
-        // الحساب جديد (عذراء) - لم يُربط بجهاز بعد
+        // Ø§Ù„Ø­Ø³Ø§Ø¨ Ø¬Ø¯ÙŠØ¯ (Ø¹Ø°Ø±Ø§Ø¡) - Ù„Ù… ÙŠÙØ±Ø¨Ø· Ø¨Ø¬Ù‡Ø§Ø² Ø¨Ø¹Ø¯
         if (!localDeviceUuid) {
-          // هذا الجهاز لم يُسجَّل من قبل أبداً → نولّد بصمة جديدة للجهاز
+          // Ù‡Ø°Ø§ Ø§Ù„Ø¬Ù‡Ø§Ø² Ù„Ù… ÙŠÙØ³Ø¬ÙŽÙ‘Ù„ Ù…Ù† Ù‚Ø¨Ù„ Ø£Ø¨Ø¯Ø§Ù‹ â†’ Ù†ÙˆÙ„Ù‘Ø¯ Ø¨ØµÙ…Ø© Ø¬Ø¯ÙŠØ¯Ø© Ù„Ù„Ø¬Ù‡Ø§Ø²
           deviceUuid = generateSafeUUID();
           localStorage.setItem("app_secure_uuid", encodeUUID(deviceUuid));
         } else {
-          // الجهاز يمتلك بصمة مسبقة (من حساب آخر) → نستخدم نفس البصمة
+          // Ø§Ù„Ø¬Ù‡Ø§Ø² ÙŠÙ…ØªÙ„Ùƒ Ø¨ØµÙ…Ø© Ù…Ø³Ø¨Ù‚Ø© (Ù…Ù† Ø­Ø³Ø§Ø¨ Ø¢Ø®Ø±) â†’ Ù†Ø³ØªØ®Ø¯Ù… Ù†ÙØ³ Ø§Ù„Ø¨ØµÙ…Ø©
           deviceUuid = localDeviceUuid;
         }
         profileUpdates.device_uuid = deviceUuid;
         profileUpdates.device_info = typeof navigator !== 'undefined' ? navigator.userAgent : 'Desktop/App';
       } else {
-        // الحساب مربوط مسبقاً بجهاز → نتحقق من التطابق
+        // Ø§Ù„Ø­Ø³Ø§Ø¨ Ù…Ø±Ø¨ÙˆØ· Ù…Ø³Ø¨Ù‚Ø§Ù‹ Ø¨Ø¬Ù‡Ø§Ø² â†’ Ù†ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„ØªØ·Ø§Ø¨Ù‚
         if (data.device_uuid !== localDeviceUuid) {
           // --- AUTO RECOVERY & LEADER OVERRIDE ---
           const currentAgent = typeof navigator !== 'undefined' ? navigator.userAgent : 'Desktop/App';
           
-          if (data.role === 'LEADER') {
-            // Leaders can never be permanently locked out. We auto-rebind their new device/session.
-            deviceUuid = localDeviceUuid || generateSafeUUID();
-            profileUpdates.device_uuid = deviceUuid;
-            profileUpdates.device_info = currentAgent;
-            localStorage.setItem("app_secure_uuid", encodeUUID(deviceUuid));
-          } 
-          else if (!localDeviceUuid && data.device_info === currentAgent) {
+          if (!localDeviceUuid && data.device_info === currentAgent) {
             // Cache was cleared, but it's the exact same browser/device fingerprint. Auto-recover.
             localStorage.setItem("app_secure_uuid", encodeUUID(data.device_uuid));
             deviceUuid = data.device_uuid;
           } 
           else {
             await mainSupabase.auth.signOut();
-            return { success: false, message: "هذا الحساب مرتبط بجهاز آخر. يجب فك الارتباط أولاً من لوحة التحكم." };
+            return { success: false, message: "Ù‡Ø°Ø§ Ø§Ù„Ø­Ø³Ø§Ø¨ Ù…Ø±ØªØ¨Ø· Ø¨Ø¬Ù‡Ø§Ø² Ø¢Ø®Ø±. ÙŠØ¬Ø¨ ÙÙƒ Ø§Ù„Ø§Ø±ØªØ¨Ø§Ø· Ø£ÙˆÙ„Ø§Ù‹ Ù…Ù† Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…." };
           }
         }
       }
@@ -305,7 +298,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return { success: true, user: userPayload };
     } catch (err: any) {
       console.error(err);
-      return { success: false, message: err.message || "حدث خطأ في الاتصال بالخادم" };
+      return { success: false, message: err.message || "Ø­Ø¯Ø« Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ø®Ø§Ø¯Ù…" };
     }
   };
 
@@ -314,7 +307,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       let workspaceError = null;
       
-      // تحديث بيانات المتجر للجميع فقط إذا كان القائد هو من يقوم بالإعداد
+      // ØªØ­Ø¯ÙŠØ« Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…ØªØ¬Ø± Ù„Ù„Ø¬Ù…ÙŠØ¹ ÙÙ‚Ø· Ø¥Ø°Ø§ ÙƒØ§Ù† Ø§Ù„Ù‚Ø§Ø¦Ø¯ Ù‡Ùˆ Ù…Ù† ÙŠÙ‚ÙˆÙ… Ø¨Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯
       if (currentUser.role === 'LEADER') {
         const { error: err } = await mainSupabase.rpc('update_workspace_info', {
           p_store_name: storeName,
@@ -323,7 +316,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         workspaceError = err;
       }
 
-      // تحديث الحساب الحالي (الاسم، الهاتف، وإكمال الإعداد الخاص به)
+      // ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø­Ø³Ø§Ø¨ Ø§Ù„Ø­Ø§Ù„ÙŠ (Ø§Ù„Ø§Ø³Ù…ØŒ Ø§Ù„Ù‡Ø§ØªÙØŒ ÙˆØ¥ÙƒÙ…Ø§Ù„ Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯ Ø§Ù„Ø®Ø§Øµ Ø¨Ù‡)
       const { error } = await mainSupabase.from("app_accounts").update({
         full_name: fullName,
         phone_number: phone,
