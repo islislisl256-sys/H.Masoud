@@ -2,11 +2,6 @@ name: Build Android APK
 
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'capacitor.config.ts'
-      - 'android/**'
 
 jobs:
   build-android:
@@ -30,28 +25,34 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Sync Capacitor (no build needed - server mode)
+      - name: Create dummy .env.local (for cap sync only)
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co" > .env.local
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=placeholder" >> .env.local
+
+      - name: Sync Capacitor (server URL mode - no build needed)
         run: npx cap sync android
 
       - name: Make gradlew executable
         working-directory: ./android
         run: chmod +x gradlew
 
-      - name: Build APK
+      - name: Build Debug APK
         working-directory: ./android
         run: ./gradlew assembleDebug
 
-      - name: Upload APK as artifact
+      - name: Upload APK as downloadable artifact
         uses: actions/upload-artifact@v3
         with:
-          name: hanutak-apk
+          name: Hanoutak-Android
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 30
 
-      - name: Copy APK to public folder and commit
+      - name: Copy APK to public folder and push
         run: |
           cp android/app/build/outputs/apk/debug/app-debug.apk public/hanutak.apk
           git config --global user.name "GitHub Actions Bot"
           git config --global user.email "actions@github.com"
           git add public/hanutak.apk
-          git diff --staged --quiet || git commit -m "chore: auto-build Android APK pointing to https://h-masoud.vercel.app [skip ci]"
+          git diff --staged --quiet || git commit -m "chore: auto-build Android APK -> https://h-masoud.vercel.app [skip ci]"
           git push
