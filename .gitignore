@@ -49,3 +49,5 @@ Windows_App_Release/
 desktop-app/dist/
 
 public/downloads/
+
+desktop-app/node_modules/
