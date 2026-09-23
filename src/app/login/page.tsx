@@ -218,32 +218,7 @@ const handleBackToStep2 = async () => {
         )}
 
         
-        {step === 1 && (
-          <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800">
-            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 text-center mb-4">تطبيقات الهواتف</h3>
-            <div className="flex gap-3">
-              <button 
-                type="button"
-                onClick={() => setShowIosInstructions(true)}
-                className="flex-1 flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
-              >
-                <Apple className="w-6 h-6 mb-2 text-gray-900 dark:text-gray-100" />
-                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">تطبيق الآيفون</span>
-              </button>
-              
-              <a 
-                href="/hanutak.apk" 
-                download="hanutak.apk"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
-              >
-                <Smartphone className="w-6 h-6 mb-2 text-green-600" />
-                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">تطبيق الأندرويد</span>
-              </a>
-            </div>
-          </div>
-        )}
+        
 
         {step === 2 && (
           <form className="mt-8 space-y-4" onSubmit={handleLoginSubmit}>
@@ -364,6 +339,37 @@ const handleBackToStep2 = async () => {
             <button onClick={() => setStep(1)} className="mt-4 text-sm font-medium text-primary hover:underline">
               العودة للصفحة الرئيسية
             </button>
+          </div>
+        )}
+
+      
+        {/* Mobile Apps Section - Always visible on login page */}
+        {(step === 1 || step === 2) && (
+          <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 w-full">
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 text-center mb-4">تطبيقات الهواتف</h3>
+            <div className="flex gap-3">
+              <a 
+                href="/hanutak.ipa" 
+                download="hanutak.ipa"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
+              >
+                <Apple className="w-6 h-6 mb-2 text-gray-900 dark:text-gray-100" />
+                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">تطبيق الآيفون</span>
+              </a>
+              
+              <a 
+                href="/hanutak.apk" 
+                download="hanutak.apk"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex flex-col items-center justify-center p-3 bg-gray-50 dark:bg-gray-800 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700"
+              >
+                <Smartphone className="w-6 h-6 mb-2 text-green-600" />
+                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">تطبيق الأندرويد</span>
+              </a>
+            </div>
           </div>
         )}
 
