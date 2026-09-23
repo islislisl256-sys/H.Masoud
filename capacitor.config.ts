@@ -5,7 +5,7 @@ const config: CapacitorConfig = {
   appName: 'Hanoutak',
   webDir: 'out',
   server: {
-    url: 'https://h-masoud-p8oxwox6i-laissaoui.vercel.app',
+    url: 'https://h-masoud.vercel.app',
     cleartext: true
   }
 };
