@@ -344,7 +344,7 @@ const handleBackToStep2 = async () => {
 
       
         {/* Mobile Apps Section - Always visible on login page */}
-        {(step === 1 || step === 2) && (
+        {step === 1 && (
           <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-800 w-full">
             <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 text-center mb-4">تطبيقات الهواتف</h3>
             <div className="flex gap-3">

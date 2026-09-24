@@ -20,7 +20,7 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
 
       const isElectronProtocol = typeof window !== 'undefined' && (window.location.protocol === 'app:' || window.location.protocol === 'file:');
       const isElectronPreload = typeof window !== 'undefined' && (window as any).isElectronApp === true;
-      const isElectronUrlParam = typeof window !== 'undefined' && window.location.search.includes('electron=true');
+      const isElectronUrlParam = typeof window !== 'undefined' && (window.location.search.includes('electron=true') || window.location.search.includes('app=mobile'));
       const isElectronUA = typeof navigator !== 'undefined' && navigator.userAgent.toLowerCase().includes('electron');
       const isElectronSaved = typeof window !== 'undefined' && localStorage.getItem('is_electron_app_forever') === 'true';
       
