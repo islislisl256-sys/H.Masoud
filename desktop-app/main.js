@@ -10,6 +10,7 @@ function createWindow() {
     width: 1200,
     height: 800,
     show: false,
+    backgroundColor: '#ffffff',
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -28,6 +29,14 @@ function createWindow() {
     });
   });
 
+
+    mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http')) {
+      require('electron').shell.openExternal(url);
+      return { action: 'deny' };
+    }
+    return { action: 'allow' };
+  });
 
   // Clear cache before loading to ensure latest Vercel build is fetched
   mainWindow.webContents.session.clearCache().then(() => {
@@ -75,3 +84,4 @@ app.on('activate', function () {
     createWindow();
   }
 });
+

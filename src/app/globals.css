@@ -1,10 +1,11 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 @variant dark (&:where(.dark, .dark *));
 
 @theme {
   --color-primary: #0ea5e9;
   --color-primary-hover: #0284c7;
+  --font-sans: var(--font-cairo), ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
 @layer base {
@@ -12,6 +13,23 @@
     --background: #ffffff;
     --foreground: #0f172a;
   }
+  .dark {
+    --background: #0f172a;
+    --foreground: #ffffff;
+  }
+}
+
+@media print {
+  html, body {
+    background-color: #ffffff !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
   .dark {
     --background: #0f172a;
     --foreground: #ffffff;
@@ -34,3 +52,4 @@ html, body {
   -webkit-text-security: disc;
   text-security: disc;
 }
+
