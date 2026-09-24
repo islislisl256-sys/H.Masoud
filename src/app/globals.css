@@ -30,11 +30,6 @@
     print-color-adjust: exact !important;
   }
 }
-  .dark {
-    --background: #0f172a;
-    --foreground: #ffffff;
-  }
-}
 
 body {
   background-color: var(--background);
@@ -46,10 +41,7 @@ html, body {
   overscroll-behavior-x: none;
 }
 
-
-
 .fake-password {
   -webkit-text-security: disc;
   text-security: disc;
 }
-
