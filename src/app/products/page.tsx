@@ -525,9 +525,9 @@ export default function ProductsPage() {
         <CloudinarySetupModal isOpen={showCloudinaryModal} onClose={() => setShowCloudinaryModal(false)} onSuccess={() => setShowCloudinaryModal(false)} />
         
         {/* Floating Add Button - bottom left */}
-        <div className="fixed bottom-20 md:bottom-6 left-6 z-50 flex flex-col items-center">
+        <div className="fixed bottom-20 md:bottom-6 left-6 z-50">
            {showScanMenu && (
-              <div className="mb-3 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl p-1.5 flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-2">
+              <div className="absolute bottom-16 left-0 mb-3 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl p-1.5 flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-2">
                  <button onClick={handleAddWithoutBarcode} className="flex items-center gap-2.5 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right w-full text-xs">
                     <div className="bg-amber-100 p-1.5 rounded-full text-amber-600"><Package className="h-3.5 w-3.5" /></div>
                     <span className="font-medium text-gray-700 dark:text-gray-200">بدون باركود</span>
@@ -547,7 +547,7 @@ export default function ProductsPage() {
                  </button>
               </div>
            )}
-           <button onClick={() => setShowScanMenu(!showScanMenu)} className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl bg-primary hover:bg-primary-hover shadow-primary/30 text-white active:scale-90`}>
+           <button onClick={() => setShowScanMenu(!showScanMenu)} className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl text-white active:scale-90 ${showScanMenu ? "bg-red-500 hover:bg-red-600 rotate-45 shadow-red-500/30" : "bg-primary hover:bg-primary-hover shadow-primary/30"}`}>
               <Plus className="h-7 w-7" />
            </button>
         </div>
