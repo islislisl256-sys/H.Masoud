@@ -398,7 +398,7 @@ export default function POSPage() {
 
         {/* Row 4: Cart Items Table */}
         <div className="flex-1 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden flex flex-col min-h-0">
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto overflow-x-auto">
              <table className="w-full text-right border-collapse">
                 <thead className="bg-gray-50 dark:bg-gray-900/50 sticky top-0 z-10 shadow-sm">
                    <tr>
