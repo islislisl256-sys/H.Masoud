@@ -5,7 +5,7 @@ import ProtectedLayout from "@/components/Layout/ProtectedLayout";
 import { Mail, Phone, MessageCircle, ExternalLink, Users } from "lucide-react";
 
 export default function ContactPage() {
-  const handleLinkClick = (e, url) => {
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
     e.preventDefault();
     // Try window.open first
     try {
