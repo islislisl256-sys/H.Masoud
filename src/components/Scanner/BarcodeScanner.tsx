@@ -28,6 +28,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
   }, [onScanSuccess, onScanError]);
 
   const [cameraCount, setCameraCount] = useState(0);
+  const [permissionError, setPermissionError] = useState(false);
 
   const scanConfig = {
     fps: 10,
@@ -139,6 +140,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
     let cancelled = false;
 
     const init = async () => {
+      setPermissionError(false);
       try {
         const devices = await Html5Qrcode.getCameras();
         if (cancelled || !devices || devices.length === 0) return;
@@ -161,6 +163,7 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
           if (typeof window !== 'undefined') {
             import('react-hot-toast').then(({ default: toast }) => {
               toast.error("يرجى إعطاء صلاحية الكاميرا للمتصفح لتتمكن من مسح الباركود", { duration: 5000 });
+              setPermissionError(true);
             });
           }
         }
@@ -190,6 +193,26 @@ const BarcodeScanner: React.FC<BarcodeScannerProps> = ({ onScanSuccess, onScanEr
       className="w-full mx-auto overflow-hidden rounded-xl bg-gray-900 shadow-inner relative flex flex-col items-center justify-center"
       style={{ touchAction: 'manipulation' }}
     >
+       
+       {permissionError && (
+         <div className="absolute inset-0 bg-gray-900/90 flex items-center justify-center p-4 z-50 text-center backdrop-blur-sm">
+            <button 
+              onClick={async () => {
+                try {
+                  await navigator.mediaDevices.getUserMedia({ video: true });
+                  window.location.reload();
+                } catch(e) {
+                  alert("لم نتمكن من الوصول للكاميرا. يرجى الدخول لإعدادات المتصفح أو التطبيق وتفعيل إذن الكاميرا يدوياً.");
+                }
+              }}
+              className="bg-primary hover:bg-primary-hover text-white font-bold py-3 px-6 rounded-xl shadow-lg flex flex-col items-center gap-2"
+            >
+              <RefreshCcw className="w-6 h-6 mb-1" />
+              <span>اضغط هنا لمنح صلاحية الكاميرا</span>
+              <span className="text-xs opacity-75 font-normal">أو قم بتفعيلها من إعدادات المتصفح</span>
+            </button>
+         </div>
+       )}
        <div id="qr-reader" className="w-full h-full [&_video]:object-cover"></div>
        <div className="absolute inset-0 border-4 border-primary/50 pointer-events-none rounded-xl"></div>
        {cameraCount > 1 && (

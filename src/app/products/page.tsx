@@ -435,24 +435,6 @@ export default function ProductsPage() {
                 )}
              </div>
           </div>
-          {/* Static Action Buttons */}
-          <div className="flex bg-white dark:bg-gray-800 p-2 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm shrink-0 items-center justify-between overflow-x-auto scrollbar-hide">
-             <div className="flex gap-2 shrink-0 overflow-x-auto scrollbar-hide w-full md:w-auto">
-                 <button onClick={handleAddWithoutBarcode} className="flex flex-1 items-center justify-center gap-1.5 px-3 py-2 bg-primary text-white rounded-lg hover:bg-primary-hover transition-colors text-sm font-bold shrink-0 shadow-sm">
-                    <Plus className="h-4 w-4" />
-                    <span>إضافة</span>
-                 </button>
-                 <button onClick={() => setIsScanning(true)} className="flex flex-1 items-center justify-center gap-1.5 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-sm font-bold shrink-0 shadow-sm">
-                    <Camera className="h-4 w-4" />
-                    <span>مسح كاميرا</span>
-                 </button>
-                 <label className="flex flex-1 items-center justify-center gap-1.5 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-bold shrink-0 shadow-sm cursor-pointer">
-                    <ImagePlus className="h-4 w-4" />
-                    <span>صورة</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
-                 </label>
-             </div>
-</div>
 
           {/* Barcode Scanner UI (if active) */}
           {isScanning && (
@@ -541,6 +523,34 @@ export default function ProductsPage() {
         </div>
         
         <CloudinarySetupModal isOpen={showCloudinaryModal} onClose={() => setShowCloudinaryModal(false)} onSuccess={() => setShowCloudinaryModal(false)} />
+        
+        {/* Floating Add Button - bottom left */}
+        <div className="fixed bottom-20 md:bottom-6 left-6 z-50 flex flex-col items-center">
+           {showScanMenu && (
+              <div className="mb-3 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-2xl p-1.5 flex flex-col gap-0.5 animate-in fade-in slide-in-from-bottom-2">
+                 <button onClick={handleAddWithoutBarcode} className="flex items-center gap-2.5 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right w-full text-xs">
+                    <div className="bg-amber-100 p-1.5 rounded-full text-amber-600"><Package className="h-3.5 w-3.5" /></div>
+                    <span className="font-medium text-gray-700 dark:text-gray-200">بدون باركود</span>
+                 </button>
+                 <button onClick={handleManualBarcode} className="flex items-center gap-2.5 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right w-full text-xs">
+                    <div className="bg-purple-100 p-1.5 rounded-full text-purple-600"><Pencil className="h-3.5 w-3.5" /></div>
+                    <span className="font-medium text-gray-700 dark:text-gray-200">إدخال يدوياً</span>
+                 </button>
+                 <label className="flex items-center gap-2.5 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors w-full text-xs">
+                    <div className="bg-blue-100 p-1.5 rounded-full text-blue-600"><ImagePlus className="h-3.5 w-3.5" /></div>
+                    <span className="font-medium text-gray-700 dark:text-gray-200">مسح من صورة</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
+                 </label>
+                 <button onClick={() => { setIsScanning(true); setShowScanMenu(false); }} className="flex items-center gap-2.5 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right w-full text-xs">
+                    <div className="bg-green-100 p-1.5 rounded-full text-green-600"><Camera className="h-3.5 w-3.5" /></div>
+                    <span className="font-medium text-gray-700 dark:text-gray-200">كاميرا الجهاز</span>
+                 </button>
+              </div>
+           )}
+           <button onClick={() => setShowScanMenu(!showScanMenu)} className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 shadow-2xl bg-primary hover:bg-primary-hover shadow-primary/30 text-white active:scale-90`}>
+              <Plus className="h-7 w-7" />
+           </button>
+        </div>
       </ProtectedLayout>
     );
 }

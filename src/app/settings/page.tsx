@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import ProtectedLayout from "@/components/Layout/ProtectedLayout";
@@ -42,7 +42,7 @@ export default function SettingsPage() {
   useEffect(() => {
     setMounted(true);
     if (currentUser) {
-      setStoreName(currentUser.store_name || "Ù…ÙƒØªØ¨Ø© Ø§Ù„Ø­Ø§Ø¬ Ù…Ø³Ø¹ÙˆØ¯");
+      setStoreName(currentUser.store_name || "مكتبة الحاج مسعود");
       setStoreLogo(currentUser.store_logo ?? "");
       setUsername(currentUser.name ?? "HERMA");
       
@@ -113,10 +113,10 @@ export default function SettingsPage() {
             sessionStorage.setItem("currentUser", JSON.stringify(updatedUser));
           }
           
-          showSystemToast("ØªÙ… Ø±ÙØ¹ Ø§Ù„Ø´Ø¹Ø§Ø±", "ØªÙ… ØªØ­Ø¯ÙŠØ« Ø´Ø¹Ø§Ø± Ø§Ù„Ù…ØªØ¬Ø± Ø¨Ù†Ø¬Ø§Ø­.", "edit_user");
+          showSystemToast("تم رفع الشعار", "تم تحديث شعار المتجر بنجاح.", "edit_user");
         }
     } catch (e) {
-      toast.error("ÙØ´Ù„ Ø±ÙØ¹ Ø§Ù„Ø´Ø¹Ø§Ø±");
+      toast.error("فشل رفع الشعار");
     } finally {
       setUploadingLogo(false);
     }
@@ -146,9 +146,9 @@ export default function SettingsPage() {
       
       const updated = { ...currentUser, ...updates };
       sessionStorage.setItem("currentUser", JSON.stringify(updated));
-      toast.success("ØªÙ… Ø­ÙØ¸ Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø¨Ù†Ø¬Ø§Ø­!");
+      toast.success("تم حفظ الإعدادات بنجاح!");
     } catch (e) {
-      toast.error("Ø­Ø¯Ø« Ø®Ø·Ø£ Ø£Ø«Ù†Ø§Ø¡ Ø§Ù„Ø­ÙØ¸");
+      toast.error("حدث خطأ أثناء الحفظ");
     } finally {
       setIsSaving(false);
     }
@@ -158,21 +158,21 @@ export default function SettingsPage() {
     <ProtectedLayout>
       <div className="space-y-6 pb-32 md:pb-12">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª</h1>
-          <p className="text-muted-foreground mt-1">ØªØ®ØµÙŠØµ Ø§Ù„Ù†Ø¸Ø§Ù… ÙˆØ¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ø­Ø³Ø§Ø¨</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">الإعدادات</h1>
+          <p className="text-muted-foreground mt-1">تخصيص النظام وإعدادات الحساب</p>
         </div>
 
         <div className="grid gap-6 md:grid-cols-2">
-          {/* Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ø´Ø®ØµÙŠØ© - ØªØ¸Ù‡Ø± Ù„Ù„Ø¬Ù…ÙŠØ¹ */}
+          {/* الإعدادات الشخصية - تظهر للجميع */}
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
             <div className="flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 pb-4">
               <User className="h-6 w-6 text-primary" />
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„Ø´Ø®ØµÙŠØ©</h2>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">المعلومات الشخصية</h2>
             </div>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ø§Ù„Ø§Ø³Ù… Ø§Ù„ÙƒØ§Ù…Ù„</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الاسم الكامل</label>
                 <input
                   type="text"
                   value={fullName}
@@ -182,7 +182,7 @@ export default function SettingsPage() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ø±Ù‚Ù… Ø§Ù„Ù‡Ø§ØªÙ</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">رقم الهاتف</label>
                 <input
                   type="tel"
                   dir="ltr"
@@ -194,16 +194,16 @@ export default function SettingsPage() {
 
               {currentUser?.role === 'LEADER' && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ù†ÙˆØ¹ Ø§Ù„ØªØ¬Ø§Ø±Ø©</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">نوع التجارة</label>
                   <select
                     value={businessType}
                     onChange={(e) => setBusinessType(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm"
                   >
-                    <option value="Ù…ÙƒØªØ¨Ø©">Ù…ÙƒØªØ¨Ø©</option>
-                    <option value="Ù…Ø­Ù„ Ø¹Ø§Ù…">Ù…Ø­Ù„ Ø¹Ø§Ù…</option>
-                    <option value="Ù…ÙˆØ§Ø¯ ØºØ°Ø§Ø¦ÙŠØ©">Ù…ÙˆØ§Ø¯ ØºØ°Ø§Ø¦ÙŠØ©</option>
-                    <option value="ØµÙŠØ¯Ù„ÙŠØ©">ØµÙŠØ¯Ù„ÙŠØ©</option>
+                    <option value="مكتبة">مكتبة</option>
+                    <option value="محل عام">محل عام</option>
+                    <option value="مواد غذائية">مواد غذائية</option>
+                    <option value="صيدلية">صيدلية</option>
                   </select>
                 </div>
               )}
@@ -212,16 +212,16 @@ export default function SettingsPage() {
             <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
               <button disabled={isSaving} onClick={handleSaveStore} className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">
                 <Save className="h-4 w-4" />
-                <span>{isSaving ? "Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø­ÙØ¸..." : "Ø­ÙØ¸ Ø§Ù„ØªØ¹Ø¯ÙŠÙ„Ø§Øª"}</span>
+                <span>{isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
               </button>
             </div>
 
             {/* Communication Button */}
             <div className="pt-4 mt-6 border-t border-gray-100 dark:border-gray-700">
-              <Link href="/chat" className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-4 rounded-xl hover:opacity-90 transition-opacity font-bold shadow-sm">
+              <button type="button" onClick={() => window.location.href = '/chat'} className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-4 py-4 rounded-xl hover:opacity-90 transition-opacity font-bold shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                <span>Ø§Ù„ØªÙˆØ§ØµÙ„ Ù…Ø¹ ÙØ±ÙŠÙ‚ Ø§Ù„Ø¹Ù…Ù„</span>
-              </Link>
+                <span>التواصل مع فريق العمل</span>
+              </button>
             </div>
           </div>
 
@@ -229,12 +229,12 @@ export default function SettingsPage() {
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
               <div className="flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 pb-4">
                 <Store className="h-6 w-6 text-primary" />
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ù…ÙƒØªØ¨Ø©</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">إعدادات المكتبة</h2>
               </div>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ø§Ø³Ù… Ø§Ù„Ù…ÙƒØªØ¨Ø© / Ø§Ù„Ù…ØªØ¬Ø±</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">اسم المكتبة / المتجر</label>
                   <input
                     type="text"
                     value={storeName}
@@ -244,7 +244,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ø´Ø¹Ø§Ø± Ø§Ù„Ù…ØªØ¬Ø±</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">شعار المتجر</label>
                   <div className="flex items-center gap-4 bg-gray-50 dark:bg-gray-800 p-4 rounded-xl border border-gray-200 dark:border-gray-700 mb-6">
                     {storeLogo ? (
                       <>
@@ -252,7 +252,7 @@ export default function SettingsPage() {
                           <img src={storeLogo} alt="Logo preview" className="max-h-full max-w-full object-contain" />
                         </div>
                         <div className="flex-1">
-                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Ø§Ù„Ø´Ø¹Ø§Ø± Ø§Ù„Ø­Ø§Ù„ÙŠ</p>
+                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">الشعار الحالي</p>
                           <button type="button" onClick={async () => {
                               const oldLogo = storeLogo;
                               setStoreLogo('');
@@ -288,10 +288,10 @@ export default function SettingsPage() {
                                     }
                                   } catch(e) { console.error('Failed to delete logo from cloud', e); }
                                 }
-                                showSystemToast("ØªÙ… Ù…Ø³Ø­ Ø§Ù„Ø´Ø¹Ø§Ø±", "ØªÙ… Ù…Ø³Ø­ Ø§Ù„Ø´Ø¹Ø§Ø± Ø§Ù„Ù‚Ø¯ÙŠÙ… Ø¨Ù†Ø¬Ø§Ø­.", "edit_user");
+                                showSystemToast("تم مسح الشعار", "تم مسح الشعار القديم بنجاح.", "edit_user");
                               }
                             }} className="text-xs text-red-600 bg-red-100 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 px-3 py-1.5 rounded-lg transition-colors font-bold">
-                            Ù…Ø³Ø­ Ø§Ù„Ø´Ø¹Ø§Ø± (Ù„Ø±ÙØ¹ Ø¬Ø¯ÙŠØ¯)
+                            مسح الشعار (لرفع جديد)
                           </button>
                         </div>
                       </>
@@ -299,17 +299,17 @@ export default function SettingsPage() {
                       <div className="flex-1 w-full space-y-3">
                         <label className="flex items-center justify-center gap-2 w-full py-3 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 border-dashed rounded-xl cursor-pointer transition-colors text-sm font-bold">
                           {uploadingLogo ? <Loader2 className="h-5 w-5 animate-spin" /> : <UploadCloud className="h-5 w-5" />}
-                          <span>Ø±ÙØ¹ ØµÙˆØ±Ø© Ø¬Ø¯ÙŠØ¯Ø© Ù…Ù† Ø§Ù„Ø¬Ù‡Ø§Ø²</span>
+                          <span>رفع صورة جديدة من الجهاز</span>
                           <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={uploadingLogo} />
                         </label>
                         <div className="flex items-center gap-2 text-xs text-gray-400">
                           <hr className="flex-1 border-gray-200 dark:border-gray-600" />
-                          <span>Ø£Ùˆ</span>
+                          <span>أو</span>
                           <hr className="flex-1 border-gray-200 dark:border-gray-600" />
                         </div>
                         <input
                           type="url"
-                          placeholder="Ø£Ùˆ Ø¶Ø¹ Ø±Ø§Ø¨Ø· ØµÙˆØ±Ø© Ø¬Ø§Ù‡Ø² Ù‡Ù†Ø§ (Ù…Ø«Ø§Ù„: https://...)"
+                          placeholder="أو ضع رابط صورة جاهز هنا (مثال: https://...)"
                           dir="rtl"
                           value={storeLogo}
                           onChange={(e) => setStoreLogo(e.target.value)}
@@ -321,8 +321,8 @@ export default function SettingsPage() {
                 </div>
                 <div className="pt-4 flex items-center justify-between border-t border-gray-100 dark:border-gray-700">
                   <div>
-                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">Ø§Ù„ÙˆØ¶Ø¹ Ø§Ù„Ù„ÙŠÙ„ÙŠ</h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">ØªÙØ¹ÙŠÙ„ Ø§Ù„ÙˆØ¶Ø¹ Ø§Ù„Ù…Ø¸Ù„Ù… Ø¨Ø´ÙƒÙ„ Ø§ÙØªØ±Ø§Ø¶ÙŠ</p>
+                    <h3 className="text-sm font-medium text-gray-900 dark:text-white">الوضع الليلي</h3>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">تفعيل الوضع المظلم بشكل افتراضي</p>
                   </div>
                   {mounted && (
                     <button 
@@ -338,7 +338,7 @@ export default function SettingsPage() {
               <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
                 <button disabled={isSaving} onClick={handleSaveStore} className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50">
                   <Save className="h-4 w-4" />
-                  <span>{isSaving ? "Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø­ÙØ¸..." : "Ø­ÙØ¸ Ø§Ù„ØªØ¹Ø¯ÙŠÙ„Ø§Øª"}</span>
+                  <span>{isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
                 </button>
               </div>
             </div>
@@ -350,15 +350,15 @@ export default function SettingsPage() {
                 <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-4">
                   <div className="flex items-center gap-3">
                     <UploadCloud className="h-6 w-6 text-primary" />
-                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„ØªØ®Ø²ÙŠÙ† Ø§Ù„Ø³Ø­Ø§Ø¨ÙŠ</h2>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">إعدادات التخزين السحابي</h2>
                   </div>
                   {currentUser?.cloudinary_cloud_name ? (
                     <span className="text-xs font-bold px-3 py-1 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 rounded-full flex items-center gap-1">
-                      â— Ù…Ø±ØªØ¨Ø· ({currentUser.cloudinary_cloud_name})
+                      ● مرتبط ({currentUser.cloudinary_cloud_name})
                     </span>
                   ) : (
                     <span className="text-xs font-bold px-3 py-1 bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400 rounded-full flex items-center gap-1">
-                      â— Ù„Ù… ÙŠØªÙ… Ø§Ù„Ø±Ø¨Ø· Ø¨Ø¹Ø¯
+                      ● لم يتم الربط بعد
                     </span>
                   )}
                 </div>
@@ -367,8 +367,8 @@ export default function SettingsPage() {
                   <div className="space-y-4">
                     <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                       {currentUser?.plan_tier === 'PREMIUM' ? 
-                        "ÙŠÙ…ÙƒÙ†Ùƒ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù„Ø­Ø³Ø§Ø¨ Ù…Ø³Ø§Ø­Ø© Ø§Ù„ØµÙˆØ± Ø§Ù„Ø®Ø§Øµ Ø¨Ùƒ Ø£Ùˆ ØªØºÙŠÙŠØ±Ù‡ ÙÙŠ Ø£ÙŠ ÙˆÙ‚Øª Ù…Ù† Ù‡Ù†Ø§." :
-                        "ÙÙŠ Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ø¹Ø§Ø¯ÙŠØ©ØŒ ÙŠÙ…ÙƒÙ†Ùƒ Ø±Ø¨Ø· Ù…Ø³Ø§Ø­Ø© Ø§Ù„ØµÙˆØ± (Cloudinary) Ù…Ø±Ø© ÙˆØ§Ø­Ø¯Ø© ÙÙ‚Ø·. Ø§Ù„Ø³Ø¹Ø© Ù…Ø­Ø¯ÙˆØ¯Ø© Ø¨Ù€ 200 ØµÙˆØ±Ø©."
+                        "يمكنك تسجيل الدخول لحساب مساحة الصور الخاص بك أو تغييره في أي وقت من هنا." :
+                        "في الباقة العادية، يمكنك ربط مساحة الصور (Cloudinary) مرة واحدة فقط. السعة محدودة بـ 200 صورة."
                       }
                     </p>
 
@@ -386,14 +386,14 @@ export default function SettingsPage() {
                       <LogIn className="w-5 h-5" />
                       <span>
                         {currentUser?.cloudinary_cloud_name 
-                          ? (currentUser?.plan_tier === 'PREMIUM' ? "ØªØºÙŠÙŠØ± Ø­Ø³Ø§Ø¨ Ø§Ù„ØµÙˆØ± / ØªØ³Ø¬ÙŠÙ„ Ø¯Ø®ÙˆÙ„ Ø¬Ø¯ÙŠØ¯" : "ØªÙ… Ø±Ø¨Ø· Ø§Ù„Ø­Ø³Ø§Ø¨ Ø¨Ù†Ø¬Ø§Ø­ (Ù…Ù‚ÙÙˆÙ„)") 
-                          : "ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ / Ø±Ø¨Ø· Ø­Ø³Ø§Ø¨ Ø§Ù„ØµÙˆØ±"}
+                          ? (currentUser?.plan_tier === 'PREMIUM' ? "تغيير حساب الصور / تسجيل دخول جديد" : "تم ربط الحساب بنجاح (مقفول)") 
+                          : "تسجيل الدخول / ربط حساب الصور"}
                       </span>
                       {currentUser?.plan_tier !== 'PREMIUM' && !!currentUser?.cloudinary_cloud_name && <Lock className="w-4 h-4 text-amber-500" />}
                     </button>
 
                     <div className="pt-2">
-                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ø§Ù„Ø­Ø¯ Ø§Ù„Ø£Ù‚ØµÙ‰ Ù„Ù„ØµÙˆØ± Ø§Ù„Ù…Ø³Ù…ÙˆØ­ Ø¨Ù‡Ø§ ÙÙŠ Ø§Ù„Ø¨Ø§Ù‚Ø©</label>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">الحد الأقصى للصور المسموح بها في الباقة</label>
                       <input 
                         type="number" 
                         dir="ltr" 
@@ -409,7 +409,7 @@ export default function SettingsPage() {
                   <div className="pt-4 border-t border-gray-100 dark:border-gray-700 mt-4">
                     <button disabled={isSaving} onClick={handleSaveStore} className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 text-sm font-bold">
                       <Save className="h-4 w-4" />
-                      <span>{isSaving ? "Ø¬Ø§Ø±ÙŠ Ø§Ù„Ø­ÙØ¸..." : "Ø­ÙØ¸ Ø§Ù„ØªØ¹Ø¯ÙŠÙ„Ø§Øª"}</span>
+                      <span>{isSaving ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
                     </button>
                   </div>
                 </div>
@@ -420,12 +420,12 @@ export default function SettingsPage() {
             <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
               <div className="flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 pb-4">
                 <Lock className="h-6 w-6 text-primary" />
-                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„Ø­Ø³Ø§Ø¨</h2>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">إعدادات الحساب</h2>
               </div>
               
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ø§Ø³Ù… Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">اسم المستخدم</label>
                   <input
                     type="text"
                     value={username}
@@ -436,26 +436,26 @@ export default function SettingsPage() {
                 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1 flex items-center gap-2">
-                    Ù„ØºØ© Ø§Ù„Ù†Ø¸Ø§Ù… (Language)
-                    {currentUser?.plan_tier !== 'PREMIUM' && <span title="ÙŠØªØ·Ù„Ø¨ Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ù…Ù…ÙŠØ²Ø©"><Lock className="w-3 h-3 text-amber-500" /></span>}
+                    لغة النظام (Language)
+                    {currentUser?.plan_tier !== 'PREMIUM' && <span title="يتطلب الباقة المميزة"><Lock className="w-3 h-3 text-amber-500" /></span>}
                   </label>
                   <select
                     disabled={currentUser?.plan_tier !== 'PREMIUM'}
                     className={`w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm ${currentUser?.plan_tier !== 'PREMIUM' ? 'opacity-50 cursor-not-allowed' : ''}`}
                     defaultValue="ar"
-                    title={currentUser?.plan_tier !== 'PREMIUM' ? 'Ù‡Ø°Ù‡ Ø§Ù„Ù…ÙŠØ²Ø© ØªØªØ·Ù„Ø¨ Ø§Ù„Ø¨Ø§Ù‚Ø© Ø§Ù„Ù…Ù…ÙŠØ²Ø©' : ''}
+                    title={currentUser?.plan_tier !== 'PREMIUM' ? 'هذه الميزة تتطلب الباقة المميزة' : ''}
                   >
-                    <option value="ar">Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© (Arabic)</option>
-                    <option value="fr">Ø§Ù„ÙØ±Ù†Ø³ÙŠØ© (French)</option>
-                    <option value="en">Ø§Ù„Ø¥Ù†Ø¬Ù„ÙŠØ²ÙŠØ© (English)</option>
+                    <option value="ar">العربية (Arabic)</option>
+                    <option value="fr">الفرنسية (French)</option>
+                    <option value="en">الإنجليزية (English)</option>
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø©</label>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">كلمة المرور الجديدة</label>
                   <input
                     type="text"
-                    placeholder="Ø§ØªØ±Ùƒ Ø§Ù„Ø­Ù‚Ù„ ÙØ§Ø±ØºØ§Ù‹ Ø¥Ø°Ø§ Ù„Ù… ØªØ±Ø¯ Ø§Ù„ØªØºÙŠÙŠØ±"
+                    placeholder="اترك الحقل فارغاً إذا لم ترد التغيير"
                     className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white sm:text-sm"
                   />
                 </div>
@@ -464,7 +464,7 @@ export default function SettingsPage() {
               <div className="pt-4 border-t border-gray-100 dark:border-gray-700">
                 <button className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors">
                   <Save className="h-4 w-4" />
-                  <span>ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø­Ø³Ø§Ø¨</span>
+                  <span>تحديث الحساب</span>
                 </button>
               </div>
             </div>
@@ -473,22 +473,22 @@ export default function SettingsPage() {
               <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6 space-y-6">
                 <div className="flex items-center gap-3 border-b border-gray-100 dark:border-gray-700 pb-4">
                   <Link2 className="h-6 w-6 text-primary" />
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Ø±ÙˆØ§Ø¨Ø· Ø³Ø±ÙŠØ¹Ø©</h2>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">روابط سريعة</h2>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <Link href="/returns" className="bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 p-4 rounded-xl flex flex-col items-center justify-center gap-2 border border-orange-100 dark:border-orange-800 transition-colors active:scale-95">
                     <Undo2 className="w-6 h-6" />
-                    <span className="font-bold text-sm">Ø§Ù„Ù…Ø±ØªØ¬Ø¹Ø§Øª</span>
+                    <span className="font-bold text-sm">المرتجعات</span>
                   </Link>
                   <Link href="/contact" className="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 p-4 rounded-xl flex flex-col items-center justify-center gap-2 border border-emerald-100 dark:border-emerald-800 transition-colors active:scale-95">
                     <Mail className="w-6 h-6" />
-                    <span className="font-bold text-sm">Ø§ØªØµÙ„ Ø¨Ù†Ø§</span>
+                    <span className="font-bold text-sm">اتصل بنا</span>
                   </Link>
                 </div>
               </div>
             )}
 
-            {/* Ù…Ø³Ø§Ø­Ø© Ø§Ù„ØªØ®Ø²ÙŠÙ† Ø§Ù„Ø³Ø­Ø§Ø¨ÙŠØ© */}
+            {/* مساحة التخزين السحابية */}
             {currentUser?.role === 'LEADER' && (
               <Link href="/cloud-stats" className="block w-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl p-5 shadow-sm text-white hover:shadow-md transition-shadow active:scale-[0.99]">
                 <div className="flex items-center gap-4 mb-3">
@@ -496,9 +496,9 @@ export default function SettingsPage() {
                     <Cloud className="w-8 h-8" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-bold">Ù…Ø³Ø§Ø­Ø© Ø§Ù„ØªØ®Ø²ÙŠÙ† Ø§Ù„Ø³Ø­Ø§Ø¨ÙŠØ©</h3>
+                    <h3 className="text-lg font-bold">مساحة التخزين السحابية</h3>
 <p className="text-sm text-blue-100 mt-1">
-                        Ø§Ù„Ù…Ø³ØªÙ‡Ù„Ùƒ: {currentUser?.storage_used || 0} ØµÙˆØ±Ø© Ù…Ù† Ø£ØµÙ„ {getCloudinaryMaxImages(currentUser).toLocaleString()} ØµÙˆØ±Ø©
+                        المستهلك: {currentUser?.storage_used || 0} صورة من أصل {getCloudinaryMaxImages(currentUser).toLocaleString()} صورة
                       </p>
                     </div>
                   <div className="mr-auto text-left flex flex-col items-end">
@@ -531,4 +531,3 @@ export default function SettingsPage() {
     </ProtectedLayout>
   );
 }
-
