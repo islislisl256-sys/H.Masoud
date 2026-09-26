@@ -7,13 +7,26 @@ import { Mail, Phone, MessageCircle, ExternalLink, Users } from "lucide-react";
 export default function ContactPage() {
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
     e.preventDefault();
-    // Try window.open first
+    const isApp = typeof window !== 'undefined' && localStorage.getItem('is_electron_app_forever') === 'true';
+    
+    if (isApp) {
+      // In the mobile app, external intents cause ERR_UNKNOWN_URL_SCHEME
+      // We copy the link to clipboard instead to prevent crashing
+      navigator.clipboard.writeText(url).then(() => {
+        import("@/components/CustomToasts").then(({ showSystemToast }) => {
+          showSystemToast("تم النسخ", "لأنك داخل التطبيق، تم نسخ الرابط! يرجى لصقه في المتصفح أو التطبيق.", "info");
+        });
+      });
+      return;
+    }
+
     try {
       window.open(url, '_blank', 'noopener,noreferrer');
     } catch (err) {
       window.location.href = url;
     }
   };
+
 
   return (
     <ProtectedLayout>
