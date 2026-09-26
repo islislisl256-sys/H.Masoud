@@ -418,7 +418,7 @@ export default function CustomInvoicesTab() {
                       <img src={storeInfo.store_logo} alt="شعار" className="w-full h-full object-contain p-1 bg-white" />
                       <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                         <span className="text-white text-xs font-bold">تغيير</span>
-                        <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                        <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
                             const reader = new FileReader();
@@ -433,7 +433,7 @@ export default function CustomInvoicesTab() {
                     <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                       <Plus className="h-6 w-6 text-gray-400 mb-1" />
                       <span className="text-gray-500 dark:text-gray-400 text-[10px] font-medium">رفع شعار</span>
-                      <input type="file" accept="image/*" className="hidden" onChange={(e) => {
+                      <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
                           const reader = new FileReader();

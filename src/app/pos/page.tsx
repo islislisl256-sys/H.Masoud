@@ -345,7 +345,7 @@ export default function POSPage() {
             </button>
             <label className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 cursor-pointer">
                <ImagePlus className="h-5 w-5" />
-               <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
+               <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onChange={handleImageScan} />
             </label>
           </div>
           <div className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 px-4 py-2 rounded-lg border border-gray-200 dark:border-gray-700 shrink-0">

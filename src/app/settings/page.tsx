@@ -300,7 +300,7 @@ export default function SettingsPage() {
                         <label className="flex items-center justify-center gap-2 w-full py-3 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:hover:bg-blue-900/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-800 border-dashed rounded-xl cursor-pointer transition-colors text-sm font-bold">
                           {uploadingLogo ? <Loader2 className="h-5 w-5 animate-spin" /> : <UploadCloud className="h-5 w-5" />}
                           <span>رفع صورة جديدة من الجهاز</span>
-                          <input type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} disabled={uploadingLogo} />
+                          <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onChange={handleLogoUpload} disabled={uploadingLogo} />
                         </label>
                         <div className="flex items-center gap-2 text-xs text-gray-400">
                           <hr className="flex-1 border-gray-200 dark:border-gray-600" />

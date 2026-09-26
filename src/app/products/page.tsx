@@ -411,11 +411,11 @@ export default function ProductsPage() {
                       {pendingProducts.map((p, index) => (
                          <div key={index} className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 shrink-0 shadow-sm">
                             <span className="text-[10px] font-mono bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-gray-600 dark:text-gray-300 shrink-0">{p.product_number.length > 8 ? p.product_number.slice(-8) : p.product_number}</span>
-                             <label className="cursor-pointer shrink-0 ml-1">
+                             <label className="cursor-pointer shrink-0 ml-1 relative overflow-hidden">
                                <div className="w-7 h-7 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors overflow-hidden">
                                  {p.image_preview || p.image_url ? <img src={p.image_preview || p.image_url} className="w-full h-full object-cover" /> : <Camera className="w-3.5 h-3.5 text-gray-500" />}
                                </div>
-                               <input type="file" accept="image/*" className="hidden" onChange={(e) => { if(e.target.files && e.target.files[0]) handleImageSelectForProduct(e.target.files[0], index) }} />
+                               <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onChange={(e) => { if(e.target.files && e.target.files[0]) handleImageSelectForProduct(e.target.files[0], index) }} />
                              </label>
 
                             <input type="text" placeholder="الاسم" value={p.name} onChange={e => updatePending(index, 'name', e.target.value)} className="w-24 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary" dir="rtl" />
@@ -539,7 +539,7 @@ export default function ProductsPage() {
                  <label className="flex items-center gap-2.5 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors w-full text-xs">
                     <div className="bg-blue-100 p-1.5 rounded-full text-blue-600"><ImagePlus className="h-3.5 w-3.5" /></div>
                     <span className="font-medium text-gray-700 dark:text-gray-200">مسح من صورة</span>
-                    <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
+                    <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onChange={handleImageScan} />
                  </label>
                  <button onClick={() => { setIsScanning(true); setShowScanMenu(false); }} className="flex items-center gap-2.5 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors text-right w-full text-xs">
                     <div className="bg-green-100 p-1.5 rounded-full text-green-600"><Camera className="h-3.5 w-3.5" /></div>

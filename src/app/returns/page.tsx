@@ -495,7 +495,7 @@ export default function ReturnsPage() {
           <div className="mb-4 flex flex-col gap-3 origin-bottom animate-in fade-in slide-in-from-bottom-4 items-center">
             <label className="flex items-center justify-center w-12 h-12 bg-blue-500 hover:bg-blue-600 text-white rounded-full shadow-lg cursor-pointer transition-transform hover:scale-110" title="رفع صورة">
                <ImagePlus className="h-5 w-5" />
-               <input type="file" accept="image/*" className="hidden" onChange={handleImageScan} />
+               <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onChange={handleImageScan} />
             </label>
             <button 
               onClick={() => { setIsScanning(true); setShowScanMenu(false); }}
