@@ -20,7 +20,7 @@ export default function ContactPage() {
     if (isApp) {
       navigator.clipboard.writeText(url).then(() => {
         import("@/components/CustomToasts").then(({ showSystemToast }) => {
-          showSystemToast("ØªÙ… Ø§Ù„Ù†Ø³Ø®", "Ù„Ù… ÙŠØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ Ø¨Ø¹Ø¯. ØªÙ… Ù†Ø³Ø® Ø§Ù„Ø±Ø§Ø¨Ø· Ù„Ù ØªØ­Ù‡ Ù ÙŠ Ù…ØªØµÙ Ø­Ùƒ.", "info");
+          showSystemToast("ØªÙ… Ø§Ù„Ù†Ø³Ø®", "Ù„Ù… ÙŠØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ Ø¨Ø¹Ø¯. ØªÙ… Ù†Ø³Ø® Ø§Ù„Ø±Ø§Ø¨Ø· Ù„Ù ØªØ­Ù‡ Ù ÙŠ Ù…ØªØµÙ Ø­Ùƒ.", "chat");
         });
       });
       return;
