@@ -5,18 +5,20 @@ import ProtectedLayout from "@/components/Layout/ProtectedLayout";
 import { Mail, Phone, MessageCircle, ExternalLink, Users } from "lucide-react";
 
 export default function ContactPage() {
+  
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
     e.preventDefault();
-    // Try window.open first
-    try {
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } catch (err) {
-      window.location.href = url;
+    if (typeof window !== 'undefined' && (window as any).NativeLink) {
+      (window as any).NativeLink.postMessage(url);
+    } else {
+      try {
+        window.open(url, '_blank', 'noopener,noreferrer');
+      } catch (err) {
+        window.location.href = url;
+      }
     }
   };
-
-
-  return (
+return (
     <ProtectedLayout>
       <div className="space-y-6 pb-12 max-w-2xl mx-auto">
         <div>
@@ -37,7 +39,7 @@ export default function ContactPage() {
           <div className="grid gap-4">
             
             {/* WhatsApp Group */}
-            <a href="https://chat.whatsapp.com/BuPN9fxp31TK0ZqO5KrwvQ"  className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-xl hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors border border-green-100 dark:border-green-800 cursor-pointer">
+            <a href="https://chat.whatsapp.com/BuPN9fxp31TK0ZqO5KrwvQ" onClick={(e) => handleLinkClick(e, "https://chat.whatsapp.com/BuPN9fxp31TK0ZqO5KrwvQ")}  className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-xl hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors border border-green-100 dark:border-green-800 cursor-pointer">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-green-100 dark:bg-green-800 rounded-full text-green-600 dark:text-green-300">
                   <Users className="w-6 h-6" />
@@ -51,7 +53,7 @@ export default function ContactPage() {
             </a>
 
             {/* Facebook */}
-            <a href="https://www.facebook.com/share/17yFJQbTTz/"  className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors border border-blue-100 dark:border-blue-800 cursor-pointer">
+            <a href="https://www.facebook.com/share/17yFJQbTTz/" onClick={(e) => handleLinkClick(e, "https://www.facebook.com/share/17yFJQbTTz/")}  className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors border border-blue-100 dark:border-blue-800 cursor-pointer">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-blue-100 dark:bg-blue-800 rounded-full text-blue-600 dark:text-blue-300">
                   <ExternalLink className="w-6 h-6" />
@@ -65,7 +67,7 @@ export default function ContactPage() {
             </a>
 
             {/* Instagram */}
-            <a href="https://www.instagram.com/laissaoui_dev_dz?stkn=MW02a2h1cHVuN2F0dA=="  className="flex items-center justify-between p-4 bg-pink-50 dark:bg-pink-900/20 rounded-xl hover:bg-pink-100 dark:hover:bg-pink-900/40 transition-colors border border-pink-100 dark:border-pink-800 cursor-pointer">
+            <a href="https://www.instagram.com/laissaoui_dev_dz?stkn=MW02a2h1cHVuN2F0dA==" onClick={(e) => handleLinkClick(e, "https://www.instagram.com/laissaoui_dev_dz?stkn=MW02a2h1cHVuN2F0dA==")}  className="flex items-center justify-between p-4 bg-pink-50 dark:bg-pink-900/20 rounded-xl hover:bg-pink-100 dark:hover:bg-pink-900/40 transition-colors border border-pink-100 dark:border-pink-800 cursor-pointer">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-pink-100 dark:bg-pink-800 rounded-full text-pink-600 dark:text-pink-300">
                   <ExternalLink className="w-6 h-6" />
@@ -79,7 +81,7 @@ export default function ContactPage() {
             </a>
 
             {/* Email */}
-            <a href="mailto:laissaouilaissaoui89@gmail.com"  className="flex items-center justify-between p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors border border-indigo-100 dark:border-indigo-800 cursor-pointer">
+            <a href="mailto:laissaouilaissaoui89@gmail.com" onClick={(e) => handleLinkClick(e, "mailto:laissaouilaissaoui89@gmail.com")}  className="flex items-center justify-between p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors border border-indigo-100 dark:border-indigo-800 cursor-pointer">
               <div className="flex items-center gap-4">
                 <div className="p-3 bg-indigo-100 dark:bg-indigo-800 rounded-full text-indigo-600 dark:text-indigo-300">
                   <Mail className="w-6 h-6" />
