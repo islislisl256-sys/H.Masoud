@@ -57,13 +57,13 @@ return (
             
             {/* WhatsApp Group */}
             <a href="https://chat.whatsapp.com/BuPN9fxp31TK0ZqO5KrwvQ" onClick={(e) => handleLinkClick(e, "https://chat.whatsapp.com/BuPN9fxp31TK0ZqO5KrwvQ")}  className="flex items-center justify-between p-4 bg-green-50 dark:bg-green-900/20 rounded-xl hover:bg-green-100 dark:hover:bg-green-900/40 transition-colors border border-green-100 dark:border-green-800 cursor-pointer">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
                 <div className="p-3 bg-green-100 dark:bg-green-800 rounded-full text-green-600 dark:text-green-300">
                   <Users className="w-6 h-6" />
                 </div>
-                <div className="text-right">
+                <div className="text-right flex-1 min-w-0">
                   <h3 className="font-bold text-gray-900 dark:text-white">مجموعة الشكاوى والاستفسارات</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">مجموعة واتساب المخصصة</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate break-words">مجموعة واتساب المخصصة</p>
                 </div>
               </div>
               <ExternalLink className="w-5 h-5 text-gray-400" />
@@ -71,13 +71,13 @@ return (
 
             {/* Facebook */}
             <a href="https://www.facebook.com/share/17yFJQbTTz/" onClick={(e) => handleLinkClick(e, "https://www.facebook.com/share/17yFJQbTTz/")}  className="flex items-center justify-between p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl hover:bg-blue-100 dark:hover:bg-blue-900/40 transition-colors border border-blue-100 dark:border-blue-800 cursor-pointer">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
                 <div className="p-3 bg-blue-100 dark:bg-blue-800 rounded-full text-blue-600 dark:text-blue-300">
                   <ExternalLink className="w-6 h-6" />
                 </div>
-                <div className="text-right">
+                <div className="text-right flex-1 min-w-0">
                   <h3 className="font-bold text-gray-900 dark:text-white">صفحة الفيسبوك الرسمية</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">@laissaoui_dev_dz</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate break-words">@laissaoui_dev_dz</p>
                 </div>
               </div>
               <ExternalLink className="w-5 h-5 text-gray-400" />
@@ -85,13 +85,13 @@ return (
 
             {/* Instagram */}
             <a href="https://www.instagram.com/laissaoui_dev_dz?stkn=MW02a2h1cHVuN2F0dA==" onClick={(e) => handleLinkClick(e, "https://www.instagram.com/laissaoui_dev_dz?stkn=MW02a2h1cHVuN2F0dA==")}  className="flex items-center justify-between p-4 bg-pink-50 dark:bg-pink-900/20 rounded-xl hover:bg-pink-100 dark:hover:bg-pink-900/40 transition-colors border border-pink-100 dark:border-pink-800 cursor-pointer">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
                 <div className="p-3 bg-pink-100 dark:bg-pink-800 rounded-full text-pink-600 dark:text-pink-300">
                   <ExternalLink className="w-6 h-6" />
                 </div>
-                <div className="text-right">
+                <div className="text-right flex-1 min-w-0">
                   <h3 className="font-bold text-gray-900 dark:text-white">صفحة الانستغرام الرسمية</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">@laissaoui_dev_dz</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate break-words">@laissaoui_dev_dz</p>
                 </div>
               </div>
               <ExternalLink className="w-5 h-5 text-gray-400" />
@@ -99,13 +99,13 @@ return (
 
             {/* Email */}
             <a href="mailto:laissaouilaissaoui89@gmail.com" onClick={(e) => handleLinkClick(e, "mailto:laissaouilaissaoui89@gmail.com")}  className="flex items-center justify-between p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl hover:bg-indigo-100 dark:hover:bg-indigo-900/40 transition-colors border border-indigo-100 dark:border-indigo-800 cursor-pointer">
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
                 <div className="p-3 bg-indigo-100 dark:bg-indigo-800 rounded-full text-indigo-600 dark:text-indigo-300">
                   <Mail className="w-6 h-6" />
                 </div>
-                <div className="text-right">
+                <div className="text-right flex-1 min-w-0">
                   <h3 className="font-bold text-gray-900 dark:text-white">البريد الإلكتروني</h3>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">laissaouilaissaoui89@gmail.com</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate break-words">laissaouilaissaoui89@gmail.com</p>
                 </div>
               </div>
               <ExternalLink className="w-5 h-5 text-gray-400" />

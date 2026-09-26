@@ -183,7 +183,7 @@ export default function ChatPage() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 space-y-4">
         {isLoading ? (
           <div className="flex justify-center items-center h-full text-gray-500">جاري التحميل...</div>
         ) : messages.length === 0 ? (
@@ -228,29 +228,31 @@ export default function ChatPage() {
                     <p className="text-sm break-words whitespace-pre-wrap">{msg.content}</p>
                   )}
 
-                  <div className={`flex items-center gap-2 mt-1 text-[10px] ${isMine ? 'text-blue-100' : 'text-gray-400'}`}>
-                    <span>{new Date(msg.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
-                    {msg.is_edited && <span>(مُعدلة)</span>}
-                  </div>
-
-                  {msg.liked_by && msg.liked_by.length > 0 && (
-                    <div className={`absolute -bottom-2 ${isMine ? '-left-2' : '-right-2'} bg-white dark:bg-gray-800 rounded-full shadow-md px-1.5 py-0.5 text-xs border border-gray-100 dark:border-gray-700 flex items-center gap-1 z-10`}>
-                      👍 <span className="text-gray-600 dark:text-gray-300 font-medium">{msg.liked_by.length}</span>
+                  <div className="flex items-center justify-between gap-4 mt-2">
+                      <div className={`flex items-center gap-2 text-[10px] ${isMine ? 'text-blue-100' : 'text-gray-400'}`}>
+                        <span>{new Date(msg.created_at).toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' })}</span>
+                        {msg.is_edited && <span>(Ù…Ù Ø¹Ø¯Ù„Ø©)</span>}
+                      </div>
+                      
+                      <div className="flex items-center gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                        {isMine && !editingId && (
+                          <button onClick={() => { setEditingId(msg.id); setEditContent(msg.content); }} className={`p-1.5 rounded-full shadow-sm ${isMine ? 'bg-white/20 text-white hover:bg-white/30' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:text-primary'}`} title="ØªØ¹Ø¯ÙŠÙ„">
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                        {currentUser.role === 'LEADER' && (
+                          <button onClick={() => handleDeleteMessage(msg.id)} className={`p-1.5 rounded-full shadow-sm ${isMine ? 'bg-white/20 text-white hover:bg-red-400' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:text-red-500'}`} title="ØØ°Ù  (ØµÙ„Ø§ØÙŠØ© Ø§Ù„Ù‚Ø§Ø¦Ø¯)">
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  )}
 
-                  <div className={`absolute top-2 ${isMine ? '-left-16' : '-right-16'} opacity-0 group-hover:opacity-100 flex flex-col items-center gap-1 transition-opacity`}>
-                    {isMine && !editingId && (
-                      <button onClick={() => { setEditingId(msg.id); setEditContent(msg.content); }} className="p-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full hover:text-primary shadow-sm" title="تعديل">
-                        <Edit2 className="w-3.5 h-3.5" />
-                      </button>
+                    {msg.liked_by && msg.liked_by.length > 0 && (
+                      <div className={`absolute -bottom-2 ${isMine ? '-left-2' : '-right-2'} bg-white dark:bg-gray-800 rounded-full shadow-md px-1.5 py-0.5 text-xs border border-gray-100 dark:border-gray-700 flex items-center gap-1 z-10`}>
+                        👍 <span className="text-gray-600 dark:text-gray-300 font-medium">{msg.liked_by.length}</span>
+                      </div>
                     )}
-                    {currentUser.role === 'LEADER' && (
-                      <button onClick={() => handleDeleteMessage(msg.id)} className="p-1.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-full hover:text-red-500 shadow-sm" title="حذف (صلاحية القائد)">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
                 </div>
               </div>
             );
