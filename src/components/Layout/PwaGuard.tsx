@@ -117,7 +117,7 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
 
           {/* Android Button */}
           <a
-              href="/hanoutak_mobile.apk"
+              href="/hanoutak_mobile_v2.apk"
               download="hanutak.apk"
               className="w-full flex items-center justify-center gap-3 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-green-600/25 transition-all active:scale-95"
             >
