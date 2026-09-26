@@ -1,6 +1,5 @@
-﻿import { usePathname } from "next/navigation";
 "use client";
-
+import { usePathname } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { showSystemToast } from "@/components/CustomToasts";
 import { Download, Library, Smartphone, ShieldCheck } from "lucide-react";
