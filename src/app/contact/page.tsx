@@ -8,16 +8,33 @@ export default function ContactPage() {
   
   const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, url: string) => {
     e.preventDefault();
+    const isApp = typeof window !== 'undefined' && localStorage.getItem('is_electron_app_forever') === 'true';
+    
+    // 1. If the app was built with NativeLink, use the flawless direct bridge
     if (typeof window !== 'undefined' && (window as any).NativeLink) {
       (window as any).NativeLink.postMessage(url);
-    } else {
-      try {
-        window.open(url, '_blank', 'noopener,noreferrer');
-      } catch (err) {
-        window.location.href = url;
-      }
+      return;
+    } 
+    
+    // 2. If it's the app but NativeLink is missing (old APK), prevent crash by copying
+    if (isApp) {
+      navigator.clipboard.writeText(url).then(() => {
+        import("@/components/CustomToasts").then(({ showSystemToast }) => {
+          showSystemToast("ØªÙ… Ø§Ù„Ù†Ø³Ø®", "Ù„Ù… ÙŠØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ Ø¨Ø¹Ø¯. ØªÙ… Ù†Ø³Ø® Ø§Ù„Ø±Ø§Ø¨Ø· Ù„Ù ØªØ­Ù‡ Ù ÙŠ Ù…ØªØµÙ Ø­Ùƒ.", "info");
+        });
+      });
+      return;
+    }
+
+    // 3. Normal browser behavior
+    try {
+      window.open(url, '_blank', 'noopener,noreferrer');
+    } catch (err) {
+      window.location.href = url;
     }
   };
+
+
 return (
     <ProtectedLayout>
       <div className="space-y-6 pb-12 max-w-2xl mx-auto">
