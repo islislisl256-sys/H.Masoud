@@ -1,4 +1,5 @@
-﻿"use client";
+﻿import { usePathname } from "next/navigation";
+"use client";
 
 import React, { useEffect, useState } from "react";
 import { showSystemToast } from "@/components/CustomToasts";
@@ -6,6 +7,7 @@ import { Download, Library, Smartphone, ShieldCheck } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function PwaGuard({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
   const [isStandalone, setIsStandalone] = useState<boolean | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [isIOS, setIsIOS] = useState(false);
@@ -14,7 +16,7 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
     // Check if app is in standalone mode
     const checkStandalone = () => {
       // Permanent memory for desktop app
-      if (typeof window !== 'undefined' && window.location.search.includes('electron=true')) {
+      if (typeof window !== 'undefined' && (window.location.search.includes('electron=true') || window.location.search.includes('app=mobile'))) {
         localStorage.setItem('is_electron_app_forever', 'true');
       }
 
@@ -74,7 +76,7 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
   }
 
   // If already installed and opened as app, render children normally
-  if (isStandalone) {
+  if (isStandalone || pathname === '/contact') {
     return <>{children}</>;
   }
 
