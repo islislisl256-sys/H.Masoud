@@ -131,7 +131,7 @@ export default function DashboardPage() {
               <img src={currentUser?.store_logo || '/logo.png'} alt="Logo" className="w-12 h-12 rounded-lg object-contain bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-700" />
             <div>
               <h1 className="text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-                {currentUser?.store_name || "حانوتك"}
+                {currentUser?.store_name || "laissaoui_dev_dz"}
               </h1>
               <p className="text-sm text-gray-500 dark:text-gray-400">لوحة التحكم والمؤشرات</p>
             </div>

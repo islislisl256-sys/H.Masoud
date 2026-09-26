@@ -193,7 +193,7 @@ const handleBackToStep2 = async () => {
               <img src="/logo.png" alt="Logo" className="h-full w-full object-contain" />
             </div>
           <h2 className="text-center text-3xl font-extrabold text-gray-900 dark:text-white">
-            مكتبة الحاج مسعود
+            laissaoui_dev_dz
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
             {step === 1 && "المرحلة 1: التحقق الأمني"}

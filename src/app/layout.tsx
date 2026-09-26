@@ -12,13 +12,13 @@ import { Toaster } from "react-hot-toast";
 const cairo = Cairo({ subsets: ["arabic"], variable: "--font-cairo" });
 
 export const metadata: Metadata = {
-  title: "حانوتك",
-  description: "نظام إدارة حانوتك",
+  title: "laissaoui_dev_dz",
+  description: "نظام إدارة laissaoui_dev_dz",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "حانوتك"
+    title: "laissaoui_dev_dz"
   }
 };
 
