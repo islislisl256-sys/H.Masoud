@@ -343,7 +343,7 @@ export default function POSPage() {
             <button onClick={() => setIsScanning(!isScanning)} className={`p-2 rounded-lg transition-colors ${isScanning ? 'bg-red-500 text-white' : 'bg-green-500 text-white hover:bg-green-600'}`}>
                {isScanning ? <X className="h-5 w-5" /> : <Camera className="h-5 w-5" />}
             </button>
-            <label className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 cursor-pointer">
+            <label className="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 cursor-pointer relative overflow-hidden">
                <ImagePlus className="h-5 w-5" />
                <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onChange={handleImageScan} />
             </label>
