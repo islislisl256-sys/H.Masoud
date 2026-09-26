@@ -536,7 +536,7 @@ export default function ProductsPage() {
                     <div className="bg-purple-100 p-1.5 rounded-full text-purple-600"><Pencil className="h-3.5 w-3.5" /></div>
                     <span className="font-medium text-gray-700 dark:text-gray-200">إدخال يدوياً</span>
                  </button>
-                 <label className="flex items-center gap-2.5 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors w-full text-xs">
+                 <label className="flex items-center gap-2.5 p-2 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer transition-colors w-full text-xs relative overflow-hidden">
                     <div className="bg-blue-100 p-1.5 rounded-full text-blue-600"><ImagePlus className="h-3.5 w-3.5" /></div>
                     <span className="font-medium text-gray-700 dark:text-gray-200">مسح من صورة</span>
                     <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onChange={handleImageScan} />
