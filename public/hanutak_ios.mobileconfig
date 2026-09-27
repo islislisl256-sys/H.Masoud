@@ -16,7 +16,7 @@ iVBORw0KGgoAAAANSUhEUgAABkAAAAZACAYAAAAhDI6nAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
             <key>Label</key>
             <string>حانوتك</string>
             <key>PayloadDescription</key>
-            <string>تثبيت تطبيق حانوتك على الآيفون</string>
+            <string>تطبيق حانوتك لإدارة المحلات</string>
             <key>PayloadDisplayName</key>
             <string>Web Clip</string>
             <key>PayloadIdentifier</key>
@@ -33,10 +33,14 @@ iVBORw0KGgoAAAANSUhEUgAABkAAAAZACAYAAAAhDI6nAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8
             <string>https://h-masoud.vercel.app/?app=mobile</string>
         </dict>
     </array>
+    <key>PayloadDescription</key>
+    <string>تطبيق حانوتك لإدارة المحلات</string>
     <key>PayloadDisplayName</key>
     <string>حانوتك</string>
     <key>PayloadIdentifier</key>
-    <string>com.masoud.hanoutak.profile</string>
+    <string>com.masoud.hanoutak</string>
+    <key>PayloadOrganization</key>
+    <string>Hanutak</string>
     <key>PayloadRemovalDisallowed</key>
     <false/>
     <key>PayloadType</key>

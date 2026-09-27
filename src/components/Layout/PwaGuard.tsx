@@ -130,7 +130,6 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
           {/* iPhone Button */}
           <a
               href="/hanutak_ios.mobileconfig"
-              download="hanutak.mobileconfig"
               className="w-full flex items-center justify-center gap-3 bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-gray-800/25 transition-all active:scale-95"
             >
               <Smartphone className="w-6 h-6" />

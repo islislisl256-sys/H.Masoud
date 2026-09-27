@@ -5,6 +5,21 @@ const nextConfig: NextConfig = {
   images: {
     unoptimized: true,
   },
+
+  async headers() {
+    return [
+      {
+        source: "/(.*).mobileconfig",
+        headers: [
+          {
+            key: "Content-Type",
+            value: "application/x-apple-aspen-config",
+          },
+        ],
+      },
+    ];
+  },
+
 };
 
 export default nextConfig;
