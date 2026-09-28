@@ -168,9 +168,15 @@ export default function ProductsPage() {
     let finalImageUrl = rawP.image_url;
     
     try {
-      if (rawP.image_file) {
-        finalImageUrl = await uploadToCloudinary(rawP.image_file);
-      }
+        if (rawP.image_file) {
+          try {
+            finalImageUrl = await uploadToCloudinary(rawP.image_file);
+          } catch (imgErr) {
+            console.error("Image upload failed:", imgErr);
+            toast("تم تخطي رفع الصورة (بسبب المتصفح القديم)، وسيتم حفظ المنتج بدونها.", { icon: '⚠️' });
+            finalImageUrl = null;
+          }
+        }
       
       const p = {
         product_number: rawP.product_number,
@@ -217,10 +223,16 @@ export default function ProductsPage() {
       if (!rawP.product_number || !rawP.name) continue;
       
       try {
-        let finalImageUrl = rawP.image_url;
-        if (rawP.image_file) {
-          finalImageUrl = await uploadToCloudinary(rawP.image_file);
-        }
+          let finalImageUrl = rawP.image_url;
+          if (rawP.image_file) {
+            try {
+            finalImageUrl = await uploadToCloudinary(rawP.image_file);
+          } catch (imgErr) {
+            console.error("Image upload failed:", imgErr);
+            toast("تم تخطي رفع الصورة (بسبب المتصفح القديم)، وسيتم حفظ المنتج بدونها.", { icon: '⚠️' });
+            finalImageUrl = null;
+          }
+          }
         
         const p = {
           product_number: rawP.product_number,
