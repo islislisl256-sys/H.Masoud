@@ -174,7 +174,7 @@ export default function ProductsPage() {
           } catch (imgErr) {
             console.error("Image upload failed:", imgErr);
             toast("تم تخطي رفع الصورة (بسبب المتصفح القديم)، وسيتم حفظ المنتج بدونها.", { icon: '⚠️' });
-            finalImageUrl = null;
+            finalImageUrl = "";
           }
         }
       
@@ -230,7 +230,7 @@ export default function ProductsPage() {
           } catch (imgErr) {
             console.error("Image upload failed:", imgErr);
             toast("تم تخطي رفع الصورة (بسبب المتصفح القديم)، وسيتم حفظ المنتج بدونها.", { icon: '⚠️' });
-            finalImageUrl = null;
+            finalImageUrl = "";
           }
           }
         
