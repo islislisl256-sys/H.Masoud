@@ -11,6 +11,26 @@ type BarcodeContextType = {
 
 const BarcodeContext = createContext<BarcodeContextType | undefined>(undefined);
 
+
+function sanitizeBarcode(input: string) {
+  const azertyMap: Record<string, string> = {
+    '&': '1', '\u00e9': '2', '"': '3', "'": '4', '(': '5',
+    '-': '6', '\u00e8': '7', '_': '8', '\u00e7': '9', '\u00e0': '0'
+  };
+  const arabicMap: Record<string, string> = {
+    '\u0660': '0', '\u0661': '1', '\u0662': '2', '\u0663': '3', '\u0664': '4',
+    '\u0665': '5', '\u0666': '6', '\u0667': '7', '\u0668': '8', '\u0669': '9'
+  };
+  
+  let mapped = '';
+  for (const char of input) {
+    mapped += azertyMap[char] || arabicMap[char] || char;
+  }
+  
+  // Strip all non-numeric characters
+  return mapped.replace(/\D/g, '');
+}
+
 export function BarcodeProvider({ children }: { children: ReactNode }) {
   const [scannedBarcode, setScannedBarcode] = useState<string | null>(null);
   const [hardwareScannerActive, setHardwareScannerActive] = useState<boolean>(true);
@@ -37,7 +57,10 @@ export function BarcodeProvider({ children }: { children: ReactNode }) {
         // ماسح الباركود سريع جداً مقارنة بالكتابة اليدوية (أقل من 50 مللي ثانية بين الحروف)
         if (barcodeBuffer.length >= 3 && (!isInput || currentTime - lastKeyTime <= 300)) {
           e.preventDefault(); // منع الإرسال التلقائي للنماذج إذا كنا داخل Input
-          setScannedBarcode(barcodeBuffer);
+          const cleanBarcode = sanitizeBarcode(barcodeBuffer);
+          if (cleanBarcode.length >= 3) {
+            setScannedBarcode(cleanBarcode);
+          }
           barcodeBuffer = "";
         }
       } else if (e.key.length === 1) { 
