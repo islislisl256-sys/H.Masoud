@@ -104,37 +104,19 @@ export default function PwaGuard({ children }: { children: React.ReactNode }) {
         </p>
 
         <div className="space-y-3">
-          {/* Windows Button */}
+          {/* Temporary Redirect Button */}
           <a
-            href="https://www.mediafire.com/file/7wy33ega0xcd7bk/Library-System-Setup.exe/file"
+            href="https://google.com" 
             target="_blank"
             rel="noopener noreferrer"
-            className="w-full flex items-center justify-center gap-3 bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-blue-600/25 transition-all active:scale-95"
+            className="w-full flex items-center justify-center gap-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-indigo-600/25 transition-all active:scale-95"
           >
             <Download className="w-5 h-5" />
-            تحميل نسخة الويندوز (كمبيوتر)
+            الذهاب لصفحة التحميلات
           </a>
-
-          {/* Android Button */}
-          <a
-              href="/hanoutak_mobile_v2.apk"
-              download="hanutak.apk"
-              className="w-full flex items-center justify-center gap-3 bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-green-600/25 transition-all active:scale-95"
-            >
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.523 15.34a.5.5 0 0 0 .5-.5v-5.18a.5.5 0 0 0-.5-.5h-.5V6.5A4.5 4.5 0 0 0 12.523 2h-1.046A4.5 4.5 0 0 0 6.977 6.5v2.66h-.5a.5.5 0 0 0-.5.5v5.18a.5.5 0 0 0 .5.5h.5v1.16a1.5 1.5 0 0 0 1.5 1.5h.5v2.5a1 1 0 0 0 2 0v-2.5h2.046v2.5a1 1 0 0 0 2 0v-2.5h.5a1.5 1.5 0 0 0 1.5-1.5v-1.16h.5zM8.977 6.5A2.5 2.5 0 0 1 11.477 4h1.046a2.5 2.5 0 0 1 2.5 2.5v2.66H8.977V6.5zM4.977 10.16a1 1 0 0 1 2 0v3.18a1 1 0 0 1-2 0v-3.18zm14.046 0a1 1 0 0 1 2 0v3.18a1 1 0 0 1-2 0v-3.18z"/>
-              </svg>
-              تثبيت تطبيق الأندرويد
-            </a>
-
-          {/* iPhone Button */}
-          <a
-              href="/hanutak_ios.mobileconfig"
-              className="w-full flex items-center justify-center gap-3 bg-gray-800 hover:bg-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-gray-800/25 transition-all active:scale-95"
-            >
-              <Smartphone className="w-6 h-6" />
-              تثبيت تطبيق الآيفون
-            </a>
+          <p className="text-xs text-gray-500 mt-2">
+            * سيتم نقلك إلى الموقع المخصص لتحميل التطبيقات الآمنة
+          </p>
         </div>
 
         {/* iOS Instructions Panel */}
