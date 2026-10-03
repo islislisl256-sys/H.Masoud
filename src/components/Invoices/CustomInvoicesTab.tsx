@@ -397,15 +397,15 @@ export default function CustomInvoicesTab() {
             <Store className="h-5 w-5 text-gray-400" /> معلومات المتجر
           </h2>
           <div className="space-y-3">
-            <div><label className="text-xs text-gray-500 font-bold">اسمك_الكامل</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_name} onChange={e => setStoreInfo({...storeInfo, store_name: e.target.value})} /></div>
-            <div><label className="text-xs text-gray-500 font-bold">النشاط</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_activity} onChange={e => setStoreInfo({...storeInfo, store_activity: e.target.value})} /></div>
-            <div><label className="text-xs text-gray-500 font-bold">عنوان_المقر</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_address} onChange={e => setStoreInfo({...storeInfo, store_address: e.target.value})} /></div>
-            <div><label className="text-xs text-gray-500 font-bold">cle</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_ccp_1} onChange={e => setStoreInfo({...storeInfo, store_ccp_1: e.target.value})} /></div>
-            <div><label className="text-xs text-gray-500 font-bold">ccp</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_ccp_2} onChange={e => setStoreInfo({...storeInfo, store_ccp_2: e.target.value})} /></div>
-            <div><label className="text-xs text-gray-500 font-bold">س.ت.رقم</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_rc} onChange={e => setStoreInfo({...storeInfo, store_rc: e.target.value})} /></div>
-            <div><label className="text-xs text-gray-500 font-bold">رقم_الجبائي</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_mf} onChange={e => setStoreInfo({...storeInfo, store_mf: e.target.value})} /></div>
-            <div><label className="text-xs text-gray-500 font-bold">رقم_المادة</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_art} onChange={e => setStoreInfo({...storeInfo, store_art: e.target.value})} /></div>
-            <div><label className="text-xs text-gray-500 font-bold">nff</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none" value={storeInfo.store_nif} onChange={e => setStoreInfo({...storeInfo, store_nif: e.target.value})} /></div>
+            <div><label className="text-xs text-gray-500 font-bold">اسمك_الكامل</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none text-gray-900" value={storeInfo.store_name} onChange={e => setStoreInfo({...storeInfo, store_name: e.target.value})} /></div>
+            <div><label className="text-xs text-gray-500 font-bold">النشاط</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none text-gray-900" value={storeInfo.store_activity} onChange={e => setStoreInfo({...storeInfo, store_activity: e.target.value})} /></div>
+            <div><label className="text-xs text-gray-500 font-bold">عنوان_المقر</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none text-gray-900" value={storeInfo.store_address} onChange={e => setStoreInfo({...storeInfo, store_address: e.target.value})} /></div>
+            <div><label className="text-xs text-gray-500 font-bold">cle</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none text-gray-900" value={storeInfo.store_ccp_1} onChange={e => setStoreInfo({...storeInfo, store_ccp_1: e.target.value})} /></div>
+            <div><label className="text-xs text-gray-500 font-bold">ccp</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none text-gray-900" value={storeInfo.store_ccp_2} onChange={e => setStoreInfo({...storeInfo, store_ccp_2: e.target.value})} /></div>
+            <div><label className="text-xs text-gray-500 font-bold">س.ت.رقم</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none text-gray-900" value={storeInfo.store_rc} onChange={e => setStoreInfo({...storeInfo, store_rc: e.target.value})} /></div>
+            <div><label className="text-xs text-gray-500 font-bold">رقم_الجبائي</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none text-gray-900" value={storeInfo.store_mf} onChange={e => setStoreInfo({...storeInfo, store_mf: e.target.value})} /></div>
+            <div><label className="text-xs text-gray-500 font-bold">رقم_المادة</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none text-gray-900" value={storeInfo.store_art} onChange={e => setStoreInfo({...storeInfo, store_art: e.target.value})} /></div>
+            <div><label className="text-xs text-gray-500 font-bold">nff</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none text-gray-900" value={storeInfo.store_nif} onChange={e => setStoreInfo({...storeInfo, store_nif: e.target.value})} /></div>
             <div>
               <label className="text-xs text-gray-500 font-bold flex justify-between items-center mb-2">
                 العلامة المائية المطبوعة
@@ -418,7 +418,7 @@ export default function CustomInvoicesTab() {
                       <img src={storeInfo.store_logo} alt="شعار" className="w-full h-full object-contain p-1 bg-white" />
                       <label className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
                         <span className="text-white text-xs font-bold">تغيير</span>
-                        <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onChange={(e) => {
+                        <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50 text-gray-900" onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
                             const reader = new FileReader();
@@ -433,7 +433,7 @@ export default function CustomInvoicesTab() {
                     <label className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                       <Plus className="h-6 w-6 text-gray-400 mb-1" />
                       <span className="text-gray-500 dark:text-gray-400 text-[10px] font-medium">رفع شعار</span>
-                      <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onChange={(e) => {
+                      <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50 text-gray-900" onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
                           const reader = new FileReader();
@@ -454,9 +454,9 @@ export default function CustomInvoicesTab() {
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5 space-y-4">
             <h2 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2 border-b border-gray-100 dark:border-gray-700 pb-3"><User className="h-5 w-5 text-primary" /> الزبون والوثيقة</h2>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div><label className="text-xs text-gray-500 font-bold">اسم_الزبون</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.client_name} onChange={e => setClientInfo({...clientInfo, client_name: e.target.value})} /></div>
-              <div><label className="text-xs text-gray-500 font-bold">رقم_الفاتورة_و_الوصل</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.invoice_number} onChange={e => setClientInfo({...clientInfo, invoice_number: e.target.value})} /></div>
-                <div><label className="text-xs text-gray-500 font-bold">التاريخ</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" value={clientInfo.receipt_date} onChange={e => setClientInfo({...clientInfo, receipt_date: e.target.value})} /></div>
+              <div><label className="text-xs text-gray-500 font-bold">اسم_الزبون</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary text-gray-900" value={clientInfo.client_name} onChange={e => setClientInfo({...clientInfo, client_name: e.target.value})} /></div>
+              <div><label className="text-xs text-gray-500 font-bold">رقم_الفاتورة_و_الوصل</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary text-gray-900" value={clientInfo.invoice_number} onChange={e => setClientInfo({...clientInfo, invoice_number: e.target.value})} /></div>
+                <div><label className="text-xs text-gray-500 font-bold">التاريخ</label><input type="text" className="w-full px-3 py-2 border rounded-lg text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary text-gray-900" value={clientInfo.receipt_date} onChange={e => setClientInfo({...clientInfo, receipt_date: e.target.value})} /></div>
             </div>
           </div>
 
@@ -471,7 +471,7 @@ export default function CustomInvoicesTab() {
                 <p className="text-xs text-gray-500 mb-2">الصيغة: <code className="bg-gray-200 dark:bg-gray-600 px-1 rounded">اسم السلعة , الوحدة , الكمية , السعر ;</code> (فاصلة للخانة، وفاصلة منقوطة لسطر جديد)</p>
                 <div className="flex gap-3">
                   <textarea 
-                    className="flex-1 px-3 py-2 border rounded-lg text-sm resize-none dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary" 
+                    className="flex-1 px-3 py-2 border rounded-lg text-sm resize-none dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:border-primary text-gray-900" 
                     rows={2}
                     placeholder="سكر , كغ , 5 , 100 ; شاي , علبة , 2 , 50 ;"
                     value={bulkInput}
@@ -499,10 +499,10 @@ export default function CustomInvoicesTab() {
                 items.map((item, index) => (
                   <div key={index} className="flex flex-wrap sm:flex-nowrap items-center gap-2 bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg">
                     <div className="w-8 text-center text-xs text-gray-400 font-bold">{item.item_index}</div>
-                    <div className="flex-1 min-w-[150px]"><label className="text-[10px] text-gray-500">item_designation</label><input type="text" id={`input-${index}-0`} className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all" value={item.item_designation} onChange={e => updateItem(index, 'item_designation', e.target.value)} onKeyDown={(e) => handleKeyDown(e, index, 0)} onFocus={(e) => e.target.select()} /></div>
-                    <div className="w-16"><label className="text-[10px] text-gray-500">item_unit</label><input type="text" id={`input-${index}-1`} className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 text-center outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all dark:text-white" value={item.item_unit || ''} onChange={e => updateItem(index, 'item_unit', e.target.value)} onKeyDown={(e) => handleKeyDown(e, index, 1)} onFocus={(e) => e.target.select()} /></div>
-                    <div className="w-16"><label className="text-[10px] text-gray-500">item_quantity</label><input type="number" id={`input-${index}-2`} className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 text-center outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all dark:text-white" value={item.item_quantity} onChange={e => updateItem(index, 'item_quantity', e.target.value === '' ? 0 : Number(e.target.value))} onKeyDown={(e) => handleKeyDown(e, index, 2)} onFocus={(e) => e.target.select()} /></div>
-                    <div className="w-24"><label className="text-[10px] text-gray-500">item_unit_price</label><input type="number" id={`input-${index}-3`} className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 text-center outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all dark:text-white" value={item.item_unit_price} onChange={e => updateItem(index, 'item_unit_price', e.target.value === '' ? 0 : Number(e.target.value))} onKeyDown={(e) => handleKeyDown(e, index, 3)} onFocus={(e) => e.target.select()} /></div>
+                    <div className="flex-1 min-w-[150px]"><label className="text-[10px] text-gray-500">item_designation</label><input type="text" id={`input-${index}-0`} className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all text-gray-900" value={item.item_designation} onChange={e => updateItem(index, 'item_designation', e.target.value)} onKeyDown={(e) => handleKeyDown(e, index, 0)} onFocus={(e) => e.target.select()} /></div>
+                    <div className="w-16"><label className="text-[10px] text-gray-500">item_unit</label><input type="text" id={`input-${index}-1`} className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 text-center outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all dark:text-white text-gray-900" value={item.item_unit || ''} onChange={e => updateItem(index, 'item_unit', e.target.value)} onKeyDown={(e) => handleKeyDown(e, index, 1)} onFocus={(e) => e.target.select()} /></div>
+                    <div className="w-16"><label className="text-[10px] text-gray-500">item_quantity</label><input type="number" id={`input-${index}-2`} className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 text-center outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all dark:text-white text-gray-900" value={item.item_quantity} onChange={e => updateItem(index, 'item_quantity', e.target.value === '' ? 0 : Number(e.target.value))} onKeyDown={(e) => handleKeyDown(e, index, 2)} onFocus={(e) => e.target.select()} /></div>
+                    <div className="w-24"><label className="text-[10px] text-gray-500">item_unit_price</label><input type="number" id={`input-${index}-3`} className="w-full px-2 py-1.5 border rounded text-sm dark:bg-gray-700 dark:border-gray-600 text-center outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent transition-all dark:text-white text-gray-900" value={item.item_unit_price} onChange={e => updateItem(index, 'item_unit_price', e.target.value === '' ? 0 : Number(e.target.value))} onKeyDown={(e) => handleKeyDown(e, index, 3)} onFocus={(e) => e.target.select()} /></div>
                     <div className="w-24"><label className="text-[10px] text-gray-500">item_total_price</label><div className="w-full px-2 py-1.5 bg-gray-100 dark:bg-gray-800 rounded text-sm text-center font-bold">{item.item_total_price}</div></div>
                     <button onClick={() => removeItem(index)} className="p-2 mt-4 text-gray-400 hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
                   </div>
@@ -523,12 +523,12 @@ export default function CustomInvoicesTab() {
                     <input type="checkbox" checked={includeTva} onChange={e => setIncludeTva(e.target.checked)} className="w-4 h-4 accent-blue-500 cursor-pointer" title="تضمين في المجموع" />
                   </div>
                 </div>
-                <div className="flex justify-between items-center text-sm"><span>الرسم_ع_الطابع:</span><input type="number" className="w-28 px-3 py-1.5 border rounded text-right" value={financials.stamp_duty} onChange={e => setFinancials({...financials, stamp_duty: Number(e.target.value)})} /></div>
+                <div className="flex justify-between items-center text-sm"><span>الرسم_ع_الطابع:</span><input type="number" className="w-28 px-3 py-1.5 border rounded text-right text-gray-900" value={financials.stamp_duty} onChange={e => setFinancials({...financials, stamp_duty: Number(e.target.value)})} /></div>
                 <div className="flex justify-between items-center font-bold pt-2 border-t border-dashed"><span>المجموع_الكلي:</span><span className="text-primary font-mono text-xl bg-primary/10 px-3 py-1 rounded-lg">{grand_total_invoice.toFixed(2)}</span></div>
               </div>
               <div className="flex-1">
                 <label className="text-sm font-bold block mb-2">المبلغ_بالحروف_للمجموع_الكلي</label>
-                <textarea rows={4} className="w-full px-3 py-2 border rounded-lg text-sm resize-none dark:bg-gray-700" placeholder="أقفلت هذه الفاتورة عند مبلغ..." value={amountInWords} onChange={e => setAmountInWords(e.target.value)} />
+                <textarea rows={4} className="w-full px-3 py-2 border rounded-lg text-sm resize-none dark:bg-gray-700 text-gray-900" placeholder="أقفلت هذه الفاتورة عند مبلغ..." value={amountInWords} onChange={e => setAmountInWords(e.target.value)} />
               </div>
             </div>
 
@@ -545,7 +545,7 @@ export default function CustomInvoicesTab() {
                 <span className="text-sm">الفاتورة فقط</span>
                 {!isPremium && <Lock className="w-3 h-3 text-amber-500" />}
               </label>
-              <label className="flex items-center gap-1.5 cursor-pointer">
+              <label className="relative flex items-center gap-1.5 cursor-pointer">
                 <input type="radio" name="pages" checked={pagesToPrint === 'both' || !isPremium} onChange={() => setPagesToPrint('both')} className="accent-primary" />
                 <span className="text-sm">الاثنين معاً {isPremium ? '' : '(متاح)'}</span>
               </label>
