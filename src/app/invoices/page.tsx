@@ -279,7 +279,7 @@ export default function InvoicesPage() {
             </div>
             <input
               type="date"
-              className="w-full pl-3 pr-10 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white text-gray-900"
+              className="w-full pl-3 pr-10 py-3 text-base border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white text-black bg-white"
               value={searchDate}
               onChange={e => setSearchDate(e.target.value)}
             />

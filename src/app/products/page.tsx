@@ -396,7 +396,7 @@ export default function ProductsPage() {
                 <input
                   type="text"
                   placeholder="بحث عن منتج بالاسم أو الباركود..."
-                  className="w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white sm:text-sm text-right"
+                  className="w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white sm:text-sm text-right bg-white text-black"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   dir="rtl"
@@ -424,16 +424,16 @@ export default function ProductsPage() {
                          <div key={index} className="flex items-center gap-1.5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg px-2 py-1.5 shrink-0 shadow-sm">
                             <span className="text-[10px] font-mono bg-gray-200 dark:bg-gray-700 px-1.5 py-0.5 rounded text-gray-600 dark:text-gray-300 shrink-0">{p.product_number.length > 8 ? p.product_number.slice(-8) : p.product_number}</span>
                              <label className="cursor-pointer shrink-0 ml-1 relative overflow-hidden">
-                               <div className="w-7 h-7 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors overflow-hidden">
+                               <div className="w-7 h-7 rounded bg-gray-100 dark:bg-gray-800 flex items-center justify-center border border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors overflow-hidden text-black">
                                  {p.image_preview || p.image_url ? <img src={p.image_preview || p.image_url} className="w-full h-full object-cover" /> : <Camera className="w-3.5 h-3.5 text-gray-500" />}
                                </div>
                                <input type="file" accept="image/*" className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-50" onChange={(e) => { if(e.target.files && e.target.files[0]) handleImageSelectForProduct(e.target.files[0], index) }} />
                              </label>
 
-                            <input type="text" placeholder="الاسم" value={p.name} onChange={e => updatePending(index, 'name', e.target.value)} className="w-24 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary" dir="rtl" />
-                            <input type="number" placeholder="شراء" value={p.purchase_price || ''} onChange={e => updatePending(index, 'purchase_price', Number(e.target.value))} className="w-14 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary text-center" dir="ltr" />
-                            <input type="number" placeholder="بيع" value={p.sale_price || ''} onChange={e => updatePending(index, 'sale_price', Number(e.target.value))} className="w-14 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary text-center" dir="ltr" />
-                            <input type="number" placeholder="كمية" value={p.quantity || ''} onChange={e => updatePending(index, 'quantity', Number(e.target.value))} className="w-14 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary text-center" dir="ltr" />
+                            <input type="text" placeholder="الاسم" value={p.name} onChange={e => updatePending(index, 'name', e.target.value)} className="w-24 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white focus:ring-1 focus:ring-primary" dir="rtl" />
+                            <input type="number" placeholder="شراء" value={p.purchase_price || ''} onChange={e => updatePending(index, 'purchase_price', Number(e.target.value))} className="w-14 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white focus:ring-1 focus:ring-primary text-center" dir="ltr" />
+                            <input type="number" placeholder="بيع" value={p.sale_price || ''} onChange={e => updatePending(index, 'sale_price', Number(e.target.value))} className="w-14 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white focus:ring-1 focus:ring-primary text-center" dir="ltr" />
+                            <input type="number" placeholder="كمية" value={p.quantity || ''} onChange={e => updatePending(index, 'quantity', Number(e.target.value))} className="w-14 text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-black dark:text-white focus:ring-1 focus:ring-primary text-center" dir="ltr" />
                             <button onClick={() => removePending(index)} className="text-gray-400 hover:text-red-500 shrink-0"><X className="h-3.5 w-3.5" /></button>
                          </div>
                       ))}
@@ -484,28 +484,28 @@ export default function ProductsPage() {
                                <td className="p-2 border-b border-gray-100 dark:border-gray-800 text-xs font-mono text-gray-600 dark:text-gray-400">{p.product_number}</td>
                                <td className="p-2 border-b border-gray-100 dark:border-gray-800 text-sm font-bold text-gray-900 dark:text-white">
                                   {editingId === p.id && editField === 'name' ? (
-                                    <input type="text" autoFocus value={editValue} onChange={e=>setEditValue(e.target.value)} onBlur={()=>handleUpdateField(p.id, 'name')} onKeyDown={e=>{if(e.key==='Enter') handleUpdateField(p.id, 'name')}} className="w-full text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white" dir="rtl" />
+                                    <input type="text" autoFocus value={editValue} onChange={e=>setEditValue(e.target.value)} onBlur={()=>handleUpdateField(p.id, 'name')} onKeyDown={e=>{if(e.key==='Enter') handleUpdateField(p.id, 'name')}} className="w-full text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-black dark:text-white" dir="rtl" />
                                   ) : (
                                     <span onClick={()=>startEditField(p.id, 'name', p.name)} className="cursor-pointer border-b border-dashed border-gray-300 hover:border-primary">{p.name}</span>
                                   )}
                                </td>
                                <td className="p-2 border-b border-gray-100 dark:border-gray-800 text-sm text-center">
                                   {editingId === p.id && editField === 'quantity' ? (
-                                    <input type="number" autoFocus value={editValue} onChange={e=>setEditValue(e.target.value)} onBlur={()=>handleUpdateField(p.id, 'quantity')} onKeyDown={e=>{if(e.key==='Enter') handleUpdateField(p.id, 'quantity')}} className="w-full text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center" dir="ltr" />
+                                    <input type="number" autoFocus value={editValue} onChange={e=>setEditValue(e.target.value)} onBlur={()=>handleUpdateField(p.id, 'quantity')} onKeyDown={e=>{if(e.key==='Enter') handleUpdateField(p.id, 'quantity')}} className="w-full text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-black dark:text-white text-center" dir="ltr" />
                                   ) : (
                                     <span onClick={()=>startEditField(p.id, 'quantity', p.quantity)} className={`cursor-pointer font-bold px-2 py-0.5 rounded text-xs ${p.quantity < 10 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'}`}>{p.quantity}</span>
                                   )}
                                </td>
                                <td className="p-2 border-b border-gray-100 dark:border-gray-800 text-sm text-gray-600 dark:text-gray-300 font-mono">
                                   {editingId === p.id && editField === 'purchase_price' ? (
-                                    <input type="number" autoFocus value={editValue} onChange={e=>setEditValue(e.target.value)} onBlur={()=>handleUpdateField(p.id, 'purchase_price')} onKeyDown={e=>{if(e.key==='Enter') handleUpdateField(p.id, 'purchase_price')}} className="w-full text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center" dir="ltr" />
+                                    <input type="number" autoFocus value={editValue} onChange={e=>setEditValue(e.target.value)} onBlur={()=>handleUpdateField(p.id, 'purchase_price')} onKeyDown={e=>{if(e.key==='Enter') handleUpdateField(p.id, 'purchase_price')}} className="w-full text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-black dark:text-white text-center" dir="ltr" />
                                   ) : (
                                     <span onClick={()=>startEditField(p.id, 'purchase_price', p.purchase_price)} className="cursor-pointer border-b border-dashed border-gray-300 hover:border-primary">{p.purchase_price} د.ج</span>
                                   )}
                                </td>
                                <td className="p-2 border-b border-gray-100 dark:border-gray-800 text-sm text-primary font-bold font-mono">
                                   {editingId === p.id && editField === 'sale_price' ? (
-                                    <input type="number" autoFocus value={editValue} onChange={e=>setEditValue(e.target.value)} onBlur={()=>handleUpdateField(p.id, 'sale_price')} onKeyDown={e=>{if(e.key==='Enter') handleUpdateField(p.id, 'sale_price')}} className="w-full text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-center" dir="ltr" />
+                                    <input type="number" autoFocus value={editValue} onChange={e=>setEditValue(e.target.value)} onBlur={()=>handleUpdateField(p.id, 'sale_price')} onKeyDown={e=>{if(e.key==='Enter') handleUpdateField(p.id, 'sale_price')}} className="w-full text-xs p-1 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-black dark:text-white text-center" dir="ltr" />
                                   ) : (
                                     <span onClick={()=>startEditField(p.id, 'sale_price', p.sale_price)} className="cursor-pointer border-b border-dashed border-primary hover:text-primary-hover">{p.sale_price} د.ج</span>
                                   )}

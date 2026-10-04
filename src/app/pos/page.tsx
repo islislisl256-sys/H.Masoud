@@ -319,7 +319,7 @@ export default function POSPage() {
               <input
                 type="text"
                 placeholder="ابحث عن منتج..."
-                className="w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white sm:text-sm text-right font-mono text-gray-900"
+                className="w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary dark:bg-gray-700 dark:text-white sm:text-sm text-right font-mono text-black bg-white"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={handleManualSearch}
@@ -375,7 +375,7 @@ export default function POSPage() {
            </button>
            <div id="quick-products" className="flex-1 flex gap-2 overflow-x-auto scrollbar-hide scroll-smooth px-1">
               {products.filter(p => !p.product_number || p.product_number.trim() === '' || p.product_number.startsWith('NOBC') || p.image_url).map(p => (
-                 <button key={p.id} onClick={() => addProduct(p)} className="flex items-center gap-2 bg-gray-50 hover:bg-primary/10 dark:bg-gray-700 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-lg p-1.5 min-w-[130px] max-w-[150px] transition-colors shrink-0">
+                 <button key={p.id} onClick={() => addProduct(p)} className="flex items-center gap-2 bg-gray-50 hover:bg-primary/10 dark:bg-gray-700 dark:hover:bg-gray-600 border border-gray-200 dark:border-gray-600 rounded-lg p-1.5 min-w-[130px] max-w-[150px] transition-colors shrink-0 text-black">
                     {p.image_url ? (
                        <img src={p.image_url} alt={p.name} className="w-8 h-8 rounded object-cover border bg-white shrink-0" />
                     ) : (
@@ -422,7 +422,7 @@ export default function POSPage() {
                          </td>
                          <td className="p-1.5 text-xs font-mono text-center text-gray-600 dark:text-gray-400">{item.sale_price}</td>
                          <td className="p-1.5 text-center">
-                            <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded overflow-hidden border border-gray-200 dark:border-gray-600 mx-auto w-fit">
+                            <div className="flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded overflow-hidden border border-gray-200 dark:border-gray-600 mx-auto w-fit text-black">
                                <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="px-1.5 py-0.5 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-600 dark:text-gray-300"><Minus className="h-3 w-3" /></button>
                                <input 
                                   type="number" 
